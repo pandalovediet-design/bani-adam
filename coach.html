@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>عدّاد بني آدم</title>
+<meta name="description" content="عدّاد عدّات بالكاميرا: سكوات على كرسي، رفع ركب، ضغط أكتاف، ورفع جانبي. بيعدّ العدّة الكاملة بس، وبيسجّلها بسجل تمرينك.">
+<meta name="theme-color" content="#0e1520">
+<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/brand/app-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<style>
+/* Brand "مشروع بني آدم". Layout: phone column; live camera stage with a giant rep counter on top, controls and today's sets below. */
+:root { --bg: #0e1520; --surface: #152033; --raise: #1c2a40; --line: #2a3a52; --fg: #f8f4ec; --muted: #94a3b8; --accent: #f28a2e; --good: #3ec28f; --warn: #e8b33f; --bad: #e5675a;
+  --display: "Tajawal", "IBM Plex Sans Arabic", system-ui, sans-serif; --body: "IBM Plex Sans Arabic", Tahoma, system-ui, sans-serif; color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.wrap { max-width: 640px; margin: 0 auto; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 14px; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+h1 { font-family: var(--display); font-weight: 900; font-size: 1.6rem; margin: 0; }
+h1 span { color: var(--accent); }
+a { color: var(--accent); }
+.stage { position: relative; border-radius: 22px; overflow: hidden; background: #000; aspect-ratio: 4 / 3; width: 100%; }
+.stage canvas { width: 100%; height: 100%; display: block; }
+.big { position: absolute; top: 10px; right: 12px; text-align: center; background: rgb(14 21 32 / .78); border-radius: 18px; padding: 6px 16px; min-width: 96px; }
+.big b { display: block; font-family: var(--display); font-weight: 900; font-size: 3.4rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.big span { font-size: .8rem; color: var(--muted); }
+.cue { position: absolute; left: 0; right: 0; bottom: 12px; text-align: center; font-family: var(--display); font-weight: 900; font-size: clamp(1.2rem, 5.5vw, 1.8rem); color: var(--accent); text-shadow: 0 2px 10px rgb(0 0 0 / .7); padding: 0 10px; }
+.cue.ok { color: var(--good); }
+.see { position: absolute; top: 12px; left: 12px; background: rgb(14 21 32 / .78); border-radius: 99px; padding: 4px 12px; font-size: .8rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 14px; display: grid; gap: 10px; }
+h2 { font-family: var(--display); font-weight: 800; font-size: 1.05rem; margin: 0; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { background: var(--raise); color: var(--fg); border: 1px solid var(--line); border-radius: 99px; padding: 7px 14px; font: inherit; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); color: #1a0f04; border-color: var(--accent); font-weight: 600; }
+.chip:disabled { opacity: .55; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.btn { background: var(--accent); color: #1a0f04; border: 0; border-radius: 14px; padding: 12px 22px; font: inherit; font-weight: 700; cursor: pointer; }
+.btn.ghost { background: var(--raise); color: var(--fg); border: 1px solid var(--line); }
+label.f { display: grid; gap: 4px; font-size: .8rem; color: var(--muted); }
+input[type=number] { width: 120px; background: var(--raise); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; color: var(--fg); font: inherit; }
+.how { margin: 0; padding-inline-start: 18px; font-size: .88rem; display: grid; gap: 4px; }
+.warn { color: var(--warn); font-size: .82rem; margin: 0; }
+.note { color: var(--muted); font-size: .8rem; margin: 0; }
+.err { color: var(--bad); font-size: .88rem; margin: 0; }
+ul.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+ul.list li { display: flex; justify-content: space-between; gap: 8px; background: var(--raise); border-radius: 12px; padding: 8px 12px; font-size: .9rem; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>عدّاد <span>بني آدم</span></h1><a href="./">صفحة اليوم</a></div>
+
+  <div class="stage">
+    <canvas id="view" width="640" height="480"></canvas>
+    <div class="big"><b id="count">0</b><span id="goalTxt">من 15</span></div>
+    <div class="see" id="see">الكاميرا مطفية</div>
+    <div class="cue" id="cue">اختار تمرين واضغط ابدأ</div>
+  </div>
+
+  <div class="card">
+    <h2>التمرين</h2>
+    <div class="chips" id="exPick"></div>
+    <ul class="how" id="how"></ul>
+    <p class="warn" id="warn" hidden></p>
+    <div class="row">
+      <div class="chips" id="goalPick"></div>
+      <label class="f" for="kg" id="kgWrap">وزن الدمبل (كغ)<input type="number" id="kg" inputmode="decimal" min="0" step="0.5" placeholder="بدون"></label>
+    </div>
+    <p class="err" id="err" hidden></p>
+    <div class="row"><button class="btn" id="go" type="button">ابدأ</button><button class="btn ghost" id="stop" type="button" hidden>خلّصت الجولة</button></div>
+    <p class="note">الكاميرا بتشتغل على جهازك بس، وما في أي صورة بتطلع منه. بيعدّ العدّة الكاملة بس، والنص عدّة ما بتنحسب.</p>
+  </div>
+
+  <div class="card">
+    <h2>جولات اليوم بالعدّاد</h2>
+    <ul class="list" id="today"></ul>
+    <p class="note">بتنسجل لحالها بسجل التمرين بصفحة اليوم، على هالجهاز.</p>
+  </div>
+</div>
+<video id="vid" playsinline muted hidden></video>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const ar = (n) => Number(n).toLocaleString("ar-EG");
+
+// Each exercise: a measure from landmarks and two thresholds. A rep = reach "down", then reach "up" (the stage order idea from ai-workout-assistant).
+const EXS = {
+  chair_squat: { n: "سكوات على كرسي", how: ["اوقف جنبك شوي للكاميرا، والكرسي وراك", "انزل لحد ما تلمس الكرسي بهدوء، وقوم من كعبك", "بتنعدّ لما تنزل لحد الكرسي وترجع توقف للآخر"], cue: { down: "انزل…", up: "قوم!", partial: "انزل أكثر، لحد الكرسي" }, kg: false },
+  high_knees: { n: "رفع الركب بالمكان", how: ["مواجه للكاميرا، وجسمك كامل ظاهر", "ارفع ركبة ركبة لمستوى الورك، وإيديك بتتحرك", "كل رفعة ركبة كاملة = عدّة"], cue: { down: "", up: "", partial: "ارفع الركبة أعلى" }, kg: false },
+  overhead: { n: "ضغط أكتاف", how: ["مواجه للكاميرا، بدمبلز أو بدون", "من مستوى الكتف لفوق راسك والإيدين ممدودين", "ارجع لمستوى الكتف كل مرة"], cue: { down: "نزّل للكتف", up: "ادفع لفوق!", partial: "افرد إيديك فوق راسك للآخر" }, kg: true, warn: "إذا حسيت تنميل بإيدك، وقّف هالتمرين واحكي للدكتور." },
+  lat_raise: { n: "رفع جانبي", how: ["مواجه للكاميرا، بدمبلز خفيفة", "ارفع الإيدين لجنب لمستوى الكتف، مش أعلى", "نزّل ببطء لجنب فخادك"], cue: { down: "نزّل ببطء", up: "لمستوى الكتف", partial: "ارفع لمستوى الكتف" }, kg: true },
+};
+const GOALS = [10, 15, 20, "60"];
+let ex = "chair_squat", goal = 15;
+try { const s = JSON.parse(localStorage.getItem("ba-coach") || "{}"); if (EXS[s.ex]) ex = s.ex; if (GOALS.includes(s.goal)) goal = s.goal; } catch {}
+
+function drawPick() {
+  const busy = running;
+  $("exPick").innerHTML = Object.entries(EXS).map(([k, e]) => `<button type="button" class="chip" data-ex="${k}" aria-pressed="${k === ex}" ${busy ? "disabled" : ""}>${e.n}</button>`).join("");
+  $("goalPick").innerHTML = GOALS.map((g) => `<button type="button" class="chip" data-g="${g}" aria-pressed="${g === goal}" ${busy ? "disabled" : ""}>${g === "60" ? "تحدي ٦٠ ثانية" : ar(g) + " عدّة"}</button>`).join("");
+  $("how").innerHTML = EXS[ex].how.map((h) => `<li>${h}</li>`).join("");
+  $("warn").hidden = !EXS[ex].warn; $("warn").textContent = EXS[ex].warn || "";
+  $("kgWrap").hidden = !EXS[ex].kg;
+  $("goalTxt").textContent = goal === "60" ? "بـ ٦٠ ثانية" : `من ${ar(goal)}`;
+  try { localStorage.setItem("ba-coach", JSON.stringify({ ex, goal })); } catch {}
+}
+$("exPick").addEventListener("click", (e) => { const b = e.target.closest("[data-ex]"); if (b && !running) { ex = b.dataset.ex; drawPick(); } });
+$("goalPick").addEventListener("click", (e) => { const b = e.target.closest("[data-g]"); if (b && !running) { goal = b.dataset.g === "60" ? "60" : +b.dataset.g; drawPick(); } });
+
+// ---------- audio ----------
+let actx = null;
+const beep = (f, d = 0.1, v = 0.12) => { if (!actx) return; try { const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f; g.gain.setValueAtTime(v, actx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + d); o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + d); } catch {} };
+
+// ---------- camera ----------
+const VISION = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+let lm = null;
+const vid = $("vid"), view = $("view"), vx = view.getContext("2d");
+async function startCamera() {
+  const { FilesetResolver, PoseLandmarker } = await import(`${VISION}/vision_bundle.mjs`);
+  const fs = await FilesetResolver.forVisionTasks(`${VISION}/wasm`);
+  const opts = (delegate) => ({ baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task", delegate }, runningMode: "VIDEO", numPoses: 1 });
+  try { lm = await PoseLandmarker.createFromOptions(fs, opts("GPU")); } catch { lm = await PoseLandmarker.createFromOptions(fs, opts("CPU")); }
+  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+  vid.srcObject = stream; await vid.play();
+}
+const vis = (p) => p && (p.visibility ?? 1) > 0.55;
+function angle(a, b, c, aspect) { // degrees at b, with x scaled to real proportions
+  const v1 = [(a.x - b.x) * aspect, a.y - b.y], v2 = [(c.x - b.x) * aspect, c.y - b.y];
+  const cos = (v1[0] * v2[0] + v1[1] * v2[1]) / (Math.hypot(...v1) * Math.hypot(...v2) || 1);
+  return Math.acos(Math.max(-1, Math.min(1, cos))) * 180 / Math.PI;
+}
+
+// ---------- rep logic ----------
+let running = false, reps = 0, stage = "up", tEnd = 0, legUp = [false, false], legPeak = [1, 1];
+function measure(L, aspect) {
+  const [nose, lS, rS, lE, rE, lW, rW, lH, rH, lK, rK, lA, rA] = [0, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28].map((i) => L[i]);
+  const torso = vis(lS) && vis(lH) ? Math.abs(((lH.y + rH.y) / 2) - ((lS.y + rS.y) / 2)) || 0.2 : 0.2;
+  if (ex === "chair_squat") {
+    const legs = [[lH, lK, lA], [rH, rK, rA]].filter(([h, k, a]) => vis(h) && vis(k) && vis(a)).map(([h, k, a]) => angle(h, k, a, aspect));
+    if (!legs.length) return null;
+    return { v: Math.min(...legs), down: (v) => v < 120, up: (v) => v > 155, partial: (v) => v < 145, lowIsDown: true };
+  }
+  if (ex === "overhead") {
+    if (!(vis(lW) && vis(rW) && vis(lS) && vis(rS))) return null;
+    const v = ((lS.y + rS.y) / 2 - (lW.y + rW.y) / 2) / torso; // >0 when wrists above shoulders
+    return { v, down: (x) => x < 0.15, up: (x) => x > (nose.y < lS.y ? ((lS.y + rS.y) / 2 - nose.y) / torso + 0.35 : 0.9), partial: (x) => x > 0.5 };
+  }
+  if (ex === "lat_raise") {
+    if (!(vis(lW) && vis(rW) && vis(lS) && vis(rS))) return null;
+    const lift = Math.min(lH.y - lW.y, rH.y - rW.y) / torso; // 0 at hips, ~1 at shoulder height
+    return { v: lift, down: (x) => x < 0.3, up: (x) => x > 0.82, partial: (x) => x > 0.55 };
+  }
+  return null;
+}
+function highKnees(L) {
+  const [lS, rS, lH, rH, lK, rK] = [11, 12, 23, 24, 25, 26].map((i) => L[i]);
+  if (!(vis(lH) && vis(rH) && vis(lK) && vis(rK) && vis(lS))) return "lost";
+  const torso = Math.abs((lH.y + rH.y) / 2 - (lS.y + rS.y) / 2) || 0.2;
+  [[lH, lK], [rH, rK]].forEach(([h, k], i) => {
+    const drop = (k.y - h.y) / torso; // ~0.9 standing, small when the knee is up
+    legPeak[i] = Math.min(legPeak[i], drop);
+    if (!legUp[i] && drop < 0.4) { legUp[i] = true; }
+    if (legUp[i] && drop > 0.7) { legUp[i] = false; rep(); legPeak[i] = 1; }
+    else if (!legUp[i] && drop > 0.75 && legPeak[i] < 0.62) { say(EXS.high_knees.cue.partial, false); legPeak[i] = 1; }
+  });
+  return "ok";
+}
+// Squat: rest = standing (high angle), rep = go below "down" then back above "up".
+// Press / raise: rest = arms low, rep = reach "up" then come back to "down".
+let peak = null;
+function step(L, aspect) {
+  if (ex === "high_knees") return highKnees(L);
+  const m = measure(L, aspect); if (!m) return "lost";
+  if (m.lowIsDown) { // squat
+    if (stage === "up") {
+      peak = peak === null ? m.v : Math.min(peak, m.v);
+      if (m.down(m.v)) { stage = "down"; peak = null; say(EXS[ex].cue.up, false); }
+      else if (m.v > 160 && peak !== null && m.partial(peak)) { say(EXS[ex].cue.partial, false); peak = null; }
+      else if (m.v > 160) peak = null;
+    } else if (m.up(m.v)) { stage = "up"; rep(); }
+  } else { // arms
+    if (stage === "up") { if (m.down(m.v)) { stage = "down"; peak = null; } }
+    else {
+      peak = peak === null ? m.v : Math.max(peak, m.v);
+      if (m.up(m.v)) { stage = "up"; peak = null; rep(); }
+      else if (m.down(m.v) && peak !== null && m.partial(peak)) { say(EXS[ex].cue.partial, false); peak = null; }
+      else if (m.down(m.v)) peak = null;
+    }
+  }
+  return "ok";
+}
+let cueT = 0;
+function say(t, ok) { if (!t) return; $("cue").textContent = t; $("cue").className = "cue" + (ok ? " ok" : ""); cueT = performance.now(); }
+function rep() {
+  reps++; $("count").textContent = ar(reps); beep(990, 0.08);
+  const left = goal === "60" ? null : goal - reps;
+  say(left === 0 ? "خلصت! الله يعطيك العافية" : left !== null && left <= 3 ? `باقي ${ar(left)}` : "عدّة ✓", true);
+  if (left === 0) finish();
+}
+
+// ---------- loop ----------
+function loop(now) {
+  if (lm && vid.readyState >= 2) {
+    const aspect = (vid.videoWidth || 640) / (vid.videoHeight || 480);
+    vx.save(); vx.translate(view.width, 0); vx.scale(-1, 1); vx.drawImage(vid, 0, 0, view.width, view.height); vx.restore();
+    const res = lm.detectForVideo(vid, now), L = res.landmarks && res.landmarks[0];
+    if (L) {
+      vx.fillStyle = "#f28a2e"; vx.strokeStyle = "rgb(248 244 236 / .7)"; vx.lineWidth = 3;
+      const P = (i) => [(1 - L[i].x) * view.width, L[i].y * view.height];
+      for (const [a, b] of [[11, 12], [11, 13], [13, 15], [12, 14], [14, 16], [11, 23], [12, 24], [23, 24], [23, 25], [25, 27], [24, 26], [26, 28]]) if (vis(L[a]) && vis(L[b])) { vx.beginPath(); vx.moveTo(...P(a)); vx.lineTo(...P(b)); vx.stroke(); }
+      for (const i of [0, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28]) if (vis(L[i])) { vx.beginPath(); vx.arc(...P(i), 5, 0, 7); vx.fill(); }
+    }
+    let st = L ? "ok" : "lost";
+    if (running && L) st = step(L, aspect);
+    $("see").textContent = !L ? "ما شايفك" : st === "lost" ? "ارجع لورا، لازم يبيّن جسمك كامل" : "شايفك ✓";
+    if (running && goal === "60") { const left = Math.max(0, Math.ceil((tEnd - Date.now()) / 1000)); $("goalTxt").textContent = `باقي ${ar(left)} ث`; if (!left) finish(); }
+    if (performance.now() - cueT > 2500 && running) { $("cue").textContent = EXS[ex].cue[stage === "down" ? "up" : "down"] || ""; $("cue").className = "cue"; }
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// ---------- save into the tracker's log (same site, same browser) ----------
+const LKEY = "bani-adam-v1";
+const pad = (n) => String(n).padStart(2, "0");
+const planDate = () => { const d = new Date(Date.now() - 6 * 3600e3); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+function saveSet(id, r, w) {
+  try {
+    const all = JSON.parse(localStorage.getItem(LKEY) || "{}"), key = "day-" + planDate();
+    const day = all[key] || { kind: "day", date: planDate(), checks: {}, foods: {}, sets: [] };
+    const name = { chair_squat: "سكوات على كرسي", high_knees: "رفع الركب بالمكان", overhead: "ضغط أكتاف دمبلز قاعد", lat_raise: "رفع جانبي دمبلز" }[id];
+    day.sets = [...(day.sets || []), { id: id === "overhead" ? "db_ohp" : id, ex: name, w: w || 0, r, t: Date.now(), cam: true }];
+    all[key] = day; localStorage.setItem(LKEY, JSON.stringify(all));
+  } catch {}
+  drawToday();
+}
+function drawToday() {
+  let sets = [];
+  try { const all = JSON.parse(localStorage.getItem(LKEY) || "{}"); sets = ((all["day-" + planDate()] || {}).sets || []).filter((s) => s.cam); } catch {}
+  $("today").innerHTML = sets.length ? sets.map((s) => `<li><span>${s.ex}</span><span>${s.w ? ar(s.w) + " كغ × " : ""}${ar(s.r)}</span></li>`).join("") : `<li><span>لسا ما في جولات اليوم.</span></li>`;
+}
+
+// ---------- controls ----------
+function finish() {
+  if (!running) return;
+  running = false; $("go").hidden = false; $("stop").hidden = true; drawPick();
+  if (reps > 0) { saveSet(ex, reps, EXS[ex].kg ? +$("kg").value || 0 : 0); beep(660, 0.15); setTimeout(() => beep(880, 0.2), 180); }
+  say(reps > 0 ? `${ar(reps)} عدّة، انسجلت ✓` : "ما انحسبت ولا عدّة. جرّب ترجع لورا شوي", reps > 0);
+}
+$("go").addEventListener("click", async () => {
+  $("err").hidden = true;
+  try { const AC = window.AudioContext || window.webkitAudioContext; if (AC && !actx) actx = new AC(); actx && actx.resume(); } catch {}
+  try { navigator.wakeLock && navigator.wakeLock.request("screen").catch(() => {}); } catch {}
+  if (!lm) {
+    $("go").disabled = true; $("go").textContent = "بجهّز الكاميرا…";
+    try { await startCamera(); }
+    catch (e) {
+      $("err").textContent = e && e.name === "NotAllowedError" ? "الكاميرا مرفوضة. اسمح للموقع يستعمل الكاميرا من إعدادات المتصفح." : "ما قدرت أشغّل الكاميرا أو أحمّل قارئ الحركة. تأكد من النت وجرّب كمان مرة.";
+      $("err").hidden = false; $("go").disabled = false; $("go").textContent = "ابدأ"; return;
+    }
+    $("go").disabled = false; $("go").textContent = "ابدأ";
+  }
+  reps = 0; stage = "up"; peak = null; legUp = [false, false]; legPeak = [1, 1];
+  $("count").textContent = ar(0);
+  if (goal === "60") tEnd = Date.now() + 60000;
+  running = true; $("go").hidden = true; $("stop").hidden = false; drawPick();
+  say("يلا!", true);
+});
+$("stop").addEventListener("click", finish);
+drawPick(); drawToday();
+</script>
+</body>
+</html>
