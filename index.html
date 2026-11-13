@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+<title>مشروع بني آدم</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Changa:wght@500;700;800&family=Readex+Pro:wght@400;500;600&display=swap">
+<style>
+/* Layout: one phone column, a night-shift header with the day counter, four views behind a bottom tab bar. */
+:root {
+  --bg: #0e1520; --surface: #162131; --raise: #1d2b3f; --line: #2a3a52;
+  --fg: #eef1f6; --muted: #93a1b5; --accent: #f28a2e; --accent-ink: #1a0f04;
+  --good: #3ec28f; --warn: #e8b33f; --bad: #e5675a;
+  --display: "Changa", "Readex Pro", system-ui, sans-serif;
+  --body: "Readex Pro", "Segoe UI", Tahoma, system-ui, sans-serif;
+  --r: 18px; color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --bg: #f6f3ee; --surface: #ffffff; --raise: #efe9e0; --line: #ddd4c7;
+  --fg: #172233; --muted: #5d6878; --accent: #c9620c; --accent-ink: #ffffff;
+  --good: #1f8a62; --warn: #a97a10; --bad: #c0453a; color-scheme: light } }
+:root[data-theme="light"] {
+  --bg: #f6f3ee; --surface: #ffffff; --raise: #efe9e0; --line: #ddd4c7;
+  --fg: #172233; --muted: #5d6878; --accent: #c9620c; --accent-ink: #ffffff;
+  --good: #1f8a62; --warn: #a97a10; --bad: #c0453a; color-scheme: light }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 560px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 110px; display: grid; gap: 16px; }
+h1, h2, .num { font-family: var(--display); }
+h2 { font-size: 1.05rem; margin: 0; font-weight: 700; text-wrap: balance; }
+.muted { color: var(--muted); }
+.small { font-size: .82rem; }
+.tab-num { font-variant-numeric: tabular-nums; }
+
+/* header */
+.top { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; }
+.eyebrow { font-size: .8rem; color: var(--accent); font-weight: 600; letter-spacing: .02em; }
+.day { font-family: var(--display); font-weight: 800; font-size: clamp(2.1rem, 9vw, 2.8rem); line-height: 1.05; margin: 2px 0 4px; }
+.day span { color: var(--accent); }
+.track { height: 6px; background: var(--raise); border-radius: 99px; overflow: hidden; }
+.track > i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.ring { width: 92px; height: 92px; position: relative; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring .lbl { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; line-height: 1.1; }
+.ring b { font-family: var(--display); font-size: 1.6rem; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.spread { justify-content: space-between; }
+
+/* checklist */
+.checks { display: grid; gap: 8px; }
+.chk { display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center; text-align: start; width: 100%; background: var(--raise); border: 1px solid transparent; border-radius: 14px; padding: 11px 12px; }
+.chk .box { width: 30px; height: 30px; border-radius: 9px; border: 2px solid var(--line); display: grid; place-items: center; font-weight: 800; }
+.chk[aria-pressed="true"] { border-color: color-mix(in srgb, var(--good) 55%, transparent); }
+.chk[aria-pressed="true"] .box { background: var(--good); border-color: var(--good); color: var(--bg); }
+.chk .t { font-weight: 600; }
+.chk .s { display: block; font-size: .78rem; color: var(--muted); font-weight: 400; }
+.chk.first { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+.tag { font-size: .7rem; padding: 2px 8px; border-radius: 99px; background: var(--bg); color: var(--muted); white-space: nowrap; }
+
+/* food */
+.bars { display: grid; gap: 10px; }
+.bar-h { display: flex; justify-content: space-between; font-size: .85rem; }
+.bar { height: 10px; background: var(--raise); border-radius: 99px; overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: 99px; background: var(--accent); }
+.bar.ok > i { background: var(--good); }
+.bar.over > i { background: var(--bad); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 8px; }
+.food { background: var(--raise); border: 1px solid var(--line); border-radius: 14px; padding: 10px; text-align: start; display: grid; gap: 2px; }
+.food b { font-weight: 600; font-size: .92rem; }
+.food small { color: var(--muted); font-size: .74rem; }
+.food.slip { border-style: dashed; }
+.food:active { transform: scale(.97); }
+.list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; background: var(--raise); border-radius: 12px; }
+.mini { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; min-width: 34px; height: 32px; padding: 0 8px; }
+
+/* train */
+.timer { display: grid; justify-items: center; gap: 12px; }
+.tring { width: 170px; height: 170px; border-radius: 50%; display: grid; place-items: center; }
+.tring > div { width: 140px; height: 140px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; font-family: var(--display); font-size: 2.6rem; font-weight: 800; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.chip { border: 1px solid var(--line); background: var(--raise); border-radius: 99px; padding: 6px 14px; font-size: .88rem; }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 14px; padding: 11px 22px; font-weight: 700; }
+.btn.ghost { background: var(--raise); color: var(--fg); border: 1px solid var(--line); }
+.form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.form .full { grid-column: 1 / -1; }
+label.f { display: grid; gap: 4px; font-size: .8rem; color: var(--muted); }
+input[type=text], input[type=number] { width: 100%; background: var(--raise); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; color: var(--fg); min-width: 0; }
+.hint { font-size: .82rem; color: var(--accent); min-height: 1.2em; }
+
+/* progress */
+.chart { width: 100%; height: auto; display: block; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { background: var(--raise); border-radius: 14px; padding: 10px; text-align: center; }
+.stat b { display: block; font-family: var(--display); font-size: 1.35rem; }
+.stat span { font-size: .74rem; color: var(--muted); }
+.strip { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; }
+.strip i { aspect-ratio: 1; max-width: 100%; border-radius: 6px; background: var(--raise); display: block; }
+.strip i.g { background: var(--good); } .strip i.w { background: var(--warn); } .strip i.b { background: color-mix(in srgb, var(--bad) 70%, var(--raise)); }
+
+/* tab bar */
+nav.tabs { position: fixed; inset: auto 0 0 0; background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(10px); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(4, 1fr); padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); z-index: 5; }
+nav.tabs button { background: none; border: 0; border-radius: 12px; padding: 7px 2px; display: grid; justify-items: center; gap: 2px; font-size: .78rem; color: var(--muted); }
+nav.tabs button svg { width: 22px; height: 22px; }
+nav.tabs button[aria-selected="true"] { color: var(--accent); font-weight: 600; }
+.status { font-size: .74rem; color: var(--muted); text-align: center; }
+.toast { position: fixed; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 8px 16px; border-radius: 99px; font-size: .85rem; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 6; }
+.toast.on { opacity: 1; }
+/* training */
+.seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: var(--raise); padding: 4px; border-radius: 14px; }
+.seg button { border: 0; background: none; border-radius: 10px; padding: 8px 2px; font-size: .85rem; color: var(--muted); }
+.seg button[aria-selected="true"] { background: var(--surface); color: var(--fg); font-weight: 600; box-shadow: 0 1px 2px rgb(0 0 0 / .15); }
+.sess-head { display: grid; gap: 6px; }
+.sess-name { font-family: var(--display); font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
+.sess-name small { font-family: var(--body); font-size: .8rem; color: var(--muted); font-weight: 400; display: block; margin-top: 4px; }
+.ex { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 14px; display: grid; gap: 10px; }
+.ex.done { border-color: color-mix(in srgb, var(--good) 55%, var(--line)); }
+.ex-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.ex-h b { font-size: 1rem; }
+.ex-meta { font-size: .78rem; color: var(--muted); }
+.sug { font-size: .82rem; padding: 7px 10px; border-radius: 10px; background: var(--raise); }
+.sug.up { background: color-mix(in srgb, var(--good) 16%, var(--raise)); color: var(--fg); }
+.sets { display: grid; gap: 6px; }
+.set { display: grid; grid-template-columns: 26px 1fr 1fr 44px; gap: 6px; align-items: center; }
+.set .n { font-family: var(--display); color: var(--muted); text-align: center; }
+.set input { padding: 8px; text-align: center; }
+.set .ok { height: 40px; border-radius: 12px; border: 2px solid var(--line); background: var(--raise); font-weight: 800; }
+.set.is-done input { border-color: transparent; background: color-mix(in srgb, var(--good) 12%, var(--raise)); }
+.set.is-done .ok { background: var(--good); border-color: var(--good); color: var(--bg); }
+.set-h { display: grid; grid-template-columns: 26px 1fr 1fr 44px; gap: 6px; font-size: .72rem; color: var(--muted); text-align: center; }
+.cues { margin: 0; padding-inline-start: 18px; font-size: .85rem; display: grid; gap: 4px; }
+.warn { font-size: .8rem; color: var(--warn); }
+details.mini-d summary { cursor: pointer; font-size: .82rem; color: var(--accent); list-style: none; }
+details.mini-d summary::-webkit-details-marker { display: none; }
+.lib-f { display: flex; gap: 6px; flex-wrap: wrap; }
+.mbar { display: grid; grid-template-columns: 70px 1fr 34px; gap: 8px; align-items: center; font-size: .85rem; }
+.mbar .bar { height: 8px; position: relative; }
+.mbar .zone { position: absolute; inset: 0 auto 0 0; background: color-mix(in srgb, var(--good) 22%, transparent); }
+.big-t { font-family: var(--display); font-size: 3.4rem; font-weight: 800; text-align: center; line-height: 1; }
+.phase { text-align: center; font-weight: 700; }
+.phase.work { color: var(--accent); } .phase.rest { color: var(--good); }
+.call { display: grid; gap: 4px; text-align: center; padding: 14px; border-radius: 16px; background: var(--raise); }
+.call b { font-family: var(--display); font-size: 2rem; line-height: 1.15; color: var(--accent); }
+.call .sub { font-size: .88rem; }
+.call .nx { font-size: .78rem; color: var(--muted); }
+.call.rest b { color: var(--good); }
+.restbar { position: fixed; left: 0; right: 0; bottom: calc(62px + env(safe-area-inset-bottom, 0px)); z-index: 5; display: flex; justify-content: center; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); pointer-events: none; }
+.restbar > div { pointer-events: auto; display: flex; align-items: center; gap: 10px; background: var(--fg); color: var(--bg); border-radius: 99px; padding: 6px 8px 6px 16px; box-shadow: 0 6px 20px rgb(0 0 0 / .25); }
+.restbar b { font-family: var(--display); font-size: 1.3rem; min-width: 3.2ch; text-align: center; }
+.restbar button { border: 0; border-radius: 99px; padding: 6px 12px; background: color-mix(in srgb, var(--bg) 18%, var(--fg)); color: var(--bg); font-size: .82rem; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap" dir="rtl" lang="ar">
+  <header class="top">
+    <div>
+      <div class="eyebrow" id="dateLine">الليل إلك</div>
+      <div class="day" id="dayTitle">يوم <span>1</span> من 85</div>
+      <div class="track" aria-hidden="true"><i id="dayBar" style="width:1%"></i></div>
+      <div class="small muted" id="toRamadan" style="margin-top:6px"></div>
+    </div>
+    <div class="ring" aria-label="نتيجة اليوم">
+      <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="var(--raise)" stroke-width="4"/><circle id="ringArc" cx="20" cy="20" r="17" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="0 107"/></svg>
+      <div class="lbl"><div><b id="scoreNum">0</b><div class="small muted">من 8</div></div></div>
+    </div>
+  </header>
+
+  <!-- TODAY -->
+  <section id="v-today" class="view" aria-labelledby="t-today">
+    <div class="card">
+      <div class="row spread"><h2>الشيك اليومي</h2><span class="tag">الهدف 6 من 8</span></div>
+      <div class="checks" id="checks"></div>
+      <p class="small muted" style="margin:0">يوم خربان؟ عادي. القاعدة وحدة: ما تفوّت يومين ورا بعض.</p>
+    </div>
+  </section>
+
+  <!-- FOOD -->
+  <section id="v-food" class="view" hidden>
+    <div class="card">
+      <h2>أكل اليوم</h2>
+      <div class="bars">
+        <div><div class="bar-h"><span>البروتين</span><span class="tab-num" id="pTxt">0 / 170 غ</span></div><div class="bar" id="pBar"><i style="width:0"></i></div></div>
+        <div><div class="bar-h"><span>السعرات</span><span class="tab-num" id="kTxt">0 / 2600</span></div><div class="bar" id="kBar"><i style="width:0"></i></div></div>
+      </div>
+      <p class="small muted" style="margin:0">الأرقام تقريبية. الهدف بروتين 160+ وسعرات بين 2500 و2700، وصفر معجنات.</p>
+    </div>
+    <div class="card">
+      <div class="row spread"><h2>برنامجك</h2><span class="small muted">ضغطة = حصة</span></div>
+      <div class="grid2" id="foods"></div>
+    </div>
+    <div class="card">
+      <h2>شو أكلت</h2>
+      <ul class="list" id="eaten"></ul>
+    </div>
+  </section>
+
+  <!-- TRAIN -->
+  <section id="v-train" class="view" hidden>
+    <div class="seg" role="tablist" aria-label="أقسام التمرين" id="trainSeg">
+      <button type="button" role="tab" data-s="sess" aria-selected="true">الجلسة</button>
+      <button type="button" role="tab" data-s="lib" aria-selected="false">المكتبة</button>
+      <button type="button" role="tab" data-s="tim" aria-selected="false">المؤقتات</button>
+      <button type="button" role="tab" data-s="stat" aria-selected="false">الأرقام</button>
+    </div>
+
+    <div id="s-sess" class="sub" style="display:grid;gap:12px;margin-top:12px">
+      <div class="card sess-head">
+        <div class="row spread">
+          <div class="sess-name" id="sessName">علوي A</div>
+          <span class="tag" id="sessTag">جلسة الليلة</span>
+        </div>
+        <div class="chips" id="sessPick" style="justify-content:flex-start"></div>
+        <details class="mini-d"><summary>إحماء 5 دقايق قبل ما تبلّش</summary>
+          <ul class="cues" style="margin-top:8px">
+            <li>دقيقتين مشي بالمكان أو ملاكمة خفيفة بالهوا</li>
+            <li>دوائر أكتاف وورك، 10 لكل اتجاه</li>
+            <li>15 فتح حبل قدام الصدر</li>
+            <li>أول جولة من أول تمرين بنص الوزن</li>
+          </ul>
+        </details>
+      </div>
+      <div id="sessBody" style="display:grid;gap:12px"></div>
+      <button class="btn" id="sessDone" type="button">خلّصت الجلسة</button>
+      <p class="small muted" style="margin:0">ازفر وإنت بتدفع أو بتسحب، ولا تحبس نفسك. وجع بالصدر أو دوخة قوية: وقّف فوراً.</p>
+    </div>
+
+    <div id="s-lib" class="sub" style="display:none;gap:12px;margin-top:12px">
+      <div class="lib-f" id="libFilter"></div>
+      <div id="libList" style="display:grid;gap:10px"></div>
+    </div>
+
+    <div id="s-tim" class="sub" style="display:none;gap:12px;margin-top:12px">
+      <div class="card">
+        <h2>مدرب الجولات</h2>
+        <div class="chips" id="ivPresets" style="justify-content:flex-start"></div>
+        <div class="form">
+          <label class="f" for="ivWork">شغل (ثانية)<input type="number" id="ivWork" inputmode="numeric" min="5" step="5" value="180"></label>
+          <label class="f" for="ivRest">راحة (ثانية)<input type="number" id="ivRest" inputmode="numeric" min="0" step="5" value="60"></label>
+          <label class="f full" for="ivRounds">عدد الجولات<input type="number" id="ivRounds" inputmode="numeric" min="1" step="1" value="6"></label>
+        </div>
+        <div class="phase" id="ivPhase">جاهز</div>
+        <div class="call" id="ivCall" hidden><b id="ivCallBig"></b><span class="sub" id="ivCallSub"></span><span class="nx" id="ivNext"></span></div>
+        <div class="big-t tab-num" id="ivTime" dir="ltr">3:00</div>
+        <div class="small muted" style="text-align:center" id="ivRound"></div>
+        <div class="row" style="justify-content:center"><button class="btn" id="ivBtn" type="button">ابدأ</button><button class="btn ghost" id="ivReset" type="button">صفّر</button></div>
+      </div>
+      <a class="card" id="gameCard" href="game.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;border-color:color-mix(in srgb, var(--accent) 50%, var(--line))">
+        <div class="row spread"><h2>ركض بني آدم 🎮</h2><span class="tag">بالكاميرا</span></div>
+        <p class="small muted" style="margin:0">لعبة ركض: اركض بمكانك، زيح يمين ويسار، ارفع إيديك، وانزل سكوات. بدون قفز. بتفتح بصفحة لحالها.</p>
+      </a>
+      <div class="card timer">
+        <h2>راحة بين الجولات</h2>
+        <div class="chips" id="durs"></div>
+        <div class="tring" id="tRing"><div class="tab-num" id="tTxt" dir="ltr">1:30</div></div>
+        <button class="btn" id="tBtn" type="button">ابدأ الراحة</button>
+        <p class="small muted" style="margin:0;text-align:center">بالجلسة، المؤقت بيشتغل لحاله بعد كل جولة بتسجّلها.</p>
+      </div>
+    </div>
+
+    <div id="s-stat" class="sub" style="display:none;gap:12px;margin-top:12px">
+      <div class="card">
+        <div class="row spread"><h2>آخر 7 أيام</h2><span class="small muted" id="wkSess"></span></div>
+        <div id="wkMuscles" style="display:grid;gap:8px"></div>
+        <p class="small muted" style="margin:0">المنطقة الخضرا = 6 لـ 12 جولة بالأسبوع لكل عضلة، كفاية للحفاظ على العضل وإنت بتنزل.</p>
+      </div>
+      <div class="card">
+        <h2>أرقامك القياسية</h2>
+        <ul class="list" id="prs"></ul>
+        <p class="small muted" style="margin:0">الأقصى المتوقع لعدّة وحدة محسوب تقريبياً من وزنك وعدّاتك. ما بدنا نجربه فعلياً.</p>
+      </div>
+      <div class="card">
+        <h2>آخر الجلسات</h2>
+        <ul class="list" id="hist"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROGRESS -->
+  <section id="v-prog" class="view" hidden>
+    <div class="card">
+      <h2>الوزن</h2>
+      <svg class="chart" id="chart" viewBox="0 0 340 190" role="img" aria-label="الوزن عبر الأسابيع"></svg>
+      <div class="stats">
+        <div class="stat"><b class="tab-num" id="sNow">144.8</b><span>آخر وزن</span></div>
+        <div class="stat"><b class="tab-num" id="sLost">0</b><span>نزلت (كغ)</span></div>
+        <div class="stat"><b class="tab-num" id="sLeft">8</b><span>للهدف 137</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row spread"><h2>قياس الجمعة</h2><span class="small muted">بعد الحمام وقبل الأكل</span></div>
+      <div class="form">
+        <label class="f" for="wIn">الوزن (كغ)<input type="number" id="wIn" inputmode="decimal" step="0.1" min="40"></label>
+        <label class="f" for="waistIn">الخصر (سم)<input type="number" id="waistIn" inputmode="decimal" step="0.5" min="40"></label>
+        <button class="btn full" id="wSave" type="button">احفظ القياس</button>
+      </div>
+      <ul class="list" id="weighs"></ul>
+    </div>
+    <div class="card">
+      <div class="row spread"><h2>آخر 14 يوم</h2><span class="small muted">أخضر = 6 من 8 أو أكثر</span></div>
+      <div class="strip" id="strip"></div>
+    </div>
+  </section>
+
+  <p class="status" id="status">بجهّز السجل…</p>
+</div>
+
+<nav class="tabs" role="tablist" aria-label="أقسام" dir="rtl">
+  <button role="tab" id="t-today" data-v="today" aria-selected="true" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>اليوم</button>
+  <button role="tab" id="t-food" data-v="food" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M8 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4"/></svg>الأكل</button>
+  <button role="tab" id="t-train" data-v="train" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12"/></svg>التمرين</button>
+  <button role="tab" id="t-prog" data-v="prog" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>التقدّم</button>
+</nav>
+<div class="restbar" id="restBar" hidden dir="rtl"><div><span>راحة</span><b class="tab-num" id="rbTime" dir="ltr">1:30</b><button type="button" id="rbAdd">+15ث</button><button type="button" id="rbSkip">تخطّي</button></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  // ---------- plan constants ----------
+  const START = "2026-11-15";          // يوم 1
+  const TOTAL = 85;                    // آخر يوم قبل رمضان (7 شباط 2027)
+  const BASE = { date: "2026-10-07", weight: 144.8, label: "تانيتا" };
+  const GOAL_HI = 137, GOAL_LO = 133;
+  const P_TARGET = 170, P_OK = 160, K_TARGET = 2600, K_MAX = 2700;
+  const DAY_SHIFT_H = 6; // اليوم بيخلص الساعة 6 الصبح، بعد نومة الفجر
+
+  const CHECKS = [
+    { k: "med",    t: "حبتين الجلوكوفاج", s: "حبة مع أول وجبة وحبة مع أكل الخمسة، بنص الأكل", first: true },
+    { k: "sleep",  t: "نمت بعد الفجر وصحيت 12:30", s: "والجوال برا الغرفة" },
+    { k: "prayer", t: "الخمس صلوات", s: "الظهر قبل ما تطلع، والباقي بمكانك بالدوام" },
+    { k: "quran",  t: "ورد القرآن", s: "4 صفحات، قبل الفجر" },
+    { k: "protein",t: "بروتين 160 غ أو أكثر", s: "بينحسب لحاله من صفحة الأكل", auto: true },
+    { k: "water",  t: "3 لتر مي", s: "قنينة معك بالدوام" },
+    { k: "train",  t: "تمرين أو كارديو", s: "حسب يوم البرنامج" },
+    { k: "vlog",   t: "فيديو اليوم", s: "ولو 30 ثانية" },
+  ];
+  const FOODS = [
+    { k: "egg",   n: "بيضة", p: 6,  c: 75 },
+    { k: "areesh",n: "عريش 100 غ", p: 11, c: 100 },
+    { k: "sard",  n: "سردين 70 غ", p: 17, c: 145 },
+    { k: "chick", n: "صدر جاج 100 غ", p: 31, c: 165 },
+    { k: "tuna",  n: "علبة تونة", p: 25, c: 120 },
+    { k: "liver", n: "كبدة 100 غ", p: 25, c: 170 },
+    { k: "kofta", n: "كفتة مشوية 100 غ", p: 18, c: 250 },
+    { k: "lupin", n: "ترمس 100 غ", p: 16, c: 120 },
+    { k: "nuts",  n: "لوز وجوز 20 غ", p: 4, c: 125 },
+    { k: "laban", n: "كاسة لبن", p: 7, c: 120 },
+    { k: "rice",  n: "رز 100 غ", p: 3, c: 130 },
+    { k: "bread", n: "خبز خفيف 60 غ", p: 6, c: 150 },
+    { k: "fruit", n: "حبة فاكهة", p: 1, c: 80 },
+    { k: "pastry",n: "معجنات (قطعة)", p: 6, c: 300, slip: true },
+    { k: "pizza", n: "بيتزا (قطعتين)", p: 20, c: 550, slip: true },
+  ];
+  // Exercises for home: bar, dumbbells, bands, bodyweight. lo-hi = rep range (or seconds when unit:"ث"), inc = kg to add once every set hits hi.
+  const MUSCLES = { chest: "صدر", back: "ظهر", shoulders: "أكتاف", arms: "إيدين", legs: "رجلين", posterior: "خلفية", core: "بطن وثبات" };
+  const EX = {
+    db_press: { n: "ضغط صدر دمبلز", m: "chest", eq: "دمبلز", sets: 3, lo: 8, hi: 12, inc: 2, rest: 90, cues: ["ظهرك على البنش أو الأرض، وأكتافك لورا ومشدودة", "نزّل الدمبلز ببطء لحد ما الكوع يصير تحت مستوى الصدر شوي", "ازفر وإنت دافع لفوق"] },
+    db_row: { n: "تجديف دمبل بإيد وحدة", m: "back", eq: "دمبلز", sets: 3, lo: 8, hi: 12, inc: 2, rest: 90, per: "لكل إيد", cues: ["إيد وركبة على البنش أو الكرسي، وظهرك مستقيم", "اسحب الدمبل باتجاه وركك مش كتفك", "نزّله للآخر وحس بالشد بظهرك"] },
+    db_ohp: { n: "ضغط أكتاف دمبلز قاعد", m: "shoulders", eq: "دمبلز", sets: 3, lo: 8, hi: 12, inc: 2, rest: 90, cues: ["قاعد وظهرك مسنود", "ادفع لفوق بدون ما تقوّس ظهرك", "خلي رقبتك مرتاحة، لا تشد كتافك لأذانك"], warn: "إذا حسيت تنميل بإيدك، وقّف هالتمرين واحكي للدكتور" },
+    band_pull: { n: "فتح الحبل قدام الصدر", m: "back", eq: "حبال", sets: 3, lo: 15, hi: 20, inc: 0, rest: 45, cues: ["الحبل بعرض كتافك وإيديك ممدودين قدامك", "افتحه لحد ما يقرّب على صدرك وإنت بتضم لوحي الكتف", "ارجع ببطء. ممتاز للرقبة ووضعية الأكتاف"] },
+    db_curl: { n: "بايسبس دمبلز", m: "arms", eq: "دمبلز", sets: 2, lo: 10, hi: 15, inc: 1, rest: 60, cues: ["الكوع ثابت جنب جسمك", "ارفع بدون ما تمرجح ظهرك", "نزّل ببطء على عدّة 3"] },
+    band_tri: { n: "ترايسبس بالحبل", m: "arms", eq: "حبال", sets: 2, lo: 12, hi: 15, inc: 0, rest: 60, cues: ["ثبّت الحبل فوق الباب أو تحت رجلك", "الكوع ثابت، والحركة من الساعد بس", "افرد للآخر واضغط ثانية"] },
+    goblet: { n: "سكوات گوبلت على صندوق", m: "legs", eq: "دمبلز", sets: 3, lo: 8, hi: 12, inc: 2, rest: 120, cues: ["الدمبل قدام صدرك بالإيدين", "انزل لحد ما تلمس الكرسي أو الصندوق بهدوء، وقوم", "ركبك باتجاه أصابع رجليك، ووزنك على كعبك"] },
+    rdl: { n: "رفعة رومانية بالبار", m: "posterior", eq: "بار", sets: 3, lo: 8, hi: 12, inc: 2.5, rest: 120, cues: ["ركب مثنية شوي وثابتة", "ارجع بوركك لورا والبار ماشي على فخادك", "ظهرك مستقيم، ووقّف لما تحس شد ورا الفخذ"] },
+    step: { n: "طلوع درجة واطية", m: "legs", eq: "وزن الجسم أو دمبلز", sets: 2, lo: 10, hi: 12, inc: 2, rest: 90, per: "لكل رجل", cues: ["درجة واطية بالأول، لا نط", "ادفع من كعب الرجل اللي فوق", "انزل ببطء وإنت ماسك توازنك"] },
+    carry: { n: "مشي بالدمبلز", m: "core", eq: "دمبلز", sets: 3, lo: 30, hi: 45, unit: "ث", inc: 2, rest: 60, cues: ["دمبل تقيل بكل إيد", "امشي واقف منتصب وكتافك لورا", "خطوات قصيرة وثابتة"] },
+    calf: { n: "سمانة واقف", m: "legs", eq: "وزن الجسم", sets: 3, lo: 12, hi: 20, inc: 0, rest: 45, cues: ["امسك حيط للتوازن", "اطلع على أصابعك للآخر واضغط ثانية", "انزل ببطء"] },
+    plank: { n: "بلانك", m: "core", eq: "وزن الجسم", sets: 3, lo: 20, hi: 45, unit: "ث", inc: 0, rest: 45, cues: ["على الكوعين، وجسمك خط واحد", "شد بطنك ومؤخرتك", "إذا صعب، خليه على ركبك"] },
+    incline_push: { n: "ضغط على طاولة أو حيط", m: "chest", eq: "وزن الجسم", sets: 3, lo: 10, hi: 15, inc: 0, rest: 60, extra: true, cues: ["إيديك على طاولة ثابتة بعرض الكتاف", "انزل بصدرك للطاولة وجسمك خط واحد", "كل ما سهل، انزل لسطح أوطى"] },
+    band_row: { n: "سحب بالحبل للصدر", m: "back", eq: "حبال", sets: 3, lo: 12, hi: 15, inc: 0, rest: 60, extra: true, cues: ["ثبّت الحبل بباب أو عمود قدامك", "اسحب لصدرك والكوع لورا", "اضغط لوحي الكتف وارجع ببطء"] },
+  };
+  const PROG = {
+    A: { n: "علوي A", ex: ["db_press", "db_row", "db_ohp", "band_pull", "db_curl", "band_tri"] },
+    B: { n: "سفلي B", ex: ["goblet", "rdl", "step", "carry", "calf", "plank"] },
+    cardio: { n: "كارديو مريح", desc: "35 لـ 45 دقيقة دراجة أو مشي على ميلان أو إليبتكال. السرعة اللي بتقدر تحكي فيها جملة كاملة." },
+    boxing: { n: "ملاكمة", desc: "6 جولات، 3 دقايق شغل ودقيقة راحة. المدرب بيطلّعلك كومبو على الشاشة كل كم ثانية. بالهوا أو على كيس، وبلا نط.", preset: "box" },
+    swedish: { n: "سويدي", desc: "دائرة 8 حركات بدون قفز ولا نزول صعب على الأرض: 40 ثانية شغل و20 راحة، دورتين. الحركة الجاية بتطلع على الشاشة.", preset: "swe" },
+    rest: { n: "راحة", desc: "مشي خفيف وتمدد. الراحة جزء من البرنامج." },
+  };
+  const SEQ = ["A", "B", "cardio", "A", "B", "boxing", "rest"];
+  const exByName = (name) => Object.keys(EX).find((k) => EX[k].n === name);
+  const setId = (s) => s.id || exByName(s.ex) || null;
+  const DURS = [60, 90, 120, 180];
+
+  // ---------- helpers ----------
+  const $ = (id) => document.getElementById(id);
+  const ar = (n) => Number(n).toLocaleString("ar-EG", { maximumFractionDigits: 1 });
+  const pad = (n) => String(n).padStart(2, "0");
+  const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const planDate = (now = new Date()) => iso(new Date(now.getTime() - DAY_SHIFT_H * 3600e3));
+  const dayDiff = (a, b) => Math.round((Date.parse(b + "T12:00:00") - Date.parse(a + "T12:00:00")) / 864e5);
+  const fmtDate = (s) => new Date(s + "T12:00:00").toLocaleDateString("ar-EG", { weekday: "long", day: "numeric", month: "long" });
+  const toast = (t) => { const el = $("toast"); el.textContent = t; el.classList.add("on"); clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove("on"), 1600); };
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  // ---------- storage: db (private per viewer) with a browser fallback ----------
+  const docs = new Map(); // id -> data
+  let backend = "local", col = null;
+  const LKEY = "bani-adam-v1";
+  const loadLocal = () => { try { const o = JSON.parse(localStorage.getItem(LKEY) || "{}"); for (const [k, v] of Object.entries(o)) docs.set(k, v); } catch {} };
+  const saveLocal = () => { try { localStorage.setItem(LKEY, JSON.stringify(Object.fromEntries(docs))); } catch {} };
+  const timers = {}, pending = new Map(); // edits not yet confirmed by the store
+  function put(id, data) {
+    docs.set(id, data); pending.set(id, data);
+    render();
+    clearTimeout(timers[id]);
+    timers[id] = setTimeout(() => {
+      const val = pending.get(id);
+      saveLocal();
+      if (backend === "db" && col) {
+        col.doc(id).set(val).then(() => { if (pending.get(id) === val) pending.delete(id); })
+          .catch((e) => { setStatus(e && e.code === "quota_exceeded" ? "السجل امتلأ، احكي لـClaude" : "ما انحفظ آخر تعديل بحسابك، محفوظ على هالجهاز"); });
+      } else pending.delete(id);
+    }, 500);
+  }
+  function remove(id) {
+    docs.delete(id); pending.delete(id); clearTimeout(timers[id]); render(); saveLocal();
+    if (backend === "db" && col) col.doc(id).delete().catch(() => setStatus("ما انحذف، جرّب كمان مرة")); else saveLocal();
+  }
+  const setStatus = (t) => { $("status").textContent = t; };
+
+  const dayId = (d) => "day-" + d;
+  const getDay = (d) => docs.get(dayId(d)) || { kind: "day", date: d, checks: {}, foods: {}, sets: [] };
+  const today = () => planDate();
+
+  // ---------- computations ----------
+  function foodTotals(day) {
+    let p = 0, c = 0;
+    for (const [k, q] of Object.entries(day.foods || {})) { const f = FOODS.find((x) => x.k === k); if (f && q > 0) { p += f.p * q; c += f.c * q; } }
+    return { p, c };
+  }
+  function score(day) {
+    const t = foodTotals(day);
+    return CHECKS.reduce((n, ch) => n + ((ch.auto ? t.p >= P_OK : !!(day.checks || {})[ch.k]) ? 1 : 0), 0);
+  }
+  function weighs() {
+    const list = [...docs.values()].filter((d) => d && d.kind === "weigh" && typeof d.weight === "number").sort((a, b) => a.date.localeCompare(b.date));
+    return [{ ...BASE, base: true }, ...list];
+  }
+  const pastDays = () => [...docs.values()].filter((d) => d && d.kind === "day" && d.date < today()).sort((a, b) => b.date.localeCompare(a.date));
+  function lastPerf(id) {
+    for (const d of pastDays()) { const sets = (d.sets || []).filter((s) => setId(s) === id); if (sets.length) return { date: d.date, sets }; }
+    return null;
+  }
+  // Double progression (as in Liftosaur): every set at the top weight reaches the top of the range -> add weight next time.
+  function suggest(id) {
+    const def = EX[id], last = lastPerf(id), u = def.unit || "";
+    if (!last) return { w: "", r: def.lo, up: false, note: def.inc ? `أول مرة: اختار وزن بتقدر تعمل فيه ${def.hi}${u} بتكنيك نظيف ويضل معك 2 أو 3` : `أول مرة: ابدأ بـ ${def.lo}${u}` };
+    const top = Math.max(...last.sets.map((s) => s.w || 0));
+    const atTop = last.sets.filter((s) => (s.w || 0) === top);
+    const hit = atTop.length >= def.sets && atTop.every((s) => s.r >= def.hi);
+    const lastTxt = `آخر مرة: ${top ? ar(top) + " كغ × " : ""}${atTop.map((s) => ar(s.r)).join("، ")}`;
+    if (hit && def.inc) return { w: top + def.inc, r: def.lo, up: true, note: `${lastTxt}. كمّلت كل الجولات، زيد ${ar(def.inc)} كغ` };
+    if (hit) return { w: top || "", r: def.hi, up: true, note: `${lastTxt}. وصلت للحد: صعّب الحبل أو خلي الحركة أبطأ` };
+    const best = Math.max(...atTop.map((s) => s.r));
+    return { w: top || "", r: Math.min(def.hi, best + 1), up: false, note: `${lastTxt}. نفس الوزن، حاول ${ar(Math.min(def.hi, best + 1))}${u}` };
+  }
+  // Position in the 7-step rotation, so A/B repeat twice before boxing and rest come round.
+  function plannedPos() {
+    for (const p of pastDays()) if (p.sessionDone && p.session) {
+      const pos = Number.isInteger(p.seqPos) ? p.seqPos : SEQ.indexOf(p.session);
+      return (pos + 1) % SEQ.length;
+    }
+    return 0;
+  }
+  function nextSession() { const d = getDay(today()); return d.session || SEQ[plannedPos()]; }
+
+  // ---------- render ----------
+  function renderHeader() {
+    const d = today(), n = dayDiff(START, d) + 1;
+    $("dateLine").textContent = fmtDate(d);
+    if (n < 1) { $("dayTitle").innerHTML = `يوم <span>${ar(0)}</span>، التحضير`; $("toRamadan").textContent = `البداية الأحد، بعد ${ar(1 - n)} ${1 - n === 1 ? "يوم" : "أيام"}`; $("dayBar").style.width = "0%"; }
+    else if (n > TOTAL) { $("dayTitle").innerHTML = `<span>رمضان</span> كريم`; $("toRamadan").textContent = "وصلت. الحمد لله."; $("dayBar").style.width = "100%"; }
+    else { $("dayTitle").innerHTML = `يوم <span>${ar(n)}</span> من ${ar(TOTAL)}`; const left = TOTAL - n; $("toRamadan").textContent = left ? `باقي ${ar(left)} يوم لرمضان` : "آخر يوم قبل رمضان"; $("dayBar").style.width = (n / TOTAL * 100).toFixed(1) + "%"; }
+    const sc = score(getDay(d));
+    $("scoreNum").textContent = ar(sc);
+    $("ringArc").setAttribute("stroke-dasharray", `${(sc / 8 * 106.8).toFixed(1)} 107`);
+    $("ringArc").setAttribute("stroke", sc >= 6 ? "var(--good)" : "var(--accent)");
+  }
+  function renderChecks() {
+    const day = getDay(today()), t = foodTotals(day);
+    $("checks").innerHTML = CHECKS.map((ch) => {
+      const on = ch.auto ? t.p >= P_OK : !!(day.checks || {})[ch.k];
+      const tag = ch.auto ? `<span class="tag tab-num">${ar(Math.round(t.p))} غ</span>` : ch.first ? `<span class="tag">الأهم</span>` : "";
+      return `<button type="button" class="chk${ch.first ? " first" : ""}" data-k="${ch.k}" aria-pressed="${on}" ${ch.auto ? 'aria-disabled="true"' : ""}><span class="box">${on ? "✓" : ""}</span><span class="t">${esc(ch.t)}<span class="s">${esc(ch.s)}</span></span>${tag}</button>`;
+    }).join("");
+  }
+  function renderFood() {
+    const day = getDay(today()), t = foodTotals(day);
+    $("pTxt").textContent = `${ar(Math.round(t.p))} / ${ar(P_TARGET)} غ`;
+    $("kTxt").textContent = `${ar(Math.round(t.c))} / ${ar(K_TARGET)}`;
+    const pb = $("pBar"), kb = $("kBar");
+    pb.className = "bar" + (t.p >= P_OK ? " ok" : ""); pb.firstElementChild.style.width = Math.min(100, t.p / P_TARGET * 100) + "%";
+    kb.className = "bar" + (t.c > K_MAX ? " over" : t.c >= 2400 ? " ok" : ""); kb.firstElementChild.style.width = Math.min(100, t.c / K_MAX * 100) + "%";
+    $("foods").innerHTML = FOODS.map((f) => `<button type="button" class="food${f.slip ? " slip" : ""}" data-f="${f.k}"><b>${esc(f.n)}</b><small class="tab-num">${ar(f.p)} غ بروتين · ${ar(f.c)} سعرة</small></button>`).join("");
+    const rows = FOODS.filter((f) => (day.foods || {})[f.k] > 0);
+    $("eaten").innerHTML = rows.length ? rows.map((f) => {
+      const q = day.foods[f.k];
+      return `<li><span>${esc(f.n)} <span class="muted tab-num">× ${ar(q)}</span></span><span class="row"><span class="small muted tab-num">${ar(f.p * q)} غ</span><button type="button" class="mini" data-minus="${f.k}" aria-label="شيل حصة ${esc(f.n)}">−</button></span></li>`;
+    }).join("") : `<li class="muted small">لسا ما سجلت إشي اليوم. اضغط على أكلة من برنامجك فوق.</li>`;
+  }
+  // ----- training: session -----
+  const drafts = {}; // unsaved inputs per exercise row: id -> {i: {w, r}}
+  function exCard(id, day, extraRows) {
+    const def = EX[id], sg = suggest(id), u = def.unit ? "ثواني" : "عدّات";
+    const done = (day.sets || []).map((s, i) => ({ ...s, i })).filter((s) => setId(s) === id);
+    const rows = Math.max(def.sets, done.length + (extraRows[id] || 0));
+    let html = `<div class="ex${done.length >= def.sets ? " done" : ""}" data-ex="${id}">
+      <div class="ex-h"><div><b>${esc(def.n)}</b><div class="ex-meta">${ar(def.sets)} × ${ar(def.lo)}–${ar(def.hi)}${def.unit ? " ثانية" : ""}${def.per ? " " + def.per : ""} · راحة ${ar(def.rest)} ث · ${esc(def.eq)}</div></div><span class="tag">${MUSCLES[def.m]}</span></div>
+      <div class="sug${sg.up ? " up" : ""}">${esc(sg.note)}</div>
+      <div class="set-h"><span>#</span><span>كغ</span><span>${u}</span><span></span></div><div class="sets">`;
+    for (let i = 0; i < rows; i++) {
+      const s = done[i], dr = (drafts[id] || {})[i] || {};
+      const prev = done[done.length - 1];
+      const w = s ? (s.w || "") : dr.w ?? (prev ? (prev.w || "") : sg.w), r = s ? s.r : dr.r ?? (prev ? prev.r : sg.r);
+      html += `<div class="set${s ? " is-done" : ""}"><span class="n">${ar(i + 1)}</span>
+        <input type="number" inputmode="decimal" step="0.5" min="0" aria-label="الوزن للجولة ${i + 1}" data-w="${i}" value="${w}" placeholder="—" ${s ? "readonly" : ""}>
+        <input type="number" inputmode="numeric" step="1" min="1" aria-label="${u} للجولة ${i + 1}" data-r="${i}" value="${r}" ${s ? "readonly" : ""}>
+        <button type="button" class="ok" ${s ? `data-undo="${s.i}" aria-label="ألغي الجولة ${i + 1}"` : `data-done="${i}" aria-label="سجّل الجولة ${i + 1}"`}>✓</button></div>`;
+    }
+    html += `</div><div class="row spread"><button type="button" class="mini" data-more="${id}">+ جولة</button>
+      <details class="mini-d"><summary>كيف؟</summary><ul class="cues" style="margin-top:6px">${def.cues.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>${def.warn ? `<div class="warn" style="margin-top:6px">${esc(def.warn)}</div>` : ""}</details></div></div>`;
+    return html;
+  }
+  const extraRows = {};
+  function renderTrain() {
+    const day = getDay(today()), type = nextSession(), p = PROG[type];
+    $("sessName").innerHTML = `${esc(p.n)}<small>${day.sessionDone ? "خلصت جلسة الليلة، الله يعطيك العافية" : day.picked ? "اخترتها لليلة" : "حسب الدور بالبرنامج"}</small>`;
+    $("sessTag").textContent = day.sessionDone ? "✓ خلصت" : "جلسة الليلة";
+    $("sessPick").innerHTML = Object.keys(PROG).map((k) => `<button type="button" class="chip" data-pick="${k}" aria-pressed="${k === type}">${esc(PROG[k].n)}</button>`).join("");
+    let body = "";
+    if (p.ex) body = p.ex.map((id) => exCard(id, day, extraRows)).join("");
+    else {
+      body = `<div class="card"><p style="margin:0">${esc(p.desc)}</p>`;
+      if (type === "cardio") body += `<label class="f" for="cardioMin">كم دقيقة عملت؟<input type="number" id="cardioMin" inputmode="numeric" min="1" value="${day.cardioMin || 40}"></label>`;
+      if (p.preset) body += `<button type="button" class="btn" data-gotimer="${p.preset}">ابدأ مع المدرب</button>`;
+      body += `</div>`;
+    }
+    // other exercises logged today that aren't in this session (e.g. extras)
+    const others = [...new Set([...(day.extras || []), ...(day.sets || []).map(setId)].filter((id) => id && EX[id] && (!p.ex || !p.ex.includes(id))))];
+    body += others.map((id) => exCard(id, day, extraRows)).join("");
+    body += `<details class="mini-d card"><summary>+ تمرين إضافي من المكتبة</summary><div class="chips" style="justify-content:flex-start;margin-top:10px">${Object.keys(EX).filter((k) => !(p.ex || []).includes(k) && !others.includes(k)).map((k) => `<button type="button" class="chip" data-addex="${k}">${esc(EX[k].n)}</button>`).join("")}</div></details>`;
+    $("sessBody").innerHTML = body;
+    $("sessDone").textContent = day.sessionDone ? "رجّع الجلسة مفتوحة" : type === "rest" ? "سجّل يوم الراحة" : "خلّصت الجلسة";
+    renderLib(); renderStats();
+  }
+  // ----- training: library -----
+  let libM = "all";
+  function renderLib() {
+    $("libFilter").innerHTML = [["all", "الكل"], ...Object.entries(MUSCLES)].map(([k, l]) => `<button type="button" class="chip" data-libm="${k}" aria-pressed="${k === libM}">${l}</button>`).join("");
+    $("libList").innerHTML = Object.entries(EX).filter(([, d]) => libM === "all" || d.m === libM).map(([id, d]) => {
+      const l = lastPerf(id);
+      return `<div class="card" style="gap:8px"><div class="ex-h"><div><b>${esc(d.n)}</b><div class="ex-meta">${esc(d.eq)} · ${ar(d.sets)} × ${ar(d.lo)}–${ar(d.hi)}${d.unit ? " ثانية" : ""}${d.per ? " " + d.per : ""}</div></div><span class="tag">${MUSCLES[d.m]}</span></div>
+        <ul class="cues">${d.cues.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>${d.warn ? `<div class="warn">${esc(d.warn)}</div>` : ""}
+        <div class="small muted">${l ? `آخر مرة ${fmtDate(l.date)}: ${l.sets.map((s) => (s.w ? ar(s.w) + "×" : "") + ar(s.r)).join("، ")}` : "لسا ما سجلته"}</div></div>`;
+    }).join("");
+  }
+  // ----- training: stats -----
+  function renderStats() {
+    const d0 = today(), week = new Set(Array.from({ length: 7 }, (_, i) => iso(new Date(Date.parse(d0 + "T12:00:00") - i * 864e5))));
+    const days = [...docs.values()].filter((d) => d && d.kind === "day" && week.has(d.date));
+    const cnt = Object.fromEntries(Object.keys(MUSCLES).map((k) => [k, 0]));
+    let lift = 0, cardio = 0;
+    for (const d of days) {
+      for (const s of d.sets || []) { const id = setId(s); if (id) cnt[EX[id].m]++; }
+      if (d.sessionDone) { if (d.session === "A" || d.session === "B") lift++; else if (d.session === "cardio" || d.session === "boxing" || d.session === "swedish") cardio++; }
+    }
+    $("wkSess").textContent = `${ar(lift)} حديد · ${ar(cardio)} كارديو`;
+    const MAXV = 16;
+    $("wkMuscles").innerHTML = Object.entries(MUSCLES).map(([k, l]) => `<div class="mbar"><span>${l}</span><div class="bar"><span class="zone" style="left:${6 / MAXV * 100}%;width:${6 / MAXV * 100}%"></span><i style="width:${Math.min(100, cnt[k] / MAXV * 100)}%;position:relative;${cnt[k] >= 6 ? "background:var(--good)" : ""}"></i></div><span class="tab-num">${ar(cnt[k])}</span></div>`).join("");
+    // PRs
+    const best = {};
+    for (const d of docs.values()) if (d && d.kind === "day") for (const s of d.sets || []) {
+      const id = setId(s); if (!id || !s.w) continue;
+      const e1 = s.r <= 12 ? s.w * (1 + s.r / 30) : 0; // Epley
+      const b = best[id] || (best[id] = { w: 0, r: 0, e1: 0, date: d.date });
+      if (s.w > b.w || (s.w === b.w && s.r > b.r)) Object.assign(b, { w: s.w, r: s.r, date: d.date });
+      if (e1 > b.e1) b.e1 = e1;
+    }
+    const prs = Object.entries(best);
+    $("prs").innerHTML = prs.length ? prs.map(([id, b]) => `<li><span>${esc(EX[id].n)}</span><span class="tab-num small">${ar(b.w)} كغ × ${ar(b.r)}${b.e1 ? ` · أقصى متوقع ${ar(Math.round(b.e1))}` : ""}</span></li>`).join("") : `<li class="muted small">أول ما تسجّل جولات بأوزان، أفضل أرقامك بتطلع هون.</li>`;
+    // history
+    const hist = [...docs.values()].filter((d) => d && d.kind === "day" && (d.sessionDone || (d.sets || []).length)).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
+    $("hist").innerHTML = hist.length ? hist.map((d) => {
+      const vol = (d.sets || []).reduce((a, s) => a + (s.w || 0) * s.r, 0);
+      return `<li><span>${fmtDate(d.date)}<span class="s muted small" style="display:block">${esc((PROG[d.session] || { n: "تمرين" }).n)}${d.cardioMin ? " · " + ar(d.cardioMin) + " دقيقة" : ""}</span></span><span class="tab-num small">${ar((d.sets || []).length)} جولة${vol ? " · " + ar(Math.round(vol)) + " كغ" : ""}</span></li>`;
+    }).join("") : `<li class="muted small">جلساتك بتطلع هون.</li>`;
+  }
+  function renderProgress() {
+    const ws = weighs(), last = ws[ws.length - 1];
+    $("sNow").textContent = ar(last.weight);
+    $("sLost").textContent = ar(Math.max(0, +(BASE.weight - last.weight).toFixed(1)));
+    $("sLeft").textContent = ar(Math.max(0, +(last.weight - GOAL_HI).toFixed(1)));
+    // chart
+    const W = 340, H = 190, L = 40, R = 12, T = 12, B = 28;
+    const t0 = Date.parse(BASE.date), t1 = Math.max(Date.parse("2027-01-31"), Date.parse(last.date));
+    const vals = ws.map((w) => w.weight);
+    const yMax = Math.ceil(Math.max(...vals, BASE.weight) + 1), yMin = Math.floor(Math.min(...vals, GOAL_LO) - 1);
+    const x = (d) => L + (Date.parse(d) - t0) / (t1 - t0) * (W - L - R);
+    const y = (v) => T + (yMax - v) / (yMax - yMin) * (H - T - B);
+    let g = `<rect x="${L}" y="${y(GOAL_HI)}" width="${W - L - R}" height="${y(GOAL_LO) - y(GOAL_HI)}" fill="var(--good)" opacity=".14"/>`;
+    g += `<text x="${W - R - 4}" y="${y(GOAL_HI) + 13}" fill="var(--good)" font-size="10" text-anchor="end" font-family="Readex Pro, sans-serif">الهدف 133–137</text>`;
+    const step = (yMax - yMin) > 12 ? 4 : 2;
+    for (let v = Math.ceil(yMin / step) * step; v <= yMax; v += step) {
+      g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/>`;
+      g += `<text x="${L - 6}" y="${y(v) + 4}" fill="var(--muted)" font-size="10" text-anchor="end" font-family="Readex Pro, sans-serif">${v}</text>`;
+    }
+    [["2026-10-07", "تشرين 1"], ["2026-11-15", "يوم 1"], ["2026-12-15", "كانون 1"], ["2027-01-31", "31 ك2"]].forEach(([d, l]) => {
+      const xx = x(d); if (xx < L - 1 || xx > W - R + 1) return;
+      g += `<text x="${xx}" y="${H - 8}" fill="var(--muted)" font-size="10" text-anchor="middle" font-family="Readex Pro, sans-serif">${l}</text>`;
+    });
+    const pts = ws.map((w) => `${x(w.date).toFixed(1)},${y(w.weight).toFixed(1)}`).join(" ");
+    if (ws.length > 1) g += `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    ws.forEach((w, i) => { g += `<circle cx="${x(w.date)}" cy="${y(w.weight)}" r="${i === ws.length - 1 ? 5 : 3.5}" fill="${i === ws.length - 1 ? "var(--accent)" : "var(--surface)"}" stroke="var(--accent)" stroke-width="2"/>`; });
+    $("chart").innerHTML = g;
+    // list
+    $("weighs").innerHTML = [...ws].reverse().map((w) => `<li><span>${fmtDate(w.date)}${w.base ? ` <span class="tag">${w.label}</span>` : ""}</span><span class="row"><span class="tab-num">${ar(w.weight)} كغ${w.waist ? " · خصر " + ar(w.waist) : ""}</span>${w.base ? "" : `<button type="button" class="mini" data-wdel="${w.date}" aria-label="احذف القياس">×</button>`}</span></li>`).join("");
+    // strip
+    const d0 = today(); let s = "";
+    for (let i = 13; i >= 0; i--) {
+      const d = iso(new Date(Date.parse(d0 + "T12:00:00") - i * 864e5)), doc = docs.get(dayId(d));
+      const sc = doc ? score(doc) : -1;
+      const cls = sc >= 6 ? "g" : sc >= 4 ? "w" : sc >= 0 ? "b" : "";
+      s += `<i class="${cls}" title="${fmtDate(d)}: ${sc >= 0 ? sc + " من 8" : "ما في تسجيل"}"></i>`;
+    }
+    $("strip").innerHTML = s;
+  }
+  function render() {
+    // keep focus/typing safe: don't rebuild the session while a set input is focused
+    const a = document.activeElement, typing = a && a.closest && a.closest("#sessBody") && a.tagName === "INPUT";
+    renderHeader(); renderChecks(); renderFood(); if (!typing) renderTrain(); else { renderLib(); renderStats(); } renderProgress();
+  }
+
+  // ---------- events ----------
+  $("checks").addEventListener("click", (e) => {
+    const b = e.target.closest(".chk"); if (!b) return;
+    const ch = CHECKS.find((c) => c.k === b.dataset.k);
+    if (ch.auto) { toast("بينحسب من صفحة الأكل"); return; }
+    const d = today(), day = getDay(d);
+    put(dayId(d), { ...day, checks: { ...(day.checks || {}), [ch.k]: !(day.checks || {})[ch.k] } });
+  });
+  $("foods").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-f]"); if (!b) return;
+    const d = today(), day = getDay(d), k = b.dataset.f;
+    put(dayId(d), { ...day, foods: { ...(day.foods || {}), [k]: ((day.foods || {})[k] || 0) + 1 } });
+    const f = FOODS.find((x) => x.k === k); toast(f.slip ? "انسجلت. بكرة أحسن." : `+${ar(f.p)} غ بروتين`);
+  });
+  $("eaten").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-minus]"); if (!b) return;
+    const d = today(), day = getDay(d), k = b.dataset.minus, foods = { ...(day.foods || {}) };
+    foods[k] = Math.max(0, (foods[k] || 0) - 1); if (!foods[k]) delete foods[k];
+    put(dayId(d), { ...day, foods });
+  });
+  // training sub-tabs
+  function showSub(s) {
+    ["sess", "lib", "tim", "stat"].forEach((x) => { $("s-" + x).style.display = x === s ? "grid" : "none"; });
+    document.querySelectorAll("#trainSeg [data-s]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.s === s)));
+  }
+  $("trainSeg").addEventListener("click", (e) => { const b = e.target.closest("[data-s]"); if (b) showSub(b.dataset.s); });
+  $("libFilter").addEventListener("click", (e) => { const b = e.target.closest("[data-libm]"); if (b) { libM = b.dataset.libm; renderLib(); } });
+  $("sessPick").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-pick]"); if (!b) return;
+    const d = today(), day = getDay(d); put(dayId(d), { ...day, session: b.dataset.pick, picked: true });
+  });
+  $("sessBody").addEventListener("input", (e) => {
+    const t = e.target, card = t.closest("[data-ex]"); if (!card) return;
+    const id = card.dataset.ex, i = t.dataset.w ?? t.dataset.r; if (i == null) return;
+    const dr = (drafts[id] = drafts[id] || {}), row = (dr[i] = dr[i] || {});
+    if (t.dataset.w != null) row.w = t.value; else row.r = t.value;
+  });
+  $("sessBody").addEventListener("click", (e) => {
+    const d = today(), day = getDay(d), card = e.target.closest("[data-ex]");
+    const done = e.target.closest("[data-done]"), undo = e.target.closest("[data-undo]");
+    const more = e.target.closest("[data-more]"), add = e.target.closest("[data-addex]");
+    if (done && card) {
+      const id = card.dataset.ex, i = done.dataset.done, row = done.parentElement;
+      const w = parseFloat(row.querySelector("[data-w]").value), r = parseInt(row.querySelector("[data-r]").value, 10);
+      if (!(r > 0)) { toast("اكتب العدد"); row.querySelector("[data-r]").focus(); return; }
+      if (drafts[id]) delete drafts[id][i];
+      done.blur();
+      put(dayId(d), { ...day, session: day.session || nextSession(), sets: [...(day.sets || []), { id, ex: EX[id].n, w: w > 0 ? w : 0, r, t: Date.now() }] });
+      startRest(EX[id].rest);
+    } else if (undo) {
+      const sets = [...(day.sets || [])]; sets.splice(+undo.dataset.undo, 1);
+      put(dayId(d), { ...day, sets });
+    } else if (more) { extraRows[more.dataset.more] = (extraRows[more.dataset.more] || 0) + 1; renderTrain(); }
+    else if (add) { extraRows[add.dataset.addex] = 0; const id = add.dataset.addex; put(dayId(d), { ...day, session: day.session || nextSession(), extras: [...new Set([...(day.extras || []), id])] }); }
+    else if (e.target.closest("[data-gotimer]")) { showSub("tim"); applyPreset(e.target.closest("[data-gotimer]").dataset.gotimer); window.scrollTo({ top: 0 }); }
+  });
+  $("sessBody").addEventListener("change", (e) => {
+    if (e.target.id !== "cardioMin") return;
+    const d = today(), day = getDay(d), v = parseInt(e.target.value, 10);
+    if (v > 0) put(dayId(d), { ...day, cardioMin: v });
+  });
+  $("sessDone").addEventListener("click", () => {
+    const d = today(), day = getDay(d);
+    if (day.sessionDone) { put(dayId(d), { ...day, sessionDone: false }); return; }
+    const type = nextSession(), pos = day.session ? (SEQ[plannedPos()] === type ? plannedPos() : SEQ.indexOf(type)) : plannedPos();
+    const cm = $("cardioMin") ? parseInt($("cardioMin").value, 10) : 0;
+    put(dayId(d), { ...day, session: type, seqPos: pos, sessionDone: true, ...(cm > 0 ? { cardioMin: cm } : {}), checks: { ...(day.checks || {}), train: true } });
+    stopRest(); toast(type === "rest" ? "يوم راحة، الجسم بيبني" : "الله يعطيك العافية. سجلتها بالشيك اليومي");
+  });
+  $("wSave").addEventListener("click", () => {
+    const w = parseFloat($("wIn").value), waist = parseFloat($("waistIn").value);
+    if (!(w >= 40 && w <= 250)) { toast("اكتب وزن صحيح"); $("wIn").focus(); return; }
+    const d = today();
+    put("weigh-" + d, { kind: "weigh", date: d, weight: Math.round(w * 10) / 10, ...(waist >= 40 ? { waist: Math.round(waist * 2) / 2 } : {}) });
+    $("wIn").value = ""; $("waistIn").value = ""; toast("انحفظ القياس");
+  });
+  $("weighs").addEventListener("click", (e) => { const b = e.target.closest("[data-wdel]"); if (b) remove("weigh-" + b.dataset.wdel); });
+
+  // tabs
+  const views = ["today", "food", "train", "prog"];
+  function show(v) {
+    views.forEach((x) => { $("v-" + x).hidden = x !== v; $("t-" + x).setAttribute("aria-selected", String(x === v)); });
+    try { localStorage.setItem("bani-adam-tab", v); } catch {}
+    window.scrollTo({ top: 0 });
+  }
+  document.querySelector("nav.tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (b) show(b.dataset.v); });
+  try { const v = localStorage.getItem("bani-adam-tab"); if (views.includes(v)) show(v); } catch {}
+
+  // ---------- sound ----------
+  let actx = null, lock = null;
+  function wake() {
+    try { const AC = window.AudioContext || window.webkitAudioContext; if (AC && !actx) actx = new AC(); actx && actx.resume(); } catch {}
+    try { if (!lock && navigator.wakeLock) navigator.wakeLock.request("screen").then((l) => { lock = l; }).catch(() => {}); } catch {}
+  }
+  function tone(freq, times, vib) {
+    try { navigator.vibrate && navigator.vibrate(vib); } catch {}
+    if (!actx) return;
+    try { times.forEach((o) => { const os = actx.createOscillator(), g = actx.createGain(); os.frequency.value = freq; g.gain.setValueAtTime(.0001, actx.currentTime + o); g.gain.exponentialRampToValueAtTime(.15, actx.currentTime + o + .04); g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + o + .3); os.connect(g); g.connect(actx.destination); os.start(actx.currentTime + o); os.stop(actx.currentTime + o + .32); }); } catch {}
+  }
+  const releaseLock = () => { try { lock && lock.release(); } catch {} lock = null; };
+  const fmt = (s) => `${Math.floor(s / 60)}:${pad(s % 60)}`;
+
+  // ---------- rest timer (one engine: floating bar + card) ----------
+  let dur = 90, left = 90, end = 0, tick = null;
+  function drawTimer() {
+    $("tTxt").textContent = fmt(left);
+    const pct = dur ? (dur - left) / dur * 100 : 0;
+    $("tRing").style.background = `conic-gradient(var(--accent) ${pct}%, var(--raise) 0)`;
+    $("durs").innerHTML = DURS.map((d) => `<button type="button" class="chip" data-d="${d}" aria-pressed="${d === dur}" ${tick ? "disabled" : ""}>${d === 60 ? "دقيقة" : d % 60 ? fmt(d) : d / 60 + " دقايق"}</button>`).join("");
+    $("tBtn").textContent = tick ? "وقّف" : left === 0 ? "يلا، راحة ثانية" : "ابدأ الراحة";
+    $("tBtn").className = tick ? "btn ghost" : "btn";
+    $("restBar").hidden = !tick;
+    $("rbTime").textContent = fmt(left);
+  }
+  function stopRest() { clearInterval(tick); tick = null; if (!iv.tick) releaseLock(); drawTimer(); }
+  function startRest(sec) {
+    wake(); clearInterval(tick);
+    dur = sec; end = Date.now() + sec * 1000; left = sec;
+    tick = setInterval(() => {
+      left = Math.max(0, Math.ceil((end - Date.now()) / 1000));
+      if (!left) { stopRest(); tone(660, [0, .35], [250, 120, 250]); toast("خلصت الراحة، يلا الجولة الجاية"); }
+      else drawTimer();
+    }, 250);
+    drawTimer();
+  }
+  $("durs").addEventListener("click", (e) => { const b = e.target.closest("[data-d]"); if (!b || tick) return; dur = left = +b.dataset.d; drawTimer(); });
+  $("tBtn").addEventListener("click", () => { if (tick) { stopRest(); left = dur; drawTimer(); } else startRest(dur); });
+  $("rbAdd").addEventListener("click", () => { end += 15000; left += 15; drawTimer(); });
+  $("rbSkip").addEventListener("click", () => { stopRest(); left = dur; drawTimer(); });
+  drawTimer();
+
+  // ---------- round timer (boxing / HIIT) ----------
+  // Boxing numbers: 1 jab, 2 cross, 3 lead hook, 4 rear hook, 5 lead uppercut, 6 rear uppercut.
+  const PUNCH = { 1: "جاب", 2: "كروس", 3: "هوك", 4: "هوك خلفي", 5: "أبركت", 6: "أبركت خلفي" };
+  const COMBOS = ["1-2", "1-1-2", "1-2-3", "2-3-2", "1-2-5-2", "1-6-3-2", "3-2", "1-2-3-2", "1-3-2", "5-2-3", "ميل يمين + 2", "ميل يسار + 3-2", "لكمات سريعة 10 ثواني", "جاب جاب + خطوة لورا", "1-2 + ميل + 2-3"];
+  const SWEDISH = [
+    { n: "مشي بالمكان مع رفع الركب", c: "إيديك بتتحرك معك، والركبة لمستوى الورك إذا بتقدر" },
+    { n: "سكوات على كرسي", c: "اقعد بهدوء وقوم من كعبك" },
+    { n: "ضغط على الحيط", c: "جسمك خط واحد، وصدرك يقرّب للحيط" },
+    { n: "لكمات قدامك", c: "بدّل الإيدين بسرعة، والبطن مشدود" },
+    { n: "خطوة جانبية مع فتح الإيدين", c: "بديل القفز: خطوة لليمين واليسار والإيدين لفوق" },
+    { n: "كرنش واقف", c: "الكوع للركبة المعاكسة، ببطء" },
+    { n: "جسر الورك على السرير أو الأرض", c: "ارفع وركك واضغط المؤخرة ثانيتين" },
+    { n: "رفع إيدين ورجل (بيرد دوغ) أو تمدد الإيدين واقف", c: "إذا الأرض صعبة، اعملها واقف على حيط" },
+  ];
+  const PRESETS = {
+    box: { n: "ملاكمة مع مدرب", w: 180, r: 60, k: 6, combos: true },
+    swe: { n: "سويدي 8 حركات × 2", w: 40, r: 20, k: SWEDISH.length * 2, moves: SWEDISH },
+    hiit: { n: "HIIT دراجة", w: 30, r: 90, k: 8 },
+    walk: { n: "مشي سريع", w: 120, r: 60, k: 10 },
+  };
+  let ivPreset = null, callAt = 0, callTxt = "";
+  const comboTxt = (c) => /^[\d-]+$/.test(c) ? { big: c.split("-").map((x) => ar(+x)).join(" – "), sub: c.split("-").map((x) => PUNCH[x]).join("، ") } : { big: c, sub: "" };
+  function newCombo() { let c; do { c = COMBOS[Math.floor(Math.random() * COMBOS.length)]; } while (COMBOS.length > 1 && c === callTxt); callTxt = c; callAt = Date.now(); }
+  const iv = { tick: null, phase: "idle", round: 0, end: 0, left: 0, paused: 0 };
+  const ivCfg = () => ({ w: Math.max(5, +$("ivWork").value || 0), r: Math.max(0, +$("ivRest").value || 0), k: Math.max(1, Math.round(+$("ivRounds").value || 1)) });
+  function applyPreset(k) { const p = PRESETS[k]; ivPreset = k; $("ivWork").value = p.w; $("ivRest").value = p.r; $("ivRounds").value = p.k; ivReset(); document.querySelectorAll("#ivPresets [data-pre]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.pre === k))); }
+  $("ivPresets").innerHTML = Object.entries(PRESETS).map(([k, p]) => `<button type="button" class="chip" data-pre="${k}">${p.n}</button>`).join("");
+  $("ivPresets").addEventListener("click", (e) => { const b = e.target.closest("[data-pre]"); if (b && !iv.tick) applyPreset(b.dataset.pre); });
+  function ivDraw() {
+    const c = ivCfg(), pr = PRESETS[ivPreset] || {}, call = $("ivCall");
+    const on = (pr.combos || pr.moves) && iv.phase !== "done";
+    call.hidden = !on;
+    if (on) {
+      call.className = "call" + (iv.phase === "rest" ? " rest" : "");
+      if (pr.moves) {
+        const idx = iv.phase === "idle" ? 0 : (iv.round - 1) % pr.moves.length, nextIdx = iv.phase === "rest" ? iv.round % pr.moves.length : idx;
+        const m = iv.phase === "rest" ? pr.moves[nextIdx] : pr.moves[idx];
+        $("ivCallBig").textContent = iv.phase === "rest" ? "تنفّس" : m.n;
+        $("ivCallSub").textContent = iv.phase === "rest" ? "الجاية: " + m.n : m.c;
+        $("ivNext").textContent = iv.phase === "work" && iv.round < c.k ? "بعدها: " + pr.moves[iv.round % pr.moves.length].n : "";
+      } else {
+        const t = iv.phase === "work" ? comboTxt(callTxt) : { big: iv.phase === "rest" ? "تنفّس وامشِ" : "١ – ٢", sub: iv.phase === "rest" ? "إيديك تحت، ونفَس من الأنف" : "جاب، كروس. الإيدين دايماً عند وجهك" };
+        $("ivCallBig").textContent = t.big; $("ivCallSub").textContent = t.sub;
+        $("ivNext").textContent = iv.phase === "work" ? "كرّرها لحد ما يتغيّر الكومبو" : "";
+      }
+    }
+    const names = { idle: "جاهز", work: "شغل", rest: "راحة", done: "خلصت الجولات، الله يعطيك العافية" };
+    $("ivPhase").textContent = names[iv.phase]; $("ivPhase").className = "phase " + (iv.phase === "work" ? "work" : iv.phase === "rest" ? "rest" : "");
+    $("ivTime").textContent = fmt(iv.phase === "idle" ? c.w : iv.phase === "done" ? 0 : iv.left);
+    $("ivRound").textContent = iv.phase === "idle" ? `${ar(c.k)} جولات` : iv.phase === "done" ? "" : `جولة ${ar(iv.round)} من ${ar(c.k)}`;
+    $("ivBtn").textContent = iv.tick ? "إيقاف مؤقت" : iv.paused ? "كمّل" : iv.phase === "done" ? "من جديد" : "ابدأ";
+    ["ivWork", "ivRest", "ivRounds"].forEach((id) => { $(id).disabled = iv.phase !== "idle" && iv.phase !== "done"; });
+  }
+  function ivPhase(ph, secs) { iv.phase = ph; iv.end = Date.now() + secs * 1000; iv.left = secs; }
+  function ivStep() {
+    const c = ivCfg();
+    iv.left = Math.max(0, Math.ceil((iv.end - Date.now()) / 1000));
+    if (iv.left > 0) {
+      if (iv.phase === "work" && (PRESETS[ivPreset] || {}).combos && Date.now() - callAt > 8000) { newCombo(); tone(990, [0], [60]); }
+      return ivDraw();
+    }
+    if (iv.phase === "work") {
+      if (iv.round >= c.k) { clearInterval(iv.tick); iv.tick = null; iv.phase = "done"; tone(880, [0, .35, .7], [300, 100, 300, 100, 300]); if (!tick) releaseLock(); return ivDraw(); }
+      if (c.r > 0) { ivPhase("rest", c.r); tone(520, [0], [400]); return ivDraw(); }
+    }
+    iv.round++; ivPhase("work", c.w); newCombo(); tone(880, [0, .35], [200, 80, 200]); ivDraw();
+  }
+  function ivReset() { clearInterval(iv.tick); iv.tick = null; iv.phase = "idle"; iv.round = 0; iv.paused = 0; ivDraw(); }
+  $("ivBtn").addEventListener("click", () => {
+    wake();
+    if (iv.tick) { clearInterval(iv.tick); iv.tick = null; iv.paused = iv.end - Date.now(); return ivDraw(); }
+    if (iv.paused) { iv.end = Date.now() + iv.paused; iv.paused = 0; }
+    else { iv.round = 1; ivPhase("work", ivCfg().w); newCombo(); tone(880, [0, .35], [200, 80, 200]); }
+    iv.tick = setInterval(ivStep, 250); ivDraw();
+  });
+  $("ivReset").addEventListener("click", ivReset);
+  ["ivWork", "ivRest", "ivRounds"].forEach((id) => $(id).addEventListener("input", ivDraw));
+  ivDraw();
+
+  const SITE = "https://bani-adam.vercel.app";
+  if (/claude|anthropic/.test(location.hostname) || location.protocol === "about:" || location.protocol === "blob:") $("gameCard").href = SITE + "/game.html";
+
+  // ---------- boot ----------
+  loadLocal();
+  render();
+  setStatus("محفوظ على هالجهاز بس");
+  setInterval(renderHeader, 60000); // يقلب اليوم الساعة 6 الصبح
+  (async () => {
+    if (!window.claude || !window.claude.use) return;
+    try {
+      const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+      const uid = user ? await user.id() : null;
+      if (!db || !uid) return;
+      col = db.collection("data/users/" + uid);
+      const fail = setTimeout(() => setStatus("السجل بطيء، شغّال على هالجهاز لحد ما يرد"), 10000);
+      col.onSnapshot((snap) => {
+        clearTimeout(fail);
+        const first = backend !== "db";
+        backend = "db";
+        const local = first ? new Map(docs) : null;
+        docs.clear();
+        snap.docs.forEach((d) => { const v = d.data(); if (v) docs.set(d.id, v); });
+        for (const [k, v] of pending) docs.set(k, v);
+        // أول مرة: انقل أي تسجيل محلي ما وصل للسجل
+        let moved = false; try { moved = localStorage.getItem("bani-adam-moved") === "1"; } catch {}
+        if (first && local && !moved) {
+          for (const [k, v] of local) if (!docs.has(k)) { docs.set(k, v); col.doc(k).set(v).catch(() => {}); }
+          try { localStorage.setItem("bani-adam-moved", "1"); } catch {}
+        }
+        setStatus("محفوظ بحسابك، وبيوصل لأي جهاز");
+        render();
+      }, () => { clearTimeout(fail); setStatus("ما قدرت أوصل للسجل، التسجيل محفوظ على هالجهاز"); });
+    } catch { /* stays local */ }
+  })();
+})();
+</script>
+
+</body>
+</html>

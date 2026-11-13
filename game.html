@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ركض بني آدم</title>
+<meta name="description" content="لعبة ركض بالكاميرا: اركض بمكانك، زيح يمين ويسار، ارفع إيديك، وانزل سكوات. بدون قفز.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Changa:wght@600;800&family=Readex+Pro:wght@400;600&display=swap">
+<style>
+/* One full-screen game: canvas road behind, HUD on top, camera preview in a corner, overlays for start/calibrate/summary. */
+:root { --night: #0b1220; --ink: #eef1f6; --muted: #93a1b5; --accent: #f28a2e; --good: #3ec28f; --bad: #e5675a; --panel: rgb(14 21 32 / .86);
+  --display: "Changa", "Readex Pro", system-ui, sans-serif; --body: "Readex Pro", Tahoma, system-ui, sans-serif; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--night); color: var(--ink); font-family: var(--body); overflow: hidden; touch-action: none; }
+canvas#world { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.hud { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; display: flex; justify-content: space-between; gap: 8px; padding: 10px max(12px, env(safe-area-inset-right, 0px)) 0 max(12px, env(safe-area-inset-left, 0px)); pointer-events: none; }
+.hud .grp { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill { background: var(--panel); border-radius: 99px; padding: 5px 12px; font-size: .9rem; font-variant-numeric: tabular-nums; }
+.pill b { font-family: var(--display); }
+#cue { position: fixed; top: 22%; left: 0; right: 0; text-align: center; font-family: var(--display); font-size: clamp(1.4rem, 6vw, 2.6rem); font-weight: 800; color: var(--accent); text-shadow: 0 2px 12px rgb(0 0 0 / .6); pointer-events: none; }
+#cam { position: fixed; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); left: max(12px, env(safe-area-inset-left, 0px)); width: min(34vw, 200px); aspect-ratio: 4 / 3; border-radius: 14px; border: 2px solid rgb(255 255 255 / .25); background: #000; }
+#ctrl { position: fixed; top: calc(50px + env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); display: grid; gap: 4px; justify-items: start; pointer-events: none; }
+#ctrl .pill { font-size: .78rem; }
+.ov { position: fixed; inset: 0; display: grid; place-items: center; background: rgb(8 12 20 / .82); padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); overflow-y: auto; }
+.ov[hidden] { display: none; }
+.box { width: min(520px, 100%); background: #131c2b; border: 1px solid #2a3a52; border-radius: 22px; padding: 22px; display: grid; gap: 14px; }
+h1 { font-family: var(--display); font-size: 2rem; margin: 0; line-height: 1.1; }
+h1 span { color: var(--accent); }
+.how { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.how li { background: #1d2b3f; border-radius: 14px; padding: 10px; font-size: .88rem; }
+.how b { display: block; font-family: var(--display); color: var(--accent); }
+.note { font-size: .8rem; color: var(--muted); margin: 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+button { font: inherit; cursor: pointer; }
+.btn { background: var(--accent); color: #1a0f04; border: 0; border-radius: 14px; padding: 12px 20px; font-weight: 700; font-size: 1rem; }
+.btn.ghost { background: #1d2b3f; color: var(--ink); border: 1px solid #2a3a52; }
+.chip { background: #1d2b3f; color: var(--ink); border: 1px solid #2a3a52; border-radius: 99px; padding: 6px 14px; }
+.chip[aria-pressed="true"] { background: var(--accent); color: #1a0f04; border-color: var(--accent); font-weight: 700; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { background: #1d2b3f; border-radius: 14px; padding: 10px; text-align: center; }
+.stat b { display: block; font-family: var(--display); font-size: 1.5rem; }
+.stat span { font-size: .75rem; color: var(--muted); }
+.err { color: var(--bad); font-size: .88rem; margin: 0; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<canvas id="world"></canvas>
+<div class="hud">
+  <div class="grp"><span class="pill">⏱ <b id="hTime">0:00</b></span><span class="pill">👣 <b id="hSteps">0</b></span></div>
+  <div class="grp"><span class="pill">🪙 <b id="hCoins">0</b></span><span class="pill"><b id="hLives">❤❤❤</b></span><span class="pill">⭐ <b id="hScore">0</b></span></div>
+</div>
+<div id="cue"></div>
+<canvas id="cam" width="320" height="240" hidden></canvas>
+<div id="ctrl"><span class="pill" id="cState">جاهز</span><span class="pill" id="cCad">إيقاع 0</span></div>
+
+<div class="ov" id="ovStart">
+  <div class="box">
+    <h1>ركض <span>بني آدم</span></h1>
+    <p class="note" style="font-size:.9rem;color:var(--ink)">جسمك هو الجويستيك. الكاميرا بتشوفك، والشخصية بتعمل متلك.</p>
+    <ul class="how">
+      <li><b>اركض بمكانك</b>كل ما ركضت أسرع، الشخصية بتركض أسرع. وقفت؟ بتوقف.</li>
+      <li><b>زيح يمين ويسار</b>خطوة لجنب بتغيّر المسار. وارجع للنص.</li>
+      <li><b>ارفع إيديك</b>فوق راسك عشان تنط عن الحاجز الواطي. بدون ما تنط إنت.</li>
+      <li><b>انزل سكوات</b>عشان تمرق تحت العارضة العالية.</li>
+    </ul>
+    <div class="row" id="lenPick"></div>
+    <p class="note">حط الجوال على طاولة أو كرسي، وارجع لورا 2 لـ 3 متر لحد ما يبيّن جسمك من راسك لركبك. أرض مش زلقة، ومساحة حواليك. وجع بالصدر أو دوخة قوية: وقّف فوراً.</p>
+    <p class="err" id="err" hidden></p>
+    <div class="row">
+      <button class="btn" id="bCam" type="button">شغّل الكاميرا</button>
+      <button class="btn ghost" id="bKeys" type="button">جرّب بدون كاميرا</button>
+    </div>
+    <p class="note">الكاميرا بتشتغل على جهازك بس، وما في أي صورة بتطلع منه. <a href="./">ارجع لصفحة اليوم</a></p>
+  </div>
+</div>
+
+<div class="ov" id="ovEnd" hidden>
+  <div class="box">
+    <h1 id="endTitle">الله يعطيك <span>العافية</span></h1>
+    <div class="stats">
+      <div class="stat"><b id="eTime">0:00</b><span>وقت حركة</span></div>
+      <div class="stat"><b id="eSteps">0</b><span>خطوة تقريباً</span></div>
+      <div class="stat"><b id="eScore">0</b><span>نقاط</span></div>
+    </div>
+    <p class="note" id="eBest"></p>
+    <div class="row"><button class="btn" id="bAgain" type="button">كمان مرة</button><a class="btn ghost" href="./" style="text-decoration:none">رجوع</a></div>
+  </div>
+</div>
+
+<video id="vid" playsinline muted hidden></video>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const ar = (n) => Number(n).toLocaleString("ar-EG");
+const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+
+// ---------- settings ----------
+const LENGTHS = [3, 5, 10];
+let minutes = 5;
+try { minutes = +localStorage.getItem("ba-run-min") || 5; } catch {}
+function drawLen() {
+  $("lenPick").innerHTML = LENGTHS.map((m) => `<button type="button" class="chip" data-m="${m}" aria-pressed="${m === minutes}">${ar(m)} دقايق</button>`).join("");
+}
+$("lenPick").addEventListener("click", (e) => { const b = e.target.closest("[data-m]"); if (!b) return; minutes = +b.dataset.m; try { localStorage.setItem("ba-run-min", minutes); } catch {} drawLen(); });
+drawLen();
+
+// ---------- input state (shared by camera and keys) ----------
+const input = { lane: 1, duck: false, handsUp: false, steps: 0, stepTimes: [], cadence: 0, seen: false, lastSeen: 0 };
+function addStep(now) {
+  if (input.stepTimes.length && now - input.stepTimes[input.stepTimes.length - 1] < 170) return;
+  input.stepTimes.push(now); input.steps++;
+}
+function updateCadence(now) {
+  input.stepTimes = input.stepTimes.filter((t) => now - t < 2000);
+  input.cadence = input.stepTimes.length / 2; // steps per second
+}
+
+// ---------- keyboard / touch fallback ----------
+let mode = null; // "cam" | "keys"
+addEventListener("keydown", (e) => {
+  if (mode !== "keys") return;
+  if (e.key === "ArrowLeft") input.lane = clamp(input.lane - 1, 0, 2);
+  if (e.key === "ArrowRight") input.lane = clamp(input.lane + 1, 0, 2);
+  if (e.key === "ArrowUp") { input.handsUp = true; setTimeout(() => (input.handsUp = false), 250); }
+  if (e.key === "ArrowDown") input.duck = true;
+  if (e.key === " ") addStep(performance.now());
+});
+addEventListener("keyup", (e) => { if (e.key === "ArrowDown") input.duck = false; });
+let tStart = null;
+addEventListener("pointerdown", (e) => { if (mode === "keys" && !e.target.closest(".ov")) tStart = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+addEventListener("pointerup", (e) => {
+  if (mode !== "keys" || !tStart) return;
+  const dx = e.clientX - tStart.x, dy = e.clientY - tStart.y;
+  if (Math.hypot(dx, dy) < 25) { addStep(performance.now()); addStep(performance.now() + 200); }
+  else if (Math.abs(dx) > Math.abs(dy)) input.lane = clamp(input.lane + (dx > 0 ? 1 : -1), 0, 2);
+  else if (dy < 0) { input.handsUp = true; setTimeout(() => (input.handsUp = false), 250); }
+  else { input.duck = true; setTimeout(() => (input.duck = false), 700); }
+  tStart = null;
+});
+
+// ---------- camera + pose ----------
+const VISION = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+let landmarker = null, base = null, calib = null, prevKnee = 0, prevWrist = 0;
+const vid = $("vid"), cam = $("cam"), cctx = cam.getContext("2d");
+async function startCamera() {
+  const { FilesetResolver, PoseLandmarker } = await import(`${VISION}/vision_bundle.mjs`);
+  const fs = await FilesetResolver.forVisionTasks(`${VISION}/wasm`);
+  const opts = (delegate) => ({ baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task", delegate }, runningMode: "VIDEO", numPoses: 1 });
+  try { landmarker = await PoseLandmarker.createFromOptions(fs, opts("GPU")); }
+  catch { landmarker = await PoseLandmarker.createFromOptions(fs, opts("CPU")); }
+  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+  vid.srcObject = stream; await vid.play();
+  cam.hidden = false;
+}
+const vis = (p) => p && (p.visibility ?? 1) > 0.5;
+function readPose(now) {
+  if (!landmarker || vid.readyState < 2) return;
+  const res = landmarker.detectForVideo(vid, now);
+  const L = res.landmarks && res.landmarks[0];
+  // preview (mirrored)
+  cctx.save(); cctx.translate(cam.width, 0); cctx.scale(-1, 1); cctx.drawImage(vid, 0, 0, cam.width, cam.height); cctx.restore();
+  if (!L) { input.seen = false; return; }
+  const [nose, lS, rS, lW, rW, lH, rH, lK, rK] = [L[0], L[11], L[12], L[15], L[16], L[23], L[24], L[25], L[26]];
+  if (!vis(lS) || !vis(rS)) { input.seen = false; return; }
+  input.seen = true; input.lastSeen = now;
+  cctx.fillStyle = "#f28a2e";
+  for (const p of [nose, lS, rS, lW, rW, lH, rH, lK, rK]) if (vis(p)) { cctx.beginPath(); cctx.arc((1 - p.x) * cam.width, p.y * cam.height, 4, 0, 7); cctx.fill(); }
+  const sx = 1 - (lS.x + rS.x) / 2, sy = (lS.y + rS.y) / 2;
+  const shW = Math.abs(lS.x - rS.x) || 0.1;
+  const hy = vis(lH) && vis(rH) ? (lH.y + rH.y) / 2 : sy + shW * 1.6;
+  const torso = Math.max(0.08, hy - sy);
+  // calibration: stand still in the middle for ~2s
+  if (!base) {
+    if (!calib) calib = { t: now, xs: [], ys: [], ts: [], ws: [] };
+    calib.xs.push(sx); calib.ys.push(sy); calib.ts.push(torso); calib.ws.push(shW);
+    const spread = Math.max(...calib.xs) - Math.min(...calib.xs);
+    if (spread > shW * 0.5) calib = null; // moved too much, restart
+    else if (now - calib.t > 2000) {
+      const avg = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+      base = { x: avg(calib.xs), y: avg(calib.ys), torso: avg(calib.ts), w: avg(calib.ws) };
+    }
+    return;
+  }
+  // lane from body position (step to the side)
+  const dx = (sx - base.x) / base.w;
+  input.lane = dx < -0.65 ? 0 : dx > 0.65 ? 2 : (Math.abs(dx) < 0.4 ? 1 : input.lane);
+  // squat: shoulders drop
+  input.duck = (sy - base.y) / base.torso > 0.28;
+  // hands above head
+  input.handsUp = vis(lW) && vis(rW) && lW.y < nose.y - 0.02 && rW.y < nose.y - 0.02;
+  // running in place: knees alternate, or arms pumping when knees are out of frame
+  if (vis(lK) && vis(rK)) {
+    const k = (lK.y - rK.y) / base.torso;
+    if (Math.abs(k) > 0.07 && Math.sign(k) !== Math.sign(prevKnee)) { addStep(now); prevKnee = k; }
+  } else if (vis(lW) && vis(rW) && !input.handsUp) {
+    const w = (lW.y - rW.y) / base.torso;
+    if (Math.abs(w) > 0.18 && Math.sign(w) !== Math.sign(prevWrist)) { addStep(now); prevWrist = w; }
+  }
+}
+
+// ---------- audio ----------
+let actx = null;
+function beep(f, d = 0.12, v = 0.12) {
+  if (!actx) return;
+  try { const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f; g.gain.setValueAtTime(v, actx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + d); o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + d); } catch {}
+}
+
+// ---------- world ----------
+const cv = $("world"), ctx = cv.getContext("2d");
+let W = 0, H = 0, DPR = 1;
+function resize() { DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * DPR; cv.height = H * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
+addEventListener("resize", resize); resize();
+
+const FAR = 60, PZ = 2; // player stands a little ahead of the screen edge
+const g = { state: "idle", t: 0, dist: 0, speed: 0, objs: [], nextSpawn: 12, lives: 3, coins: 0, score: 0, inv: 0, jump: 0, laneX: 1, hitFlash: 0, msg: "", msgT: 0, wasUp: false, moveT: 0, stepsAtStart: 0 };
+function horizon() { return H * 0.34; }
+const K = () => Math.min(W, H) / 560; // pixel sizes follow the screen
+function proj(lane, z) { // lane -1..1 (float), z distance ahead
+  const s = 1 / (1 + Math.max(z, -0.5) * 0.11), hy = horizon();
+  const y = hy + (H - hy) * s;
+  const half = (W * 0.62) * s;
+  return { x: W / 2 + lane * (half * 0.66), y, s, half };
+}
+function spawn() {
+  const diff = clamp(g.t / 120, 0, 1); // ramps over 2 minutes
+  const r = Math.random();
+  if (r < 0.32) { // coins in one lane
+    const lane = Math.floor(Math.random() * 3);
+    for (let i = 0; i < 4; i++) g.objs.push({ type: "coin", lane, z: FAR + i * 2.2 });
+  } else if (r < 0.55) g.objs.push({ type: "low", lane: Math.floor(Math.random() * 3), z: FAR });
+  else if (r < 0.75) g.objs.push({ type: "high", lane: Math.floor(Math.random() * 3), z: FAR });
+  else { // blocks in 1-2 lanes, one lane always free
+    const free = Math.floor(Math.random() * 3);
+    const lanes = [0, 1, 2].filter((l) => l !== free);
+    const n = Math.random() < 0.4 + diff * 0.4 ? 2 : 1;
+    lanes.sort(() => Math.random() - 0.5).slice(0, n).forEach((l) => g.objs.push({ type: "block", lane: l, z: FAR }));
+  }
+  g.nextSpawn = g.dist + 11 - diff * 4 + Math.random() * 5;
+}
+function say(t) { g.msg = t; g.msgT = 1.6; }
+
+function step(dt, now) {
+  updateCadence(now);
+  if (mode === "cam" && input.seen === false && now - input.lastSeen > 2000 && base) { $("cState").textContent = "ما شايفك، ارجع قدام الكاميرا"; }
+  if (g.state !== "play") return;
+  g.t += dt;
+  // speed follows cadence: ~2.2 steps/s = full run
+  const target = input.cadence < 0.8 ? 0 : clamp(4 + input.cadence * 4.2, 6, 16);
+  g.speed += (target - g.speed) * Math.min(1, dt * 2.2);
+  if (g.speed > 1) g.moveT += dt;
+  g.dist += g.speed * dt;
+  g.score += g.speed * dt;
+  if (g.dist >= g.nextSpawn) spawn();
+  // jump on hands-up (rising edge)
+  if (input.handsUp && !g.wasUp && g.jump <= 0) { g.jump = 1; beep(700, 0.1, 0.08); }
+  g.wasUp = input.handsUp;
+  g.jump = Math.max(0, g.jump - dt * 1.05);
+  g.laneX += (input.lane - g.laneX) * Math.min(1, dt * 9);
+  g.inv = Math.max(0, g.inv - dt); g.hitFlash = Math.max(0, g.hitFlash - dt); g.msgT = Math.max(0, g.msgT - dt);
+  const myLane = Math.round(g.laneX);
+  for (const o of g.objs) {
+    o.z -= g.speed * dt;
+    if (o.done || o.z > PZ + 0.6 || o.z < PZ - 0.6) continue;
+    if (o.lane !== myLane) continue;
+    if (o.type === "coin") { o.done = true; g.coins++; g.score += 25; beep(1250, 0.08, 0.06); continue; }
+    o.done = true;
+    const ok = (o.type === "low" && g.jump > 0.15) || (o.type === "high" && input.duck);
+    if (ok) { g.score += 40; say(o.type === "low" ? "نطّة حلوة" : "سكوات نظيف"); continue; }
+    if (g.inv > 0) continue;
+    g.lives--; g.inv = 1.6; g.hitFlash = 0.5; g.speed *= 0.4; beep(180, 0.3, 0.15);
+    say(o.type === "low" ? "ارفع إيديك فوق راسك" : o.type === "high" ? "انزل سكوات" : "زيح لمسار ثاني");
+    if (g.lives <= 0) end(false);
+  }
+  g.objs = g.objs.filter((o) => o.z > -2 && !(o.done && o.type === "coin"));
+  if (g.t >= minutes * 60) end(true);
+}
+
+function draw() {
+  const hy = horizon();
+  // sky
+  const sky = ctx.createLinearGradient(0, 0, 0, hy);
+  sky.addColorStop(0, "#0b1220"); sky.addColorStop(1, "#1b2a44");
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, hy);
+  // city silhouette
+  ctx.fillStyle = "#121c2e";
+  for (let i = 0; i < 14; i++) { const bw = W / 14, bh = 20 + ((i * 37) % 60); ctx.fillRect(i * bw, hy - bh, bw - 2, bh); }
+  ctx.fillStyle = "#f2c66d";
+  for (let i = 0; i < 26; i++) { const x = (i * 97) % W, y = hy - 10 - ((i * 23) % 50); ctx.fillRect(x, y, 3, 3); }
+  // ground
+  ctx.fillStyle = "#0f1726"; ctx.fillRect(0, hy, W, H - hy);
+  // road
+  const a = proj(-1.6, FAR), b = proj(1.6, FAR), c = proj(1.6, -0.5), d = proj(-1.6, -0.5);
+  ctx.fillStyle = "#1e2a3d"; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y); ctx.fill();
+  // lane dashes
+  ctx.strokeStyle = "rgb(238 241 246 / .35)";
+  for (const ln of [-0.5, 0.5]) {
+    for (let z = -(g.dist % 4); z < FAR; z += 4) {
+      const p1 = proj(ln * 2, z), p2 = proj(ln * 2, z + 1.8);
+      ctx.lineWidth = Math.max(1, 4 * p1.s); ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+    }
+  }
+  // objects far to near
+  const objs = [...g.objs].filter((o) => !o.done || o.type !== "coin").sort((x, y) => y.z - x.z);
+  for (const o of objs) {
+    if (o.z > FAR || o.z < -0.6) continue;
+    const p = proj(o.lane - 1, o.z), w = p.half * 0.5, s = p.s * K();
+    if (o.type === "coin") { ctx.fillStyle = "#f2c66d"; ctx.beginPath(); ctx.arc(p.x, p.y - 40 * s, Math.max(2, 14 * s), 0, 7); ctx.fill(); }
+    else if (o.type === "low") { ctx.fillStyle = "#f28a2e"; ctx.fillRect(p.x - w / 2, p.y - 34 * s, w, 34 * s); ctx.fillStyle = "#1a0f04"; ctx.fillRect(p.x - w / 2, p.y - 22 * s, w, 6 * s); }
+    else if (o.type === "high") { ctx.fillStyle = "#93a1b5"; ctx.fillRect(p.x - w / 2, p.y - 150 * s, 6 * s, 150 * s); ctx.fillRect(p.x + w / 2 - 6 * s, p.y - 150 * s, 6 * s, 150 * s); ctx.fillStyle = "#3ec28f"; ctx.fillRect(p.x - w / 2, p.y - 150 * s, w, 26 * s); }
+    else { ctx.fillStyle = "#e5675a"; ctx.fillRect(p.x - w / 2, p.y - 120 * s, w, 120 * s); ctx.fillStyle = "rgb(255 255 255 / .25)"; ctx.fillRect(p.x - w / 2 + 6 * s, p.y - 108 * s, w - 12 * s, 26 * s); }
+  }
+  // player
+  const pp = proj(g.laneX - 1, PZ), s = pp.s * K() * 1.25;
+  const lift = Math.sin(Math.PI * clamp(1 - g.jump, 0, 1)) * (g.jump > 0 ? 120 : 0) * s;
+  const duck = input.duck && g.state === "play" ? 0.55 : 1;
+  const run = g.speed > 1 ? Math.sin(performance.now() / 70) : 0;
+  const bh = 120 * s * duck, by = pp.y - lift;
+  if (!(g.inv > 0 && Math.floor(performance.now() / 100) % 2)) {
+    ctx.fillStyle = "rgb(0 0 0 / .35)"; ctx.beginPath(); ctx.ellipse(pp.x, pp.y, 36 * s, 9 * s, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = "#eef1f6"; ctx.lineWidth = 9 * s; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(pp.x, by - bh * 0.45); ctx.lineTo(pp.x - 14 * s * run, by); ctx.moveTo(pp.x, by - bh * 0.45); ctx.lineTo(pp.x + 14 * s * run, by); ctx.stroke();
+    ctx.fillStyle = "#f28a2e"; ctx.beginPath(); ctx.roundRect(pp.x - 22 * s, by - bh, 44 * s, bh * 0.6, 14 * s); ctx.fill();
+    ctx.strokeStyle = "#f28a2e"; ctx.lineWidth = 8 * s;
+    const armUp = input.handsUp || g.jump > 0;
+    ctx.beginPath();
+    ctx.moveTo(pp.x - 18 * s, by - bh * 0.9); ctx.lineTo(pp.x - 30 * s, armUp ? by - bh * 1.35 : by - bh * 0.55 + 10 * s * run);
+    ctx.moveTo(pp.x + 18 * s, by - bh * 0.9); ctx.lineTo(pp.x + 30 * s, armUp ? by - bh * 1.35 : by - bh * 0.55 - 10 * s * run);
+    ctx.stroke();
+    ctx.fillStyle = "#eef1f6"; ctx.beginPath(); ctx.arc(pp.x, by - bh - 16 * s, 16 * s, 0, 7); ctx.fill();
+  }
+  if (g.hitFlash > 0) { ctx.fillStyle = `rgb(229 103 90 / ${g.hitFlash * 0.5})`; ctx.fillRect(0, 0, W, H); }
+}
+
+function hud() {
+  $("hTime").textContent = fmt(Math.max(0, minutes * 60 - g.t));
+  $("hSteps").textContent = ar(input.steps - g.stepsAtStart);
+  $("hCoins").textContent = ar(g.coins);
+  $("hScore").textContent = ar(Math.floor(g.score));
+  $("hLives").textContent = "❤".repeat(Math.max(0, g.lives)) || "—";
+  $("cCad").textContent = `إيقاع ${ar(input.cadence.toFixed(1))}`;
+  let cue = "";
+  if (g.state === "calib") cue = !input.seen ? "ارجع لورا لحد ما يبيّن جسمك" : "اوقف بالنص ثابت ثانيتين…";
+  else if (g.state === "play") {
+    cue = g.msgT > 0 ? g.msg : input.cadence < 0.8 ? "اركض بمكانك!" : "";
+    const ahead = g.objs.filter((o) => !o.done && o.z > PZ && o.z < PZ + 14 && o.lane === Math.round(g.laneX) && o.type !== "coin").sort((a, b) => a.z - b.z)[0];
+    if (!g.msgT && ahead) cue = ahead.type === "low" ? "ارفع إيديك ⬆" : ahead.type === "high" ? "انزل سكوات ⬇" : "زيح ⬅ ➡";
+  }
+  $("cue").textContent = cue;
+  $("cState").textContent = mode === "keys" ? "الأسهم أو السحب، والمسافة أو الضغط للركض" : g.state === "calib" ? "معايرة" : input.seen ? "شايفك ✓" : "ما شايفك";
+}
+
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (mode === "cam") readPose(now);
+  if (g.state === "calib" && base) { g.state = "play"; g.stepsAtStart = input.steps; say("يلا! اركض بمكانك"); beep(880, 0.15); }
+  step(dt, now);
+  draw(); hud();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+function reset() {
+  Object.assign(g, { t: 0, dist: 0, speed: 0, objs: [], nextSpawn: 12, lives: 3, coins: 0, score: 0, inv: 0, jump: 0, laneX: 1, hitFlash: 0, msgT: 0, moveT: 0, stepsAtStart: input.steps });
+}
+function begin() {
+  try { const AC = window.AudioContext || window.webkitAudioContext; if (AC && !actx) actx = new AC(); actx && actx.resume(); } catch {}
+  try { navigator.wakeLock && navigator.wakeLock.request("screen").catch(() => {}); } catch {}
+  reset();
+  $("ovStart").hidden = true; $("ovEnd").hidden = true;
+  if (mode === "cam") { base = null; calib = null; g.state = "calib"; } else { g.state = "play"; say("اضغط أو المسافة عشان تركض"); }
+}
+function end(finished) {
+  g.state = "over";
+  const steps = input.steps - g.stepsAtStart, score = Math.floor(g.score);
+  $("endTitle").innerHTML = finished ? "خلّصت الوقت، الله يعطيك <span>العافية</span>" : "خلصت المحاولات، <span>كمان مرة؟</span>";
+  $("eTime").textContent = fmt(g.moveT); $("eSteps").textContent = ar(steps); $("eScore").textContent = ar(score);
+  let best = 0, total = 0;
+  try { best = +localStorage.getItem("ba-run-best") || 0; total = +localStorage.getItem("ba-run-total") || 0; } catch {}
+  total += g.moveT;
+  const nb = score > best;
+  try { if (nb) localStorage.setItem("ba-run-best", score); localStorage.setItem("ba-run-total", total); } catch {}
+  $("eBest").textContent = `${nb ? "رقم قياسي جديد! " : `أفضل نتيجة: ${ar(best)}. `}مجموع حركتك باللعبة: ${ar(Math.round(total / 60))} دقيقة.`;
+  $("ovEnd").hidden = false;
+  beep(660, 0.2); setTimeout(() => beep(880, 0.25), 220);
+}
+
+$("bCam").addEventListener("click", async () => {
+  const btn = $("bCam"); btn.disabled = true; btn.textContent = "بجهّز الكاميرا…"; $("err").hidden = true;
+  try { mode = "cam"; if (!landmarker) await startCamera(); begin(); }
+  catch (e) {
+    mode = null;
+    $("err").textContent = e && e.name === "NotAllowedError" ? "الكاميرا مرفوضة. اسمح للموقع يستعمل الكاميرا من إعدادات المتصفح وجرّب كمان مرة." : "ما قدرت أشغّل الكاميرا أو أحمّل قارئ الحركة. تأكد من النت وجرّب كمان مرة، أو جرّب بدون كاميرا.";
+    $("err").hidden = false;
+  }
+  btn.disabled = false; btn.textContent = "شغّل الكاميرا";
+});
+$("bKeys").addEventListener("click", () => { mode = "keys"; begin(); });
+$("bAgain").addEventListener("click", begin);
+</script>
+</body>
+</html>
