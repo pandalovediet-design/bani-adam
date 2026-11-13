@@ -6,6 +6,11 @@
 <meta name="theme-color" content="#0e1520">
 <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/brand/app-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="بني آدم">
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));</script>
 <style>body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 </head>
 <body>
@@ -336,6 +341,23 @@ details.mini-d summary::-webkit-details-marker { display: none; }
       <div class="row spread"><h2>آخر 14 يوم</h2><span class="small muted">أخضر = 6 من 8 أو أكثر</span></div>
       <div class="strip" id="strip"></div>
     </div>
+    <div class="card" id="syncCard" hidden>
+      <div class="row spread"><h2>المزامنة بين الأجهزة</h2><span class="tag" id="syncTag">مطفية</span></div>
+      <div id="syncOff">
+        <p class="small muted" style="margin:0 0 10px">تسجيلك هلأ على هالجهاز بس. فعّل المزامنة عشان ينحفظ على السحابة، وما يروح إذا انمسح المتصفح أو غيّرت الجوال.</p>
+        <button class="btn full" id="syncOn" type="button" style="width:100%">فعّل المزامنة</button>
+        <div class="form" style="margin-top:10px">
+          <label class="f full" for="syncIn">عندك كود من جهاز ثاني؟<input type="text" id="syncIn" autocomplete="off" autocapitalize="off" spellcheck="false" dir="ltr" placeholder="ba-xxxxx-xxxxx-..."></label>
+          <button class="btn ghost full" id="syncLink" type="button">اربط هالجهاز</button>
+        </div>
+      </div>
+      <div id="syncOnBox" hidden>
+        <p class="small" style="margin:0" id="syncLast">آخر مزامنة: —</p>
+        <p class="small muted" style="margin:6px 0">الكود هو مفتاح سجلك: احفظه بمكان آمن، واللي معه الكود بيقدر يشوف سجلك. لجهاز ثاني افتح رابط الربط عليه.</p>
+        <code id="syncCode" dir="ltr" style="display:block;background:var(--raise);border-radius:10px;padding:8px 10px;font-size:.8rem;word-break:break-all">••••••</code>
+        <div class="row" style="margin-top:8px"><button class="mini" id="syncShow" type="button">اظهر الكود</button><button class="mini" id="syncCopy" type="button">انسخ رابط الربط</button><button class="mini" id="syncNow" type="button">زامن هلأ</button></div>
+      </div>
+    </div>
   </section>
 
   <p class="status" id="status">بجهّز السجل…</p>
@@ -451,6 +473,7 @@ details.mini-d summary::-webkit-details-marker { display: none; }
   const saveLocal = () => { try { localStorage.setItem(LKEY, JSON.stringify(Object.fromEntries(docs))); } catch {} };
   const timers = {}, pending = new Map(); // edits not yet confirmed by the store
   function put(id, data) {
+    data = { ...data, _u: Date.now() };
     docs.set(id, data); pending.set(id, data);
     render();
     clearTimeout(timers[id]);
@@ -460,17 +483,19 @@ details.mini-d summary::-webkit-details-marker { display: none; }
       if (backend === "db" && col) {
         col.doc(id).set(val).then(() => { if (pending.get(id) === val) pending.delete(id); })
           .catch((e) => { setStatus(e && e.code === "quota_exceeded" ? "السجل امتلأ، احكي لـClaude" : "ما انحفظ آخر تعديل بحسابك، محفوظ على هالجهاز"); });
-      } else pending.delete(id);
+      } else { pending.delete(id); scheduleCloud(); }
     }, 500);
   }
   function remove(id) {
-    docs.delete(id); pending.delete(id); clearTimeout(timers[id]); render(); saveLocal();
-    if (backend === "db" && col) col.doc(id).delete().catch(() => setStatus("ما انحذف، جرّب كمان مرة")); else saveLocal();
+    pending.delete(id); clearTimeout(timers[id]);
+    if (backend === "db" && col) { docs.delete(id); render(); col.doc(id).delete().catch(() => setStatus("ما انحذف، جرّب كمان مرة")); return; }
+    docs.set(id, { _del: true, _u: Date.now() }); // tombstone, so the delete reaches other devices
+    render(); saveLocal(); scheduleCloud();
   }
   const setStatus = (t) => { $("status").textContent = t; };
 
   const dayId = (d) => "day-" + d;
-  const getDay = (d) => docs.get(dayId(d)) || { kind: "day", date: d, checks: {}, foods: {}, sets: [] };
+  const getDay = (d) => (docs.get(dayId(d)) && !docs.get(dayId(d))._del ? docs.get(dayId(d)) : null) || { kind: "day", date: d, checks: {}, foods: {}, sets: [] };
   const today = () => planDate();
 
   // ---------- computations ----------
@@ -894,13 +919,80 @@ details.mini-d summary::-webkit-details-marker { display: none; }
 
   const SITE = "https://bani-adam.vercel.app";
   const inClaude = /claude|anthropic/.test(location.hostname) || location.protocol === "about:" || location.protocol === "blob:";
+
+  // ---------- cloud sync (site only): a private vault code, newest write wins per document ----------
+  const CLOUD = { url: "https://tehsqksgwszixljlizha.supabase.co/rest/v1/rpc/", key: "sb_publishable_qucQinbywzqUE0tZOB19kw_GYkrrgZM" };
+  const ls = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} }, del: (k) => { try { localStorage.removeItem(k); } catch {} } };
+  let vault = ls.get("ba-vault"), cloudTimer = null, syncing = false;
+  const okVault = (v) => /^ba(-[a-z0-9]{5}){6}$/.test(v || "");
+  function newVault() { const a = "abcdefghijklmnopqrstuvwxyz0123456789", r = crypto.getRandomValues(new Uint8Array(30)); let s = "ba"; for (let i = 0; i < 30; i++) { if (i % 5 === 0) s += "-"; s += a[r[i] % 36]; } return s; }
+  async function rpc(fn, body) {
+    const res = await fetch(CLOUD.url + fn, { method: "POST", headers: { apikey: CLOUD.key, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error(fn + " " + res.status);
+    return res.json();
+  }
+  function scheduleCloud() { if (!vault || inClaude || backend === "db") return; clearTimeout(cloudTimer); cloudTimer = setTimeout(cloudSync, 1500); }
+  async function cloudSync() {
+    if (!vault || inClaude || backend === "db" || syncing) return;
+    syncing = true;
+    try {
+      // pull what changed elsewhere (a 10-minute overlap absorbs clocks that disagree a little)
+      const since = Math.max(0, (+ls.get("ba-sync-since") || 0) - 600000);
+      const rows = await rpc("ba_pull", { p_vault: vault, p_since: since });
+      let maxU = +ls.get("ba-sync-since") || 0, changed = false;
+      for (const r of rows) {
+        maxU = Math.max(maxU, r.u);
+        const mine = docs.get(r.id);
+        if (!mine || (mine._u || 0) < r.u) { docs.set(r.id, { ...r.data, _u: r.u }); changed = true; }
+      }
+      // push what changed here (pages that write straight to storage stamp _u too)
+      saveLocal();
+      const pushed = +ls.get("ba-sync-pushed") || 0, now = Date.now();
+      const out = [];
+      for (const [id, d] of docs) { if (!d._u) { d._u = now; } if (d._u > pushed) out.push({ id, data: d, u: d._u }); }
+      for (let i = 0; i < out.length; i += 200) await rpc("ba_push", { p_vault: vault, p_docs: out.slice(i, i + 200) });
+      ls.set("ba-sync-pushed", String(now)); ls.set("ba-sync-since", String(Math.max(maxU, now)));
+      saveLocal(); ls.set("ba-sync-at", String(Date.now()));
+      if (changed) render();
+      drawSync(); setStatus("محفوظ على السحابة ✓");
+    } catch { setStatus("ما وصلت للسحابة، التسجيل محفوظ على هالجهاز وبيتزامن بعدين"); }
+    syncing = false;
+  }
+  function drawSync() {
+    if (inClaude) return;
+    $("syncCard").hidden = false;
+    $("syncOff").hidden = !!vault; $("syncOnBox").hidden = !vault;
+    $("syncTag").textContent = vault ? "شغّالة ✓" : "مطفية";
+    const at = +ls.get("ba-sync-at");
+    $("syncLast").textContent = "آخر مزامنة: " + (at ? new Date(at).toLocaleString("ar-EG", { weekday: "long", hour: "numeric", minute: "2-digit" }) : "لسا");
+  }
+  function linkVault(v) {
+    vault = v; ls.set("ba-vault", v); ls.del("ba-sync-since"); ls.del("ba-sync-pushed");
+    drawSync(); cloudSync();
+  }
+  if (!inClaude) {
+    // a link like /#sync=ba-xxxxx-... connects this device, then the code leaves the address bar
+    const m = location.hash.match(/^#sync=(ba(?:-[a-z0-9]{5}){6})$/);
+    if (m) { linkVault(m[1]); history.replaceState(null, "", location.pathname); toast("انربط هالجهاز بسجلك"); }
+    $("syncOn").addEventListener("click", () => { linkVault(newVault()); toast("المزامنة شغّالة. احفظ الكود"); });
+    $("syncLink").addEventListener("click", () => { const v = $("syncIn").value.trim().toLowerCase(); if (!okVault(v)) { toast("الكود مش صحيح"); return; } linkVault(v); $("syncIn").value = ""; toast("انربط هالجهاز بسجلك"); });
+    $("syncShow").addEventListener("click", () => { const c = $("syncCode"); c.textContent = c.textContent.startsWith("ba-") ? "••••••" : vault; });
+    $("syncCopy").addEventListener("click", () => {
+      const link = location.origin + "/#sync=" + vault;
+      navigator.clipboard.writeText(link).then(() => toast("انسخ الرابط. افتحه على الجهاز الثاني")).catch(() => { $("syncCode").textContent = link; toast("انسخه من فوق"); });
+    });
+    $("syncNow").addEventListener("click", () => { setStatus("بزامن…"); cloudSync(); });
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") cloudSync(); });
+    setInterval(cloudSync, 60000);
+  }
   const camLinks = () => document.querySelectorAll("[data-cam]").forEach((el) => { el.href = (inClaude ? SITE + "/" : "") + el.dataset.cam; });
   camLinks();
 
   // ---------- boot ----------
   loadLocal();
   render();
-  setStatus("محفوظ على هالجهاز بس");
+  setStatus(inClaude ? "محفوظ على هالجهاز بس" : vault ? "بزامن…" : "محفوظ على هالجهاز بس. فعّل المزامنة من صفحة التقدّم");
+  drawSync(); cloudSync();
   setInterval(renderHeader, 60000); // يقلب اليوم الساعة 6 الصبح
   (async () => {
     if (!window.claude || !window.claude.use) return;
