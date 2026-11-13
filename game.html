@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>ركض بني آدم</title>
+<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/brand/app-icon.png">
 <meta name="description" content="لعبة ركض بالكاميرا: اركض بمكانك، زيح يمين ويسار، ارفع إيديك، وانزل سكوات. بدون قفز.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +14,7 @@
 /* One full-screen game: canvas road behind, HUD on top, camera preview in a corner, overlays for start/calibrate/summary. */
 :root { --night: #0e1520; --ink: #f8f4ec; --muted: #94a3b8; --accent: #f28a2e; --good: #3ec28f; --bad: #e5675a; --panel: rgb(14 21 32 / .86);
   --display: "Tajawal", "IBM Plex Sans Arabic", system-ui, sans-serif; --body: "IBM Plex Sans Arabic", Tahoma, system-ui, sans-serif;
-  --swash: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 22' preserveAspectRatio='none'%3E%3Cpath d='M198 6C150 3 84 2 6 9c-4 .4-5 4 0 4 30-1 52-1 70 0-22 1-40 3-56 6-4 1-2 4 2 3 54-7 118-10 176-9 4 0 4-6 0-7z' fill='%23F28A2E'/%3E%3C/svg%3E"); color-scheme: dark; }
+  --swash: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'%3E%3Cpath d='M196 4c3 0 4 6 1 8-26 3-70 6-108 9-32 3-58 5-80 8-6 1-9-6-4-9 20-6 52-10 86-12 36-2 72-3 105-4zM150 16c-30 3-62 6-96 10-3 0-3 3 0 3 34-2 66-5 96-9 2 0 2-4 0-4z' fill='%23F28A2E'/%3E%3C/svg%3E"); color-scheme: dark; }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--night); color: var(--ink); font-family: var(--body); overflow: hidden; touch-action: none; }
 canvas#world { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
