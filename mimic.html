@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>قلّدني</title>
+<meta name="description" content="قلّد الوضعية اللي على الشاشة: إحماء للملاكمة وتمدد بعد التمرين، والكاميرا بتقلّك قديش دقيق.">
+<meta name="theme-color" content="#0e1520">
+<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/brand/app-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<style>
+/* Brand "مشروع بني آدم". Layout: the mirrored camera fills the screen; the pose to copy sits in a card at the top, a match meter at the bottom. */
+:root { --bg: #0e1520; --panel: rgb(14 21 32 / .86); --raise: #1c2a40; --line: #2a3a52; --fg: #f8f4ec; --muted: #94a3b8; --accent: #f28a2e; --good: #3ec28f; --bad: #e5675a;
+  --display: "Tajawal", "IBM Plex Sans Arabic", system-ui, sans-serif; --body: "IBM Plex Sans Arabic", Tahoma, system-ui, sans-serif; color-scheme: dark;
+  --swash: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'%3E%3Cpath d='M196 4c3 0 4 6 1 8-26 3-70 6-108 9-32 3-58 5-80 8-6 1-9-6-4-9 20-6 52-10 86-12 36-2 72-3 105-4zM150 16c-30 3-62 6-96 10-3 0-3 3 0 3 34-2 66-5 96-9 2 0 2-4 0-4z' fill='%23F28A2E'/%3E%3C/svg%3E"); }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font-family: var(--body); overflow: hidden; }
+canvas#view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.target { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 10px 12px; display: grid; gap: 4px; justify-items: center; width: min(46vw, 210px); }
+.target canvas { width: 100%; aspect-ratio: 1; }
+.target b { font-family: var(--display); font-weight: 900; font-size: 1.2rem; text-align: center; }
+.target small { color: var(--muted); font-size: .76rem; text-align: center; }
+.meter { position: fixed; left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); background: var(--panel); border-radius: 18px; padding: 10px 14px; display: grid; gap: 6px; }
+.meter .row1 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.meter b { font-family: var(--display); font-weight: 900; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.bar { height: 12px; border-radius: 99px; background: var(--raise); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width .15s; }
+.bar.ok i { background: var(--good); }
+#cue { font-family: var(--display); font-weight: 800; color: var(--accent); }
+.ov { position: fixed; inset: 0; display: grid; place-items: center; background: rgb(8 12 20 / .86); padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); overflow-y: auto; }
+.box { width: min(520px, 100%); background: #131c2b; border: 1px solid var(--line); border-radius: 22px; padding: 20px; display: grid; gap: 14px; }
+h1 { font-family: var(--display); font-weight: 900; font-size: 2.1rem; margin: 0; }
+h1 span { color: var(--accent); position: relative; display: inline-block; padding-bottom: 8px; }
+h1 span::after { content: ""; position: absolute; inset: auto -4px 0 -8px; height: 9px; background: var(--swash) no-repeat center / 100% 100%; }
+.seqs { display: grid; gap: 8px; }
+.seq { background: var(--raise); border: 2px solid var(--line); border-radius: 16px; padding: 12px; text-align: start; color: var(--fg); font: inherit; cursor: pointer; display: grid; gap: 2px; }
+.seq b { font-family: var(--display); font-weight: 800; font-size: 1.1rem; }
+.seq small { color: var(--muted); font-size: .8rem; }
+.seq[aria-pressed="true"] { border-color: var(--accent); }
+.note { font-size: .8rem; color: var(--muted); margin: 0; }
+.err { color: var(--bad); font-size: .88rem; margin: 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { background: var(--accent); color: #1a0f04; border: 0; border-radius: 14px; padding: 12px 22px; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }
+.btn.ghost { background: var(--raise); color: var(--fg); border: 1px solid var(--line); }
+ul.res { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+ul.res li { display: flex; justify-content: space-between; background: var(--raise); border-radius: 12px; padding: 8px 12px; font-size: .9rem; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<canvas id="view"></canvas>
+<div class="target" id="tgt" hidden><canvas id="fig" width="200" height="200"></canvas><b id="tName"></b><small id="tTip"></small></div>
+<div class="meter" id="meter" hidden>
+  <div class="row1"><span id="cue">قلّد الوضعية</span><b id="pct">0٪</b></div>
+  <div class="bar" id="bar"><i></i></div>
+  <div class="note" id="prog"></div>
+</div>
+
+<div class="ov" id="ovStart">
+  <div class="box">
+    <h1>قلّد<span>ني</span></h1>
+    <p class="note" style="color:var(--fg);font-size:.92rem">وضعية بتطلع على الشاشة، وإنت بتقلّدها. الكاميرا بتقارن اتجاه إيديك وجسمك، فما بيفرق طولك ولا قديش بعيد.</p>
+    <div class="seqs" id="seqs"></div>
+    <p class="note">حط الجوال بمستوى صدرك وارجع لورا لحد ما يبيّن جسمك من راسك لركبك. الحركات بطيئة ومريحة، وإذا في أي وجع بالرقبة أو تنميل بالإيد، خفف الوضعية أو وقّف.</p>
+    <p class="err" id="err" hidden></p>
+    <div class="row"><button class="btn" id="go" type="button">شغّل الكاميرا وابدأ</button><a class="btn ghost" href="./">صفحة اليوم</a></div>
+  </div>
+</div>
+<div class="ov" id="ovEnd" hidden>
+  <div class="box">
+    <h1>خلّصت، <span>عافية</span></h1>
+    <ul class="res" id="res"></ul>
+    <div class="row"><button class="btn" id="again" type="button">كمان مرة</button><a class="btn ghost" href="boxing.html">للملاكمة</a><a class="btn ghost" href="./">صفحة اليوم</a></div>
+  </div>
+</div>
+<video id="vid" playsinline muted hidden></video>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const ar = (n) => Number(n).toLocaleString("ar-EG");
+
+// Bones as seen on screen (mirrored, so your left arm is on the left). Angles in degrees, y pointing down: 0 right, 90 down, 180 left, 270 up.
+// Comparing bone directions instead of pixel positions (the idea behind Mimeflow) makes the score independent of size and distance.
+const BONES = { lu: [11, 13, 1], lf: [13, 15, 1], ru: [12, 14, 1], rf: [14, 16, 1], torso: ["hip", "sh", 0.8], lt: [23, 25, 0.4], rt: [24, 26, 0.4] };
+const POSES = {
+  T:      { n: "حرف T", tip: "إيديك لجنب بمستوى كتافك", a: { lu: 180, lf: 180, ru: 0, rf: 0, torso: 270, lt: 92, rt: 88 } },
+  cactus: { n: "صبّارة", tip: "الأكواع بمستوى الكتف، والسواعد لفوق. ضم لوحي الكتف", a: { lu: 180, lf: 270, ru: 0, rf: 270, torso: 270, lt: 92, rt: 88 } },
+  Y:      { n: "حرف Y", tip: "الإيدين لفوق ولبرّا", a: { lu: 228, lf: 228, ru: 312, rf: 312, torso: 270, lt: 92, rt: 88 } },
+  guard:  { n: "وقفة الحارس", tip: "الكوع لتحت، والإيدين عند وجهك", a: { lu: 112, lf: 295, ru: 68, rf: 245, torso: 270, lt: 95, rt: 85 } },
+  bendR:  { n: "ميل لليمين", tip: "إيد فوق راسك وميل لجنب، ببطء", a: { lu: 285, lf: 325, ru: 90, rf: 90, torso: 292, lt: 92, rt: 88 } },
+  bendL:  { n: "ميل لليسار", tip: "الإيد الثانية فوق راسك وميل للجنب الثاني", a: { lu: 90, lf: 90, ru: 255, rf: 215, torso: 248, lt: 92, rt: 88 } },
+  star:   { n: "نجمة", tip: "رجليك مفتوحة والإيدين لفوق ولبرّا", a: { lu: 228, lf: 228, ru: 312, rf: 312, torso: 270, lt: 112, rt: 68 } },
+};
+const SEQS = {
+  warm: { n: "إحماء الملاكمة", d: "٨ وضعيات، اثبت بكل وحدة ٣ ثواني", items: ["T", "cactus", "Y", "guard", "bendR", "bendL", "star", "guard"].map((p) => ({ p, hold: 3 })) },
+  cool: { n: "تمدد بعد التمرين", d: "٥ وضعيات، اثبت ١٥ ثانية بكل وحدة وتنفّس", items: ["Y", "bendR", "bendL", "cactus", "T"].map((p) => ({ p, hold: 15 })) },
+  neck: { n: "الأكتاف والرقبة", d: "صبّارة وT بالتناوب، ١٠ ثواني. منيحة لوضعية الرقبة", items: ["cactus", "T", "cactus", "T", "cactus"].map((p) => ({ p, hold: 10 })) },
+};
+let seq = "warm";
+$("seqs").innerHTML = Object.entries(SEQS).map(([k, s]) => `<button type="button" class="seq" data-q="${k}" aria-pressed="${k === seq}"><b>${s.n}</b><small>${s.d}</small></button>`).join("");
+$("seqs").addEventListener("click", (e) => { const b = e.target.closest("[data-q]"); if (!b) return; seq = b.dataset.q; document.querySelectorAll("[data-q]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.q === seq))); });
+
+// ---------- target figure ----------
+const fig = $("fig"), fx = fig.getContext("2d");
+function drawFigure(a) {
+  fx.clearRect(0, 0, 200, 200);
+  const rad = (d) => d * Math.PI / 180, seg = (x, y, ang, len) => [x + Math.cos(rad(ang)) * len, y + Math.sin(rad(ang)) * len];
+  const hip = [100, 128], sh = seg(...hip, a.torso, 58), lS = [sh[0] - 18, sh[1]], rS = [sh[0] + 18, sh[1]];
+  fx.lineCap = "round"; fx.lineJoin = "round"; fx.strokeStyle = "#f28a2e"; fx.lineWidth = 9;
+  const line = (p, q) => { fx.beginPath(); fx.moveTo(...p); fx.lineTo(...q); fx.stroke(); };
+  line(hip, sh); line(lS, rS);
+  const le = seg(...lS, a.lu, 34), lw = seg(...le, a.lf, 30), re = seg(...rS, a.ru, 34), rw = seg(...re, a.rf, 30);
+  line(lS, le); line(le, lw); line(rS, re); line(re, rw);
+  const lk = seg(hip[0] - 9, hip[1], a.lt, 34), rk = seg(hip[0] + 9, hip[1], a.rt, 34);
+  line([hip[0] - 9, hip[1]], lk); line(lk, seg(...lk, a.lt, 30)); line([hip[0] + 9, hip[1]], rk); line(rk, seg(...rk, a.rt, 30));
+  const head = seg(...sh, a.torso, 22); fx.fillStyle = "#f8f4ec"; fx.beginPath(); fx.arc(...head, 13, 0, 7); fx.fill();
+}
+
+// ---------- camera ----------
+const VISION = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+let lm = null, lastDetect = 0, L = null;
+const vid = $("vid"), cv = $("view"), ctx = cv.getContext("2d");
+let W = 0, H = 0;
+function resize() { const d = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener("resize", resize); resize();
+async function startCamera() {
+  const { FilesetResolver, PoseLandmarker } = await import(`${VISION}/vision_bundle.mjs`);
+  const fs = await FilesetResolver.forVisionTasks(`${VISION}/wasm`);
+  const opts = (delegate) => ({ baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task", delegate }, runningMode: "VIDEO", numPoses: 1 });
+  try { lm = await PoseLandmarker.createFromOptions(fs, opts("GPU")); } catch { lm = await PoseLandmarker.createFromOptions(fs, opts("CPU")); }
+  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+  vid.srcObject = stream; await vid.play();
+}
+function cover() { const vw = vid.videoWidth || 640, vh = vid.videoHeight || 480, s = Math.max(W / vw, H / vh); return { dw: vw * s, dh: vh * s, ox: (W - vw * s) / 2, oy: (H - vh * s) / 2 }; }
+function pt(key, c) {
+  if (key === "hip" || key === "sh") { const [a, b] = key === "hip" ? [23, 24] : [11, 12]; const p = pt(a, c), q = pt(b, c); return p && q ? { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 } : null; }
+  const p = L[key]; if (!p || (p.visibility ?? 1) < 0.5) return null;
+  return { x: c.ox + (1 - p.x) * c.dw, y: c.oy + p.y * c.dh };
+}
+// score: weighted mean of cos(angle difference)³ over the bones the camera can see
+function score(target) {
+  const c = cover(); let sum = 0, wsum = 0; const per = {};
+  for (const [k, [a, b, w]] of Object.entries(BONES)) {
+    const p = pt(a, c), q = pt(b, c); if (!p || !q) continue;
+    const ang = Math.atan2(q.y - p.y, q.x - p.x) * 180 / Math.PI;
+    const s = Math.max(0, Math.cos((ang - target[k]) * Math.PI / 180)) ** 3; // cubed: 20° off ≈ 0.83, 45° off ≈ 0.35
+    per[k] = { s, p, q }; sum += s * w; wsum += w;
+  }
+  return { v: wsum >= 3.5 ? sum / wsum : 0, per, enough: wsum >= 3.5 };
+}
+
+// ---------- run ----------
+const st = { on: false, i: 0, held: 0, results: [], tStart: 0, best: 0 };
+let actx = null;
+const beep = (f, d = 0.1) => { if (!actx) return; try { const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f; g.gain.setValueAtTime(0.12, actx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + d); o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + d); } catch {} };
+const PASS = 0.8;
+function showPose() {
+  const it = SEQS[seq].items[st.i], p = POSES[it.p];
+  $("tName").textContent = p.n; $("tTip").textContent = p.tip; drawFigure(p.a);
+  $("prog").textContent = `${ar(st.i + 1)} من ${ar(SEQS[seq].items.length)} · اثبت ${ar(it.hold)} ثواني`;
+  st.held = 0; st.best = 0; st.tStart = performance.now();
+}
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  ctx.fillStyle = "#0e1520"; ctx.fillRect(0, 0, W, H);
+  if (lm && vid.readyState >= 2) {
+    const c = cover();
+    ctx.save(); ctx.globalAlpha = 0.5; ctx.translate(W, 0); ctx.scale(-1, 1); ctx.drawImage(vid, W - c.ox - c.dw, c.oy, c.dw, c.dh); ctx.restore();
+    if (now - lastDetect > 40) { lastDetect = now; const r = lm.detectForVideo(vid, now); L = r.landmarks && r.landmarks[0]; }
+    if (L && st.on) {
+      const it = SEQS[seq].items[st.i], sc = score(POSES[it.p].a);
+      for (const k in sc.per) { const { s, p, q } = sc.per[k]; ctx.strokeStyle = s > 0.8 ? "#3ec28f" : s > 0.5 ? "#e8b33f" : "#e5675a"; ctx.lineWidth = 8; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke(); }
+      const pct = Math.round(sc.v * 100); st.best = Math.max(st.best, pct);
+      $("pct").textContent = sc.enough ? ar(pct) + "٪" : "—";
+      $("bar").className = "bar" + (sc.v >= PASS ? " ok" : ""); $("bar").firstElementChild.style.width = pct + "%";
+      if (!sc.enough) $("cue").textContent = "ارجع لورا لحد ما يبيّن جسمك";
+      else if (sc.v >= PASS) {
+        const before = Math.ceil(it.hold - st.held); st.held += dt;
+        $("cue").textContent = `اثبت… ${ar(Math.max(0, Math.ceil(it.hold - st.held)))}`;
+        if (Math.ceil(it.hold - st.held) !== before) beep(880, 0.05);
+        if (st.held >= it.hold) {
+          st.results.push({ n: POSES[it.p].n, best: st.best, secs: Math.round((now - st.tStart) / 1000) }); beep(1320, 0.15);
+          st.i++; if (st.i >= SEQS[seq].items.length) return end(); showPose();
+        }
+      } else {
+        $("cue").textContent = POSES[it.p].tip;
+        st.held = Math.max(0, st.held - dt * 0.5); // small wobble doesn't reset the hold
+      }
+    }
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+function end() {
+  st.on = false; $("tgt").hidden = true; $("meter").hidden = true;
+  $("res").innerHTML = st.results.map((r) => `<li><span>${r.n}</span><span>${ar(r.best)}٪ · ${ar(r.secs)} ث</span></li>`).join("");
+  $("ovEnd").hidden = false; beep(660, 0.2); setTimeout(() => beep(880, 0.3), 200);
+  requestAnimationFrame(loop);
+}
+$("go").addEventListener("click", async () => {
+  $("err").hidden = true;
+  try { const AC = window.AudioContext || window.webkitAudioContext; if (AC && !actx) actx = new AC(); actx && actx.resume(); } catch {}
+  try { navigator.wakeLock && navigator.wakeLock.request("screen").catch(() => {}); } catch {}
+  if (!lm) {
+    $("go").disabled = true; $("go").textContent = "بجهّز الكاميرا…";
+    try { await startCamera(); }
+    catch (e) { $("err").textContent = e && e.name === "NotAllowedError" ? "الكاميرا مرفوضة. اسمح للموقع يستعمل الكاميرا من إعدادات المتصفح." : "ما قدرت أشغّل الكاميرا أو أحمّل قارئ الحركة. تأكد من النت وجرّب كمان مرة."; $("err").hidden = false; $("go").disabled = false; $("go").textContent = "شغّل الكاميرا وابدأ"; return; }
+    $("go").disabled = false; $("go").textContent = "شغّل الكاميرا وابدأ";
+  }
+  st.on = true; st.i = 0; st.results = []; $("ovStart").hidden = true; $("ovEnd").hidden = true; $("tgt").hidden = false; $("meter").hidden = false; showPose();
+});
+$("again").addEventListener("click", () => { $("ovEnd").hidden = true; $("ovStart").hidden = false; });
+</script>
+</body>
+</html>

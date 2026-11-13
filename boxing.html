@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ملاكمة بني آدم</title>
+<meta name="description" content="ملاكمة بالكاميرا: اضرب الأهداف حواليك بالإيد الصح، كمّل الكومبو، ميل وانزل عن الضربات، وقطّع المعجنات. بدون قفز.">
+<meta name="theme-color" content="#0e1520">
+<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/brand/app-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<style>
+/* Brand "مشروع بني آدم". Layout: the mirrored camera fills the screen as a dim ring, pads and gloves drawn on top, HUD strips at top, overlays for setup and summary. */
+:root { --bg: #0e1520; --panel: rgb(14 21 32 / .84); --raise: #1c2a40; --line: #2a3a52; --fg: #f8f4ec; --muted: #94a3b8; --accent: #f28a2e; --good: #3ec28f; --bad: #e5675a;
+  --display: "Tajawal", "IBM Plex Sans Arabic", system-ui, sans-serif; --body: "IBM Plex Sans Arabic", Tahoma, system-ui, sans-serif; color-scheme: dark;
+  --swash: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'%3E%3Cpath d='M196 4c3 0 4 6 1 8-26 3-70 6-108 9-32 3-58 5-80 8-6 1-9-6-4-9 20-6 52-10 86-12 36-2 72-3 105-4zM150 16c-30 3-62 6-96 10-3 0-3 3 0 3 34-2 66-5 96-9 2 0 2-4 0-4z' fill='%23F28A2E'/%3E%3C/svg%3E"); }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font-family: var(--body); overflow: hidden; touch-action: none; }
+canvas#ring { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.hud { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; display: flex; justify-content: space-between; gap: 6px; padding: 10px max(12px, env(safe-area-inset-right, 0px)) 0 max(12px, env(safe-area-inset-left, 0px)); pointer-events: none; }
+.grp { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill { background: var(--panel); border-radius: 99px; padding: 5px 12px; font-size: .9rem; font-variant-numeric: tabular-nums; }
+.pill b { font-family: var(--display); font-weight: 800; }
+#combo { position: fixed; top: calc(52px + env(safe-area-inset-top, 0px)); left: 0; right: 0; text-align: center; font-family: var(--display); font-weight: 900; font-size: clamp(1.6rem, 7vw, 2.8rem); color: var(--fg); text-shadow: 0 2px 12px rgb(0 0 0 / .7); pointer-events: none; }
+#cue { position: fixed; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); left: 0; right: 0; text-align: center; font-family: var(--display); font-weight: 900; font-size: clamp(1.3rem, 6vw, 2.2rem); color: var(--accent); text-shadow: 0 2px 12px rgb(0 0 0 / .7); pointer-events: none; padding: 0 12px; }
+.ov { position: fixed; inset: 0; display: grid; place-items: center; background: rgb(8 12 20 / .86); padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); overflow-y: auto; }
+.box { width: min(540px, 100%); background: #131c2b; border: 1px solid var(--line); border-radius: 22px; padding: 20px; display: grid; gap: 14px; }
+h1 { font-family: var(--display); font-weight: 900; font-size: 2.1rem; margin: 0; line-height: 1.15; }
+h1 span { color: var(--accent); position: relative; display: inline-block; padding-bottom: 8px; }
+h1 span::after { content: ""; position: absolute; inset: auto -4px 0 -8px; height: 9px; background: var(--swash) no-repeat center / 100% 100%; }
+h2 { font-family: var(--display); font-weight: 800; font-size: 1rem; margin: 0; color: var(--muted); }
+.modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.mode { background: var(--raise); border: 2px solid var(--line); border-radius: 16px; padding: 10px; text-align: start; color: var(--fg); font: inherit; cursor: pointer; display: grid; gap: 2px; }
+.mode b { font-family: var(--display); font-weight: 800; font-size: 1.05rem; }
+.mode small { color: var(--muted); font-size: .76rem; line-height: 1.4; }
+.mode[aria-pressed="true"] { border-color: var(--accent); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { background: var(--raise); color: var(--fg); border: 1px solid var(--line); border-radius: 99px; padding: 7px 14px; font: inherit; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); color: #1a0f04; border-color: var(--accent); font-weight: 600; }
+.legend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 0; padding: 0; list-style: none; font-size: .8rem; }
+.legend li { background: var(--raise); border-radius: 12px; padding: 7px 8px; text-align: center; }
+.legend b { display: block; font-family: var(--display); font-size: 1.2rem; color: var(--accent); }
+.note { font-size: .8rem; color: var(--muted); margin: 0; }
+.err { color: var(--bad); font-size: .88rem; margin: 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.btn { background: var(--accent); color: #1a0f04; border: 0; border-radius: 14px; padding: 12px 22px; font: inherit; font-weight: 700; font-size: 1rem; cursor: pointer; text-decoration: none; }
+.btn.ghost { background: var(--raise); color: var(--fg); border: 1px solid var(--line); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { background: var(--raise); border-radius: 14px; padding: 10px; text-align: center; }
+.stat b { display: block; font-family: var(--display); font-weight: 900; font-size: 1.5rem; }
+.stat span { font-size: .74rem; color: var(--muted); }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 420px) { .modes { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<canvas id="ring"></canvas>
+<div class="hud">
+  <div class="grp"><span class="pill">جولة <b id="hRound">1</b></span><span class="pill">⏱ <b id="hTime">3:00</b></span></div>
+  <div class="grp"><span class="pill"><b id="hHp">❤❤❤❤❤</b></span><span class="pill">⭐ <b id="hScore">0</b></span></div>
+</div>
+<div id="combo"></div>
+<div id="cue"></div>
+
+<div class="ov" id="ovStart">
+  <div class="box">
+    <h1>ملاكمة <span>بني آدم</span></h1>
+    <div class="modes" id="modes">
+      <button type="button" class="mode" data-m="pads" aria-pressed="true"><b>أهداف</b><small>بادات حواليك، اضربها بالإيد اللي بلونها، وميل عن الضربات.</small></button>
+      <button type="button" class="mode" data-m="combo" aria-pressed="false"><b>كومبو</b><small>أرقام بالترتيب: ١ جاب، ٢ كروس، ٣ هوك… كمّلها صح.</small></button>
+      <button type="button" class="mode" data-m="slice" aria-pressed="false"><b>قطّع المعجنات</b><small>قطّع الأكل الغلط، وخلي البيض والجاج.</small></button>
+    </div>
+    <ul class="legend">
+      <li><b>١ ٣ ٥</b><span id="lgLead">إيدك اليسار (برتقالي)</span></li>
+      <li><b>٢ ٤ ٦</b><span id="lgRear">إيدك اليمين (أبيض)</span></li>
+      <li><b>⬅ ➡ ⬇</b>ميل أو انزل عن الضربة</li>
+    </ul>
+    <h2>الجولات</h2>
+    <div class="chips" id="lenPick"></div>
+    <h2>وقفتك</h2>
+    <div class="chips" id="stancePick"></div>
+    <p class="note">حط الجوال على طاولة بمستوى صدرك، وارجع لورا مترين لحد ما يبيّن جسمك من راسك لوسطك وإيديك ممدودة. ضو قدامك مش وراك. بدون قفز، والضرب بالهوا أو على كيس. وجع بالصدر أو دوخة قوية: وقّف فوراً.</p>
+    <p class="err" id="err" hidden></p>
+    <div class="row"><button class="btn" id="go" type="button">شغّل الكاميرا وابدأ</button><a class="btn ghost" href="./">صفحة اليوم</a></div>
+    <p class="note">الكاميرا بتشتغل على جهازك بس، وما في أي صورة بتطلع منه.</p>
+  </div>
+</div>
+
+<div class="ov" id="ovEnd" hidden>
+  <div class="box">
+    <h1 id="endTitle">الله يعطيك <span>العافية</span></h1>
+    <div class="stats">
+      <div class="stat"><b id="eHits">0</b><span>ضربة بالهدف</span></div>
+      <div class="stat"><b id="eAcc">0٪</b><span>دقة</span></div>
+      <div class="stat"><b id="eDodge">0</b><span>تفادي</span></div>
+      <div class="stat"><b id="eStreak">0</b><span>أطول سلسلة</span></div>
+      <div class="stat"><b id="eTime">0:00</b><span>وقت شغل</span></div>
+      <div class="stat"><b id="eScore">0</b><span>نقاط</span></div>
+    </div>
+    <p class="note" id="eNote"></p>
+    <div class="row"><button class="btn" id="again" type="button">كمان مرة</button><a class="btn ghost" href="./">صفحة اليوم</a></div>
+  </div>
+</div>
+<video id="vid" playsinline muted hidden></video>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const ar = (n) => Number(n).toLocaleString("ar-EG");
+const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const rnd = (a, b) => a + Math.random() * (b - a);
+
+// ---------- settings ----------
+const LENGTHS = { short: { n: "قصيرة ٣ × ٢:٠٠", k: 3, w: 120, r: 60 }, plan: { n: "البرنامج ٦ × ٣:٠٠", k: 6, w: 180, r: 60 }, test: { n: "تجربة ١ × ١:٠٠", k: 1, w: 60, r: 0 } };
+let cfg = { mode: "pads", len: "short", stance: "orth" };
+try { cfg = { ...cfg, ...JSON.parse(localStorage.getItem("ba-box") || "{}") }; } catch {}
+function drawSetup() {
+  document.querySelectorAll("#modes [data-m]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.m === cfg.mode)));
+  $("lenPick").innerHTML = Object.entries(LENGTHS).map(([k, l]) => `<button type="button" class="chip" data-l="${k}" aria-pressed="${k === cfg.len}">${l.n}</button>`).join("");
+  $("stancePick").innerHTML = [["orth", "يسار قدام (الأغلب)"], ["south", "يمين قدام"]].map(([k, l]) => `<button type="button" class="chip" data-s="${k}" aria-pressed="${k === cfg.stance}">${l}</button>`).join("");
+  const orth = cfg.stance === "orth";
+  $("lgLead").textContent = orth ? "إيدك اليسار (برتقالي)" : "إيدك اليمين (أبيض)";
+  $("lgRear").textContent = orth ? "إيدك اليمين (أبيض)" : "إيدك اليسار (برتقالي)";
+  try { localStorage.setItem("ba-box", JSON.stringify(cfg)); } catch {}
+}
+$("modes").addEventListener("click", (e) => { const b = e.target.closest("[data-m]"); if (b) { cfg.mode = b.dataset.m; drawSetup(); } });
+$("lenPick").addEventListener("click", (e) => { const b = e.target.closest("[data-l]"); if (b) { cfg.len = b.dataset.l; drawSetup(); } });
+$("stancePick").addEventListener("click", (e) => { const b = e.target.closest("[data-s]"); if (b) { cfg.stance = b.dataset.s; drawSetup(); } });
+drawSetup();
+
+// ---------- audio ----------
+let actx = null;
+const beep = (f, d = 0.1, v = 0.12, type = "sine") => { if (!actx) return; try { const o = actx.createOscillator(), g = actx.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(v, actx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + d); o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + d); } catch {} };
+const thud = () => { beep(140, 0.12, 0.25, "triangle"); beep(320, 0.05, 0.08, "square"); };
+
+// ---------- canvas + camera mapping ----------
+const cv = $("ring"), ctx = cv.getContext("2d");
+let W = 0, H = 0;
+function resize() { const d = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener("resize", resize); resize();
+const vid = $("vid");
+function cover() { const vw = vid.videoWidth || 640, vh = vid.videoHeight || 480, s = Math.max(W / vw, H / vh); return { dw: vw * s, dh: vh * s, ox: (W - vw * s) / 2, oy: (H - vh * s) / 2 }; }
+const toScreen = (p, c) => ({ x: c.ox + (1 - p.x) * c.dw, y: c.oy + p.y * c.dh, v: p.visibility ?? 1 }); // mirrored: your left hand shows on the left
+
+// ---------- pose ----------
+const VISION = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+let lm = null, lastDetect = 0;
+async function startCamera() {
+  const { FilesetResolver, PoseLandmarker } = await import(`${VISION}/vision_bundle.mjs`);
+  const fs = await FilesetResolver.forVisionTasks(`${VISION}/wasm`);
+  const opts = (delegate) => ({ baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task", delegate }, runningMode: "VIDEO", numPoses: 1 });
+  try { lm = await PoseLandmarker.createFromOptions(fs, opts("GPU")); } catch { lm = await PoseLandmarker.createFromOptions(fs, opts("CPU")); }
+  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+  vid.srcObject = stream; await vid.play();
+}
+// body in screen pixels; hands = midpoint of wrist and index knuckle (closer to the fist)
+const body = { seen: false, lastSeen: 0, nose: null, lS: null, rS: null, hands: [null, null], vel: [0, 0], prev: [null, null], prevT: 0, guardDownT: 0 };
+let base = null, calib = null;
+function readPose(now) {
+  if (!lm || vid.readyState < 2 || now - lastDetect < 33) return;
+  const dt = (now - lastDetect) / 1000; lastDetect = now;
+  const res = lm.detectForVideo(vid, now), L = res.landmarks && res.landmarks[0];
+  if (!L) { body.seen = false; return; }
+  const c = cover(), P = (i) => toScreen(L[i], c);
+  const nose = P(0), lS = P(11), rS = P(12);
+  if (lS.v < 0.5 || rS.v < 0.5) { body.seen = false; return; }
+  body.seen = true; body.lastSeen = now; body.nose = nose; body.lS = lS; body.rS = rS; body.lm = L; body.c = c;
+  // index 0 = your left hand (landmarks 15/19), index 1 = your right hand (16/20)
+  [[15, 19], [16, 20]].forEach(([w, f], i) => {
+    const a = P(w), b = P(f);
+    const h = a.v > 0.4 ? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } : null;
+    const p = body.prev[i];
+    body.vel[i] = h && p ? Math.hypot(h.x - p.x, h.y - p.y) / Math.max(dt, 0.016) : 0;
+    body.prev[i] = body.hands[i] = h;
+  });
+  if (!base) {
+    const sw = Math.abs(lS.x - rS.x), cx = (lS.x + rS.x) / 2, sy = (lS.y + rS.y) / 2;
+    if (!calib) calib = { t: now, xs: [], sws: [], sys: [], ny: [] };
+    calib.xs.push(cx); calib.sws.push(sw); calib.sys.push(sy); calib.ny.push(nose.y);
+    if (Math.max(...calib.xs) - Math.min(...calib.xs) > sw * 0.4) calib = null;
+    else if (now - calib.t > 1800) {
+      const avg = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+      base = { cx: avg(calib.xs), sw: avg(calib.sws), sy: avg(calib.sys), ny: avg(calib.ny) };
+    }
+  }
+}
+
+// ---------- game state ----------
+// Pad spots relative to your shoulders (x in shoulder widths, negative = your left side on screen; y up is negative).
+const SPOT = { 1: [-0.55, -0.55], 2: [0.55, -0.55], 3: [-1.15, -0.75], 4: [1.15, -0.75], 5: [-0.45, 0.15], 6: [0.45, 0.15] };
+const COMBOS = ["1-2", "1-1-2", "1-2-3", "2-3-2", "1-2-5-2", "1-6-3-2", "3-2", "1-2-3-2", "1-3-2", "5-2-3", "1-2-1-2", "2-3-4"];
+const JUNK = ["🥐", "🍕", "🥤", "🍩", "🍟", "🧁"], GOOD = ["🥚", "🍗", "🥦"];
+const g = { state: "idle", round: 0, t: 0, phase: "work", objs: [], hp: 5, score: 0, hits: 0, misses: 0, dodges: 0, streak: 0, best: 0, work: 0, next: 0, combo: null, comboIdx: 0, incoming: null, msg: "", msgT: 0, cd: 0, flash: 0, punches: 0 };
+const len = () => LENGTHS[cfg.len];
+const leadHand = () => (cfg.stance === "orth" ? 0 : 1); // odd numbers = lead hand
+const handFor = (num) => (num % 2 === 1 ? leadHand() : 1 - leadHand());
+function spotXY(num) { const [x, y] = SPOT[num], m = cfg.stance === "orth" ? 1 : -1; return { x: base.cx + x * m * base.sw, y: base.sy + y * base.sw }; }
+function say(t) { g.msg = t; g.msgT = 1.3; }
+
+function spawnPad() {
+  const num = 1 + Math.floor(Math.random() * 6), p = spotXY(num);
+  const life = clamp(2.4 - g.work / 240, 1.4, 2.4);
+  g.objs.push({ kind: "pad", num, hand: handFor(num), x: p.x + rnd(-0.12, 0.12) * base.sw, y: p.y + rnd(-0.1, 0.1) * base.sw, r: base.sw * 0.32, born: g.t, life });
+}
+function spawnCombo() {
+  const s = COMBOS[Math.floor(Math.random() * COMBOS.length)].split("-").map(Number);
+  g.combo = s; g.comboIdx = 0; g.objs = g.objs.filter((o) => o.kind !== "pad");
+  s.forEach((num, i) => { const p = spotXY(num); g.objs.push({ kind: "pad", num, hand: handFor(num), x: p.x, y: p.y, r: base.sw * 0.32, born: g.t, life: 5, order: i }); });
+}
+function spawnSlice() {
+  const fromLeft = Math.random() < 0.5, good = Math.random() < 0.22;
+  const x = fromLeft ? rnd(W * 0.1, W * 0.4) : rnd(W * 0.6, W * 0.9);
+  g.objs.push({ kind: "food", e: good ? GOOD[Math.floor(Math.random() * GOOD.length)] : JUNK[Math.floor(Math.random() * JUNK.length)], good, x, y: H + 40, vx: (fromLeft ? 1 : -1) * rnd(40, 140), vy: -rnd(H * 1.25, H * 1.5), r: Math.max(34, base.sw * 0.28), born: g.t });
+}
+function spawnIncoming() {
+  const side = Math.random() < 0.5 ? -1 : 1, duck = Math.random() < 0.3;
+  g.incoming = { side, duck, t: 0, warn: 1.3 };
+}
+
+function startRound() { g.round++; g.phase = "work"; g.t = 0; g.objs = []; g.combo = null; g.incoming = null; g.next = 0.6; g.nextIn = rnd(6, 10); say(`جولة ${ar(g.round)}! الإيدين على وجهك`); beep(880, 0.25); setTimeout(() => beep(880, 0.25), 300); }
+function endRound() {
+  if (g.round >= len().k) return finish(true);
+  g.phase = "rest"; g.t = 0; g.objs = []; g.combo = null; g.incoming = null; say("راحة: تنفّس وامشِ"); beep(520, 0.4);
+}
+
+function hitTest(o, i) {
+  const h = body.hands[i]; if (!h) return false;
+  return Math.hypot(h.x - o.x, h.y - o.y) < o.r + base.sw * 0.08 && body.vel[i] > base.sw * 1.4;
+}
+function landed(o, pts) {
+  o.dead = true; g.hits++; g.streak++; g.best = Math.max(g.best, g.streak);
+  g.score += pts + Math.min(50, g.streak * 3); thud(); o.pop = 1;
+}
+
+function update(dt, now) {
+  if (g.state === "calib") { if (base) { g.state = "play"; g.round = 0; startRound(); } return; }
+  if (g.state !== "play" && g.state !== "paused" && g.state !== "countdown") return;
+  // pause when you leave the camera, 3-2-1 when you are back
+  if (g.state === "play" && now - body.lastSeen > 700) { g.state = "paused"; beep(300, 0.2); }
+  else if (g.state === "paused" && body.seen) { g.state = "countdown"; g.cd = 3; }
+  else if (g.state === "countdown") { if (!body.seen) g.state = "paused"; else { const b = Math.ceil(g.cd); g.cd -= dt; if (Math.ceil(g.cd) !== b && g.cd > 0) beep(660, 0.08); if (g.cd <= 0) g.state = "play"; } }
+  if (g.state !== "play") return;
+  g.t += dt; g.msgT = Math.max(0, g.msgT - dt); g.flash = Math.max(0, g.flash - dt);
+  const L = len();
+  if (g.phase === "rest") { if (g.t >= L.r) startRound(); return; }
+  g.work += dt;
+  if (g.t >= L.w) return endRound();
+  if (L.w - g.t <= 10 && L.w - g.t + dt > 10) say("آخر ١٠ ثواني، كل اللي عندك!");
+
+  // guard reminder: both hands under the shoulders for 2.5 s
+  const low = body.hands.every((h) => !h || h.y > base.sy + base.sw * 0.45);
+  body.guardDownT = low ? body.guardDownT + dt : 0;
+  if (body.guardDownT > 2.5 && cfg.mode !== "slice") { say("الإيدين على وجهك!"); body.guardDownT = 0; }
+
+  if (cfg.mode === "pads") {
+    g.next -= dt;
+    if (g.next <= 0 && g.objs.filter((o) => o.kind === "pad").length < 2) { spawnPad(); g.next = clamp(1.3 - g.work / 400, 0.6, 1.3); }
+  } else if (cfg.mode === "combo") {
+    if (!g.combo) { g.next -= dt; if (g.next <= 0) spawnCombo(); }
+  } else {
+    g.next -= dt; if (g.next <= 0) { spawnSlice(); if (Math.random() < Math.min(0.5, g.work / 300)) spawnSlice(); g.next = rnd(0.7, 1.3); }
+  }
+  // incoming punches to slip or duck (not in slice mode)
+  if (cfg.mode !== "slice") {
+    g.nextIn -= dt;
+    if (!g.incoming && g.nextIn <= 0) { spawnIncoming(); g.nextIn = rnd(7, 12); }
+    if (g.incoming) {
+      const inc = g.incoming; inc.t += dt;
+      if (inc.t >= inc.warn) {
+        const nx = (body.nose.x - base.cx) / base.sw, drop = (((body.lS.y + body.rS.y) / 2) - base.sy) / base.sw;
+        const ok = inc.duck ? drop > 0.32 : (inc.side < 0 ? nx > 0.3 : nx < -0.3);
+        if (ok) { g.dodges++; g.score += 60; say("تفادي نظيف 👌"); beep(1200, 0.08); }
+        else { g.hp--; g.flash = 0.5; g.streak = 0; beep(120, 0.3, 0.2, "sawtooth"); say(inc.duck ? "انزل!" : "ميل لجنب!"); if (g.hp <= 0) return finish(false); }
+        g.incoming = null;
+      }
+    }
+  }
+
+  for (const o of g.objs) {
+    if (o.dead) { o.pop = (o.pop || 0) - dt * 3; continue; }
+    if (o.kind === "pad") {
+      const right = hitTest(o, o.hand), wrong = hitTest(o, 1 - o.hand);
+      if (cfg.mode === "combo") {
+        if (o.order !== g.comboIdx) continue;
+        if (right) { landed(o, 80); g.comboIdx++; if (g.comboIdx >= g.combo.length) { g.score += 100 * g.combo.length; say("كومبو كامل! 🔥"); beep(990, 0.12); setTimeout(() => beep(1320, 0.15), 120); g.combo = null; g.next = 0.8; } }
+        else if (wrong) { say(o.hand === 0 ? "بإيدك اليسار" : "بإيدك اليمين"); }
+        else if (g.t - o.born > o.life) { g.misses++; g.streak = 0; say("خلص الوقت"); g.combo = null; g.objs = g.objs.filter((x) => x.kind !== "pad"); g.next = 0.8; break; }
+      } else {
+        const age = (g.t - o.born) / o.life;
+        if (right) landed(o, Math.round(100 * (1 - age * 0.6)));
+        else if (wrong) { o.dead = true; o.pop = 1; g.score += 20; g.streak = 0; say(o.hand === 0 ? "هاد لليسار" : "هاد لليمين"); }
+        else if (age > 1) { o.dead = true; o.pop = 0; g.misses++; g.streak = 0; }
+      }
+    } else { // food
+      o.vy += H * 1.35 * dt; o.x += o.vx * dt; o.y += o.vy * dt;
+      for (let i = 0; i < 2; i++) {
+        const h = body.hands[i], p = body.prevSlice?.[i];
+        if (!h || body.vel[i] < base.sw * 2.2) continue;
+        // segment from the previous hand point to this one crosses the food
+        const a = p || h, dx = h.x - a.x, dy = h.y - a.y, l2 = dx * dx + dy * dy || 1;
+        const t = clamp(((o.x - a.x) * dx + (o.y - a.y) * dy) / l2, 0, 1), cx = a.x + t * dx, cy = a.y + t * dy;
+        if (Math.hypot(o.x - cx, o.y - cy) < o.r) {
+          o.dead = true; o.pop = 1;
+          if (o.good) { g.hp--; g.flash = 0.5; g.streak = 0; say("لا! هاد بروتين، خليه"); beep(120, 0.3, 0.2, "sawtooth"); if (g.hp <= 0) return finish(false); }
+          else { g.hits++; g.streak++; g.best = Math.max(g.best, g.streak); g.score += 50 + Math.min(50, g.streak * 4); beep(700 + Math.random() * 300, 0.07); }
+          break;
+        }
+      }
+      if (!o.dead && o.y > H + 80 && o.vy > 0) { o.dead = true; o.pop = 0; if (!o.good) { g.misses++; g.streak = 0; } }
+    }
+  }
+  body.prevSlice = body.hands.map((h) => h && { ...h });
+  g.objs = g.objs.filter((o) => !o.dead || o.pop > 0);
+}
+
+// ---------- drawing ----------
+function draw() {
+  ctx.fillStyle = "#0e1520"; ctx.fillRect(0, 0, W, H);
+  if (vid.readyState >= 2) {
+    const c = cover();
+    ctx.save(); ctx.globalAlpha = 0.45; ctx.translate(W, 0); ctx.scale(-1, 1); ctx.drawImage(vid, W - c.ox - c.dw, c.oy, c.dw, c.dh); ctx.restore();
+  }
+  // soft vignette
+  const vg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.75);
+  vg.addColorStop(0, "rgb(14 21 32 / 0)"); vg.addColorStop(1, "rgb(14 21 32 / .85)"); ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+  const font = (px, w = 900) => `${w} ${px}px Tajawal, "IBM Plex Sans Arabic", sans-serif`;
+  // calibration ghost
+  if (g.state === "calib") {
+    ctx.strokeStyle = "rgb(248 244 236 / .35)"; ctx.setLineDash([8, 8]); ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.ellipse(W / 2, H * 0.38, Math.min(W, H) * 0.13, Math.min(W, H) * 0.17, 0, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+  }
+  // pads and food
+  for (const o of g.objs) {
+    if (o.kind === "pad") {
+      const col = o.hand === 0 ? "#f28a2e" : "#f8f4ec", ink = o.hand === 0 ? "#1a0f04" : "#0e1520";
+      if (o.dead) { if (o.pop > 0) { ctx.strokeStyle = col; ctx.globalAlpha = o.pop; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(o.x, o.y, o.r * (1.6 - o.pop * 0.6), 0, 7); ctx.stroke(); ctx.globalAlpha = 1; } continue; }
+      const active = cfg.mode !== "combo" || o.order === g.comboIdx, age = clamp((g.t - o.born) / o.life, 0, 1);
+      ctx.globalAlpha = active ? 1 : 0.35;
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(o.x, o.y, o.r, 0, 7); ctx.fill();
+      ctx.strokeStyle = col; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(o.x, o.y, o.r + 10, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - age)); ctx.stroke();
+      ctx.fillStyle = ink; ctx.font = font(Math.round(o.r * 1.05)); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(ar(o.num), o.x, o.y + o.r * 0.06);
+      ctx.globalAlpha = 1;
+    } else {
+      ctx.globalAlpha = o.dead ? Math.max(0, o.pop) : 1;
+      ctx.font = `${Math.round(o.r * 1.6)}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(o.e, o.x, o.y);
+      if (o.dead && o.pop > 0) { ctx.strokeStyle = o.good ? "#e5675a" : "#f28a2e"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(o.x - o.r, o.y + o.r * 0.6); ctx.lineTo(o.x + o.r, o.y - o.r * 0.6); ctx.stroke(); }
+      ctx.globalAlpha = 1;
+    }
+  }
+  // incoming punch warning
+  if (g.incoming && base) {
+    const inc = g.incoming, k = clamp(inc.t / inc.warn, 0, 1);
+    ctx.fillStyle = `rgb(229 103 90 / ${0.25 + 0.5 * k})`;
+    if (inc.duck) { ctx.fillRect(0, 0, W, base.ny + base.sw * 0.2); ctx.fillStyle = "#f8f4ec"; ctx.font = font(36); ctx.textAlign = "center"; ctx.fillText("⬇ انزل", W / 2, Math.max(60, base.ny - base.sw * 0.4)); }
+    else {
+      const x0 = inc.side < 0 ? 0 : W, x1 = base.cx + inc.side * -0.1 * base.sw;
+      const fx = x0 + (x1 - x0) * k * 0.85, fy = base.ny;
+      ctx.beginPath(); ctx.arc(fx, fy, base.sw * 0.35, 0, 7); ctx.fill();
+      ctx.fillStyle = "#f8f4ec"; ctx.font = font(32); ctx.textAlign = "center";
+      ctx.fillText(inc.side < 0 ? "ميل يمين ➡" : "⬅ ميل يسار", W / 2, Math.max(70, base.ny - base.sw * 0.7));
+    }
+  }
+  // gloves
+  body.hands.forEach((h, i) => {
+    if (!h || !body.seen) return;
+    const col = i === 0 ? "#f28a2e" : "#f8f4ec", r = base ? base.sw * 0.17 : 20, fast = base && body.vel[i] > base.sw * 1.4;
+    ctx.fillStyle = col; ctx.globalAlpha = 0.9; ctx.beginPath(); ctx.arc(h.x, h.y, r * (fast ? 1.25 : 1), 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+    if (fast) { ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(h.x, h.y, r * 1.7, 0, 7); ctx.stroke(); }
+  });
+  if (g.flash > 0) { ctx.fillStyle = `rgb(229 103 90 / ${g.flash * 0.6})`; ctx.fillRect(0, 0, W, H); }
+}
+
+function hud() {
+  const L = len();
+  $("hRound").textContent = `${ar(Math.max(1, g.round))}/${ar(L.k)}`;
+  $("hTime").textContent = fmt(Math.max(0, (g.phase === "rest" ? L.r : L.w) - g.t));
+  $("hHp").textContent = "❤".repeat(Math.max(0, g.hp)) || "—";
+  $("hScore").textContent = ar(Math.floor(g.score));
+  $("combo").textContent = g.state === "play" && cfg.mode === "combo" && g.combo ? g.combo.map((n, i) => (i < g.comboIdx ? "✓" : ar(n))).join(" – ") : g.phase === "rest" && g.state === "play" ? "راحة" : "";
+  let cue = "";
+  if (g.state === "calib") cue = !body.seen ? "ارجع لورا لحد ما يبيّن راسك وكتافك" : "اوقف بالنص، الإيدين على وجهك، ثانيتين…";
+  else if (g.state === "paused") cue = "وقف مؤقت: ارجع قدام الكاميرا";
+  else if (g.state === "countdown") cue = ar(Math.max(1, Math.ceil(g.cd)));
+  else if (g.state === "play") cue = g.msgT > 0 ? g.msg : g.phase === "rest" ? `الجولة الجاية بعد ${ar(Math.ceil(L.r - g.t))}` : "";
+  $("cue").textContent = cue;
+}
+
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  readPose(now); update(dt, now); draw(); hud();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// ---------- start / finish ----------
+function reset() { Object.assign(g, { state: "calib", round: 0, t: 0, phase: "work", objs: [], hp: 5, score: 0, hits: 0, misses: 0, dodges: 0, streak: 0, best: 0, work: 0, next: 0, combo: null, comboIdx: 0, incoming: null, msgT: 0, flash: 0 }); base = null; calib = null; }
+$("go").addEventListener("click", async () => {
+  $("err").hidden = true;
+  try { const AC = window.AudioContext || window.webkitAudioContext; if (AC && !actx) actx = new AC(); actx && actx.resume(); } catch {}
+  try { navigator.wakeLock && navigator.wakeLock.request("screen").catch(() => {}); } catch {}
+  if (!lm) {
+    $("go").disabled = true; $("go").textContent = "بجهّز الكاميرا…";
+    try { await startCamera(); }
+    catch (e) { $("err").textContent = e && e.name === "NotAllowedError" ? "الكاميرا مرفوضة. اسمح للموقع يستعمل الكاميرا من إعدادات المتصفح." : "ما قدرت أشغّل الكاميرا أو أحمّل قارئ الحركة. تأكد من النت وجرّب كمان مرة."; $("err").hidden = false; $("go").disabled = false; $("go").textContent = "شغّل الكاميرا وابدأ"; return; }
+    $("go").disabled = false; $("go").textContent = "شغّل الكاميرا وابدأ";
+  }
+  reset(); $("ovStart").hidden = true; $("ovEnd").hidden = true;
+});
+$("again").addEventListener("click", () => { $("ovEnd").hidden = true; $("ovStart").hidden = false; g.state = "idle"; });
+
+const pad2 = (n) => String(n).padStart(2, "0");
+const planDate = () => { const d = new Date(Date.now() - 6 * 3600e3); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; };
+function finish(done) {
+  g.state = "over";
+  const acc = g.hits + g.misses ? Math.round(g.hits / (g.hits + g.misses) * 100) : 0;
+  $("endTitle").innerHTML = done ? "خلّصت الجولات، الله يعطيك <span>العافية</span>" : "خلص القلب، <span>كمان مرة؟</span>";
+  $("eHits").textContent = ar(g.hits); $("eAcc").textContent = ar(acc) + "٪"; $("eDodge").textContent = ar(g.dodges);
+  $("eStreak").textContent = ar(g.best); $("eTime").textContent = fmt(g.work); $("eScore").textContent = ar(Math.floor(g.score));
+  let note = "";
+  // log to the tracker on this device: counts as the boxing session once half the planned work is done
+  if (g.work >= len().k * len().w * 0.5) {
+    try {
+      const all = JSON.parse(localStorage.getItem("bani-adam-v1") || "{}"), key = "day-" + planDate();
+      const day = all[key] || { kind: "day", date: planDate(), checks: {}, foods: {}, sets: [] };
+      Object.assign(day, { session: "boxing", sessionDone: true, cardioMin: Math.round((day.cardioMin || 0) + g.work / 60), boxing: { hits: g.hits, acc, dodges: g.dodges, rounds: g.round, mode: cfg.mode }, checks: { ...(day.checks || {}), train: true } });
+      all[key] = day; localStorage.setItem("bani-adam-v1", JSON.stringify(all));
+      note = "انسجلت جلسة الملاكمة بصفحة اليوم، وتشيّك بند التمرين. ";
+    } catch {}
+  } else note = "الجلسة قصيرة، ما انسجلت كجلسة ملاكمة كاملة. ";
+  let best = 0; try { best = +localStorage.getItem("ba-box-best-" + cfg.mode) || 0; if (g.score > best) localStorage.setItem("ba-box-best-" + cfg.mode, Math.floor(g.score)); } catch {}
+  note += g.score > best ? "رقم قياسي جديد بهالنمط!" : `أفضل نتيجة بهالنمط: ${ar(best)}.`;
+  $("eNote").textContent = note;
+  $("ovEnd").hidden = false; beep(660, 0.2); setTimeout(() => beep(880, 0.3), 220);
+}
+</script>
+</body>
+</html>

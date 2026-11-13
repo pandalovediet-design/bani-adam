@@ -170,6 +170,9 @@ details.mini-d summary::-webkit-details-marker { display: none; }
 .call .sub { font-size: .88rem; }
 .call .nx { font-size: .78rem; color: var(--muted); }
 .call.rest b { color: var(--good); }
+.cam-list a { display: grid; gap: 2px; width: 100%; color: inherit; text-decoration: none; }
+.cam-list li { padding: 10px 12px; }
+.cam-list li:first-child { background: color-mix(in srgb, var(--accent) 16%, var(--raise)); }
 .restbar { position: fixed; left: 0; right: 0; bottom: calc(62px + env(safe-area-inset-bottom, 0px)); z-index: 5; display: flex; justify-content: center; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); pointer-events: none; }
 .restbar > div { pointer-events: auto; display: flex; align-items: center; gap: 10px; background: var(--fg); color: var(--bg); border-radius: 99px; padding: 6px 8px 6px 16px; box-shadow: 0 6px 20px rgb(0 0 0 / .25); }
 .restbar b { font-family: var(--display); font-size: 1.3rem; min-width: 3.2ch; text-align: center; }
@@ -243,6 +246,7 @@ details.mini-d summary::-webkit-details-marker { display: none; }
             <li>دوائر أكتاف وورك، 10 لكل اتجاه</li>
             <li>15 فتح حبل قدام الصدر</li>
             <li>أول جولة من أول تمرين بنص الوزن</li>
+            <li><a data-cam="mimic.html" target="_blank" rel="noopener">أو اعمل الإحماء مع "قلّدني" بالكاميرا</a></li>
           </ul>
         </details>
       </div>
@@ -271,14 +275,16 @@ details.mini-d summary::-webkit-details-marker { display: none; }
         <div class="small muted" style="text-align:center" id="ivRound"></div>
         <div class="row" style="justify-content:center"><button class="btn" id="ivBtn" type="button">ابدأ</button><button class="btn ghost" id="ivReset" type="button">صفّر</button></div>
       </div>
-      <a class="card" id="coachCard" href="coach.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;border-color:color-mix(in srgb, var(--accent) 50%, var(--line))">
-        <div class="row spread"><h2>عدّاد بني آدم 📷</h2><span class="tag">بالكاميرا</span></div>
-        <p class="small muted" style="margin:0">الكاميرا بتعدّلك العدّات الكاملة بس: سكوات على كرسي، رفع ركب، ضغط أكتاف، ورفع جانبي. وبتسجلها لحالها.</p>
-      </a>
-      <a class="card" id="gameCard" href="game.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;border-color:color-mix(in srgb, var(--accent) 50%, var(--line))">
-        <div class="row spread"><h2>ركض بني آدم 🎮</h2><span class="tag">بالكاميرا</span></div>
-        <p class="small muted" style="margin:0">لعبة ركض: اركض بمكانك، زيح يمين ويسار، ارفع إيديك، وانزل سكوات. بدون قفز. بتفتح بصفحة لحالها.</p>
-      </a>
+      <div class="card">
+        <div class="row spread"><h2>ألعاب الكاميرا</h2><span class="tag">على الموقع</span></div>
+        <ul class="list cam-list">
+          <li><a data-cam="boxing.html" target="_blank" rel="noopener"><b>🥊 ملاكمة بني آدم</b><span class="s small muted">أهداف وكومبو وتفادي، وقطّع المعجنات</span></a></li>
+          <li><a data-cam="mimic.html" target="_blank" rel="noopener"><b>🧍 قلّدني</b><span class="s small muted">إحماء وتمدد: قلّد الوضعية واثبت</span></a></li>
+          <li><a data-cam="coach.html" target="_blank" rel="noopener"><b>📷 عدّاد العدّات</b><span class="s small muted">سكوات، رفع ركب، أكتاف، رفع جانبي</span></a></li>
+          <li><a data-cam="game.html" target="_blank" rel="noopener"><b>🏃 ركض بني آدم</b><span class="s small muted">اركض بمكانك وزيح وانزل</span></a></li>
+        </ul>
+        <p class="small muted" style="margin:0">بتفتح على موقعك بصفحة لحالها، لأنها بدها كاميرا. وبدون قفز.</p>
+      </div>
       <div class="card timer">
         <h2>راحة بين الجولات</h2>
         <div class="chips" id="durs"></div>
@@ -577,7 +583,7 @@ details.mini-d summary::-webkit-details-marker { display: none; }
     else {
       body = `<div class="card"><p style="margin:0">${esc(p.desc)}</p>`;
       if (type === "cardio") body += `<label class="f" for="cardioMin">كم دقيقة عملت؟<input type="number" id="cardioMin" inputmode="numeric" min="1" value="${day.cardioMin || 40}"></label>`;
-      if (p.preset) body += `<button type="button" class="btn" data-gotimer="${p.preset}">ابدأ مع المدرب</button>`;
+      if (p.preset) body += `<div class="row"><button type="button" class="btn" data-gotimer="${p.preset}">ابدأ مع المدرب</button>${type === "boxing" ? `<a class="btn ghost" data-cam="boxing.html" target="_blank" rel="noopener" style="text-decoration:none">بالكاميرا 🥊</a>` : ""}</div>`;
       body += `</div>`;
     }
     // other exercises logged today that aren't in this session (e.g. extras)
@@ -585,6 +591,7 @@ details.mini-d summary::-webkit-details-marker { display: none; }
     body += others.map((id) => exCard(id, day, extraRows)).join("");
     body += `<details class="mini-d card"><summary>+ تمرين إضافي من المكتبة</summary><div class="chips" style="justify-content:flex-start;margin-top:10px">${Object.keys(EX).filter((k) => !(p.ex || []).includes(k) && !others.includes(k)).map((k) => `<button type="button" class="chip" data-addex="${k}">${esc(EX[k].n)}</button>`).join("")}</div></details>`;
     $("sessBody").innerHTML = body;
+    if (typeof camLinks === "function") camLinks();
     $("sessDone").textContent = day.sessionDone ? "رجّع الجلسة مفتوحة" : type === "rest" ? "سجّل يوم الراحة" : "خلّصت الجلسة";
     renderLib(); renderStats();
   }
@@ -886,7 +893,9 @@ details.mini-d summary::-webkit-details-marker { display: none; }
   ivDraw();
 
   const SITE = "https://bani-adam.vercel.app";
-  if (/claude|anthropic/.test(location.hostname) || location.protocol === "about:" || location.protocol === "blob:") { $("gameCard").href = SITE + "/game.html"; $("coachCard").href = SITE + "/coach.html"; }
+  const inClaude = /claude|anthropic/.test(location.hostname) || location.protocol === "about:" || location.protocol === "blob:";
+  const camLinks = () => document.querySelectorAll("[data-cam]").forEach((el) => { el.href = (inClaude ? SITE + "/" : "") + el.dataset.cam; });
+  camLinks();
 
   // ---------- boot ----------
   loadLocal();
