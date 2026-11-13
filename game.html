@@ -74,7 +74,7 @@ a { color: var(--accent); }
       <li><b>انزل سكوات</b>عشان تمرق تحت العارضة العالية.</li>
     </ul>
     <div class="row" id="lenPick"></div>
-    <p class="note">حط الجوال على طاولة أو كرسي، وارجع لورا 2 لـ 3 متر لحد ما يبيّن جسمك من راسك لركبك. أرض مش زلقة، ومساحة حواليك. وجع بالصدر أو دوخة قوية: وقّف فوراً.</p>
+    <p class="note">حط الجوال على طاولة أو كرسي، وارجع لورا 2 لـ 3 متر لحد ما يبيّن جسمك من راسك لركبك. خلي الضو قدامك مش وراك، والبس لون مختلف عن الحيط. إذا طلعت من الكاميرا، اللعبة بتوقف وبتستناك. أرض مش زلقة، ومساحة حواليك. وجع بالصدر أو دوخة قوية: وقّف فوراً.</p>
     <p class="err" id="err" hidden></p>
     <div class="row">
       <button class="btn" id="bCam" type="button">شغّل الكاميرا</button>
@@ -164,8 +164,10 @@ async function startCamera() {
   cam.hidden = false;
 }
 const vis = (p) => p && (p.visibility ?? 1) > 0.5;
+let lastDetect = 0;
 function readPose(now) {
-  if (!landmarker || vid.readyState < 2) return;
+  if (!landmarker || vid.readyState < 2 || now - lastDetect < 45) return;
+  lastDetect = now;
   const res = landmarker.detectForVideo(vid, now);
   const L = res.landmarks && res.landmarks[0];
   // preview (mirrored)
@@ -253,6 +255,14 @@ function say(t) { g.msg = t; g.msgT = 1.6; }
 function step(dt, now) {
   updateCadence(now);
   if (mode === "cam" && input.seen === false && now - input.lastSeen > 2000 && base) { $("cState").textContent = "ما شايفك، ارجع قدام الكاميرا"; }
+  if (mode === "cam" && base) {
+    if (g.state === "play" && now - input.lastSeen > 700) { g.state = "paused"; beep(300, 0.2, 0.1); }
+    else if (g.state === "paused" && input.seen) { g.state = "countdown"; g.cd = 3; }
+    else if (g.state === "countdown") {
+      if (!input.seen) g.state = "paused";
+      else { const before = Math.ceil(g.cd); g.cd -= dt; if (Math.ceil(g.cd) !== before && g.cd > 0) beep(660, 0.08, 0.08); if (g.cd <= 0) { g.state = "play"; beep(880, 0.15); } }
+    }
+  }
   if (g.state !== "play") return;
   g.t += dt;
   // speed follows cadence: ~2.2 steps/s = full run
@@ -350,7 +360,9 @@ function hud() {
   $("hLives").textContent = "❤".repeat(Math.max(0, g.lives)) || "—";
   $("cCad").textContent = `إيقاع ${ar(input.cadence.toFixed(1))}`;
   let cue = "";
-  if (g.state === "calib") cue = !input.seen ? "ارجع لورا لحد ما يبيّن جسمك" : "اوقف بالنص ثابت ثانيتين…";
+  if (g.state === "paused") cue = "وقف مؤقت: ارجع قدام الكاميرا";
+  else if (g.state === "countdown") cue = ar(Math.max(1, Math.ceil(g.cd)));
+  else if (g.state === "calib") cue = !input.seen ? "ارجع لورا لحد ما يبيّن جسمك" : "اوقف بالنص ثابت ثانيتين…";
   else if (g.state === "play") {
     cue = g.msgT > 0 ? g.msg : input.cadence < 0.8 ? "اركض بمكانك!" : "";
     const ahead = g.objs.filter((o) => !o.done && o.z > PZ && o.z < PZ + 14 && o.lane === Math.round(g.laneX) && o.type !== "coin").sort((a, b) => a.z - b.z)[0];
