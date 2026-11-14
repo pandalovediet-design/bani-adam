@@ -84,7 +84,7 @@
       const r = await fetch(`https://api.aladhan.com/v1/timings/${dd}-${m}-${y}?latitude=${l.lat}&longitude=${l.lng}&method=23`);
       if (!r.ok) throw new Error();
       const j = (await r.json()).data;
-      pData = { key, label: l.label || "موقعك", t: Object.fromEntries(PR.map(([k, , en]) => [k, String(j.timings[en]).slice(0, 5)])), hijri: `${j.date.hijri.day} ${j.date.hijri.month.ar} ${j.date.hijri.year} هـ` };
+      pData = { key, label: l.label || "موقعك", t: Object.fromEntries(PR.map(([k, , en]) => [k, String(j.timings[en]).slice(0, 5)])), hijri: `${j.date.hijri.day} ${j.date.hijri.month.ar} ${j.date.hijri.year} هـ`, hd: +j.date.hijri.day, hm: +j.date.hijri.month.number, wd: new Date(+y, +m - 1, +dd).getDay() };
       store.set("ba-life-pray", pData); renderRuh();
     } catch { /* بدون نت: بنعرض التسجيل بدون الأوقات */ } finally { pBusy = false; }
   }
@@ -122,6 +122,7 @@
       <div class="lf-pray">${PR.map(([p, n]) => { const st = pr[p] || 0; return `<button type="button" data-pray="${p}" class="s${st}" aria-label="${n}: ${PST[st]}"><b>${n}</b><span class="tab-num">${pData ? arT(pData.t[p]) : "—"}</span><small>${PST[st]}</small></button>`; }).join("")}</div>
       <p class="small muted" style="margin:0">اضغط مرة = صليتها بوقتها، مرتين = متأخرة، ثالث مرة = ترجع. لما تكمّل الخمسة، بند الصلاة بالشيك اليومي بيتعلّم لحاله.</p>
     </div>
+    <div id="lfAdhkar"></div>
     <div class="card">
       <div class="row spread"><h2>📖 ختمتك</h2><span class="tag">ختمة ${ar(k.n || 1)}</span></div>
       <div class="bar-h"><span>${ar(read)} من ${ar(QURAN_PAGES)} صفحة</span><span class="tab-num">${ar(Math.round(read / QURAN_PAGES * 100))}٪</span></div>
@@ -135,6 +136,7 @@
           <button type="button" class="btn ghost full" id="lfKNew">ابدأ ختمة جديدة من اليوم</button>
         </div></details>
     </div>
+    <div id="lfSunnah"></div>
     <div class="card">
       <div class="row spread"><h2>🌙 محاسبة الليلة</h2><span class="small muted">دقيقة قبل النوم</span></div>
       ${REFL.map(([f, t]) => `<label class="f full" style="margin:0">${t}<textarea data-refl="${f}" rows="2" maxlength="300" class="lf-ta">${esc(rf[f] || "")}</textarea></label>`).join("")}
@@ -155,6 +157,7 @@
         <a class="tile" href="/ruh#listen"><span class="e">🎧</span><b>استمع وإنت بتتمرن</b><span class="s">سورة وقارئ ومدة</span></a>
       </div>
     </div>`;
+    if (window.BA_ruh2) window.BA_ruh2();
   }
   document.addEventListener("click", (e) => {
     const p = e.target.closest("[data-pray]");
@@ -172,6 +175,8 @@
     if (t.dataset && t.dataset.refl) { const dd = day(); save({ reflect: { ...(dd.reflect || {}), [t.dataset.refl]: t.value.trim().slice(0, 300) } }); toast("انحفظت"); }
   });
   window.BA_ruh = () => { renderRuh(); loadTimes(); };
+  window.BA_pray = () => pData;
+  window.BA_loadTimes = loadTimes;
   setInterval(() => { if ($("v-ruh") && !$("v-ruh").hidden) renderRuh(); }, 60000);
 
   // ---------- تقدّمي: تقرير الأسبوع، قوة العادة، النوم والمزاج ----------
@@ -235,6 +240,7 @@
       [ar(a.pages), "صفحة قرآن"],
       [a.mood.length ? MOODS[Math.round(avg(a.mood)) - 1] : "—", "المزاج"],
       [dW == null ? "—" : (dW > 0 ? "+" : "") + ar(dW), "تغيّر الوزن (كغ)"],
+      ...(window.BA_weekExtra ? window.BA_weekExtra(addDays) : []),
     ];
     const ins = insights();
     w.innerHTML = `<div class="card">

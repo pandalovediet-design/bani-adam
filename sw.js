@@ -1,7 +1,7 @@
 // Bani Adam service worker: pages work offline, the pose model is kept after the first download.
-const SHELL = "ba-shell-v32";
+const SHELL = "ba-shell-v33";
 const EXT = "ba-ext-v1";
-const PAGES = ["/", "/game", "/boxing", "/mimic", "/coach", "/nogym", "/exercises", "/nutrition", "/ruh", "/css/sub.css", "/js/shared.js", "/js/nutri.js", "/js/protein.js", "/data/protein.json", "/js/train-extra.js", "/js/life.js", "/data/nogym.json", "/data/exercises.json", "/data/recipes.json", "/body/front.webp", "/body/back.webp", "/manifest.webmanifest", "/brand/favicon.svg", "/brand/cover.webp", "/brand/me-icon-192.png", "/brand/me-apple-touch.png"];
+const PAGES = ["/", "/game", "/boxing", "/mimic", "/coach", "/nogym", "/exercises", "/nutrition", "/ruh", "/css/sub.css", "/js/shared.js", "/js/nutri.js", "/js/protein.js", "/data/protein.json", "/js/train-extra.js", "/js/life.js", "/js/life2.js", "/data/nogym.json", "/data/exercises.json", "/data/recipes.json", "/body/front.webp", "/body/back.webp", "/manifest.webmanifest", "/brand/favicon.svg", "/brand/cover.webp", "/brand/me-icon-192.png", "/brand/me-apple-touch.png"];
 const EXT_HOSTS = ["cdn.jsdelivr.net", "storage.googleapis.com", "fonts.googleapis.com", "fonts.gstatic.com"];
 
 self.addEventListener("install", (e) => {

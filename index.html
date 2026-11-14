@@ -377,12 +377,14 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
         <div class="form" style="margin-top:10px">
           <label class="f full" for="habN">شو العادة؟<input type="text" id="habN" maxlength="30" placeholder="مثلاً: مشي بعد العشا"></label>
           <label class="f" for="habT">موعدها (اختياري)<input type="time" id="habT"></label>
+          <label class="f full" for="habA">بعد شو بتعملها؟ (اختياري)<input type="text" id="habA" maxlength="30" placeholder="مثلاً: بعد صلاة العشا، بعد قهوة الصبح"></label>
           <button class="btn" id="habAdd" type="button" style="align-self:end">ضيفها</button>
         </div>
       </details>
       <p class="small muted" style="margin:0">اضغط على العادة أو على ✓ لما تخلصها، واضغط على الوقت لتغيّره. يوم خربان؟ عادي. القاعدة وحدة: ما تفوّت يومين ورا بعض.</p>
     </div>
     <div id="lfQuick"></div>
+    <div id="lfProd"></div>
     <div class="card panda-card" id="pandaCard">
       <div class="pc-top"><span class="panda" id="pcard" data-px="64"></span><div><h2>باندا، مساعدك</h2><p class="small muted">اسأله عن يومك أو أكلك أو تمرينك، وبرتّبلك الخطوة الجاية.</p></div></div>
       <div class="chips" id="pcChips" style="justify-content:flex-start"></div>
@@ -464,7 +466,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     <div class="seg" role="tablist" aria-label="أقسام التمرين" id="trainSeg">
       <button type="button" role="tab" data-s="sess" aria-selected="true">الجلسة</button>
       <button type="button" role="tab" data-s="lib" aria-selected="false">المكتبة</button>
-      <button type="button" role="tab" data-s="tim" aria-selected="false">ألعاب ومؤقتات</button>
+      <button type="button" role="tab" data-s="tim" aria-selected="false">الألعاب</button>
       <button type="button" role="tab" data-s="stat" aria-selected="false">الأرقام</button>
     </div>
 
@@ -488,6 +490,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
       <div id="sessBody" style="display:grid;gap:12px"></div>
       <button class="btn" id="sessDone" type="button">خلّصت الجلسة</button>
       <p class="small muted" style="margin:0">ازفر وإنت بتدفع أو بتسحب، ولا تحبس نفسك. وجع بالصدر أو دوخة قوية: وقّف فوراً.</p>
+      <div id="lfChal"></div>
     </div>
 
     <div id="s-lib" class="sub" style="display:none;gap:12px;margin-top:12px">
@@ -674,6 +677,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
 <script src="/js/protein.js" defer></script>
 <script src="/js/train-extra.js" defer></script>
 <script src="/js/life.js" defer></script>
+<script src="/js/life2.js" defer></script>
 <script>
 (() => {
   // ---------- plan constants ----------
@@ -683,7 +687,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
   let CHECKS = [], BASE_CHECKS = [], N = 8, GOAL_N = 6;
   const habDoc = () => { const d = docs.get("habits"); return d && !d._del && d.kind === "habits" ? d : { kind: "habits", times: {}, custom: [] }; };
   function mergeChecks() {
-    const cu = (habDoc().custom || []).filter((h) => h && h.k && h.t).map((h) => ({ k: h.k, t: h.t, s: "", custom: true }));
+    const cu = (habDoc().custom || []).filter((h) => h && h.k && h.t).map((h) => ({ k: h.k, t: h.t, s: h.a ? "بعد " + h.a : "", custom: true }));
     CHECKS = BASE_CHECKS.concat(cu); N = CHECKS.length; GOAL_N = Math.max(1, Math.ceil(N * 0.75));
   }
   // Daily-check menu offered at setup; meds and the person's own habits are added around it.
@@ -896,7 +900,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     $("checks").innerHTML = rows.map(({ ch, on, tv, st }) => {
       const pro = ch.auto ? `<span class="auto-note tab-num">${ar(Math.round(t.p))} غ</span>` : autoNote(ch.k, day);
       return `<div class="hrow${on ? " done" : ""}" data-k="${esc(ch.k)}"><i class="hd s-${st}"></i>
-        <button type="button" class="ht" data-tg="${esc(ch.k)}" title="${esc(ch.s || "")}">${esc(ch.t)}${pro}</button>
+        <button type="button" class="ht" data-tg="${esc(ch.k)}" title="${esc(ch.s || "")}">${esc(ch.t)}${pro}${ch.custom && ch.s ? `<small class="hanchor">${esc(ch.s)}</small>` : ""}</button>
         <label class="tm s-${st}" title="موعدها">${tv ? "⏰ <bdi dir=\"ltr\">" + tv.replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]) + "</bdi>" : "＋ وقت"}<input type="time" data-time="${esc(ch.k)}" value="${esc(tv)}" aria-label="موعد ${esc(ch.t)}"></label>
         ${edit && ch.custom ? `<button type="button" class="hx" data-hdel="${esc(ch.k)}" aria-label="احذف ${esc(ch.t)}">×</button>` : ""}
         <button type="button" class="hok" data-tg="${esc(ch.k)}" aria-pressed="${on}" aria-label="${on ? "ألغي" : "تمّت"} ${esc(ch.t)}">${on ? "✓" : ""}</button></div>`;
@@ -1127,8 +1131,9 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     const n = $("habN").value.trim().slice(0, 30), tv = $("habT").value; if (!n) { toast("اكتب اسم العادة"); return; }
     const hd = habDoc(), custom = hd.custom || []; if (custom.length >= 12) { toast("وصلت الحد (١٢ عادة)"); return; }
     const k = "c" + Date.now().toString(36), times = { ...(hd.times || {}) }; if (tv) times[k] = tv;
-    put("habits", { kind: "habits", times, custom: [...custom, { k, t: n }] });
-    $("habN").value = ""; $("habT").value = ""; toast("انضافت");
+    const an = $("habA").value.trim().slice(0, 30);
+    put("habits", { kind: "habits", times, custom: [...custom, { k, t: n, ...(an ? { a: an } : {}) }] });
+    $("habN").value = ""; $("habT").value = ""; $("habA").value = ""; toast("انضافت");
   });
   // dots follow the clock
   const tickDots = () => { const a = document.activeElement; if (a && a.closest && a.closest("#checks")) return; if (!$("v-today").hidden) renderChecks(); };
