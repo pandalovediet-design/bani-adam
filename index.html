@@ -297,6 +297,7 @@ details.mini-d summary::-webkit-details-marker { display: none; }
 .note.warn-n { border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent); }
 /* polish: global look, panda tab, discover cards */
 nav.tabs { grid-template-columns: repeat(5, 1fr); gap: 2px; }
+nav.tabs button { font-size: .7rem; white-space: nowrap; }
 nav.tabs button { position: relative; transition: color .15s, background .15s, transform .12s; }
 nav.tabs button:active { transform: scale(.94); }
 nav.tabs button[aria-selected="true"] { background: color-mix(in srgb, var(--accent) 13%, transparent); }
@@ -619,9 +620,9 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
 
 <nav class="tabs" role="tablist" aria-label="أقسام" dir="rtl">
   <button role="tab" id="t-today" data-v="today" aria-selected="true" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>اليوم</button>
-  <button role="tab" id="t-food" data-v="food" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M8 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4"/></svg>الأكل</button>
+  <button role="tab" id="t-food" data-v="food" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M8 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4"/></svg>من غير حرمان</button>
   <button role="tab" id="t-panda" data-panda type="button" aria-label="اسأل باندا" aria-selected="false"><span class="panda" id="ptab" data-px="24"></span>باندا</button>
-  <button role="tab" id="t-train" data-v="train" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12"/></svg>التمرين</button>
+  <button role="tab" id="t-train" data-v="train" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12"/></svg>من غير جيم</button>
   <button role="tab" id="t-prog" data-v="prog" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>التقدّم</button>
 </nav>
 <div class="restbar" id="restBar" hidden dir="rtl"><div><span>راحة</span><b class="tab-num" id="rbTime" dir="ltr">1:30</b><button type="button" id="rbAdd">+15ث</button><button type="button" id="rbSkip">تخطّي</button></div></div>
