@@ -1517,16 +1517,26 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     return [...meds, ...items, ...habits];
   }
   function buildProfile(c, old) {
-    const t = targetsFor(c), w = Math.round(+c.w * 10) / 10;
+    const t0 = targetsFor(c), w = Math.round(+c.w * 10) / 10;
+    const custom = !!(old && old.tCustom && old.weight === w), t = custom ? { ...old.t, dir: t0.dir } : t0;
     const keepBase = old && old.weight === w;
     return {
       kind: "profile", v: 1, name: (c.name || "").trim().slice(0, 30),
       start: c.start, target: c.target, targetLabel: (c.targetLabel || "").trim().slice(0, 20),
       weight: w, baseDate: keepBase ? old.baseDate : c.start, baseLabel: keepBase ? old.baseLabel : "البداية",
       goal: Math.round(+c.goal * 2) / 2, dayEnd: +c.dayEnd || 0, eq: { ...c.eq },
-      t: { p: t.p, pOk: t.pOk, k: t.k, kMax: t.kMax, water: t.water }, checks: makeChecks(c, t), choice: c,
+      t: { p: t.p, pOk: t.pOk, k: t.k, kMax: t.kMax, water: t.water }, checks: makeChecks(c, t), choice: c, ...(custom ? { tCustom: true } : {}),
     };
   }
+  // targets from the nutrition calculator ("اعتمدها")
+  addEventListener("ba-targets", (e) => {
+    const old = profile(); if (!old || !old.choice) { toast("خلّص إعداد البداية أول"); return; }
+    const d = e.detail || {}, p = Math.round(+d.protein / 5) * 5, k = Math.round(+d.kcal / 50) * 50, water = Math.min(4, Math.max(2, Math.round(+d.water * 2) / 2));
+    if (!(p >= 40 && p <= 400 && k >= 1000 && k <= 6000)) { toast("الأرقام مش منطقية"); return; }
+    const t = { p, pOk: p - 10, k, kMax: k + 100, water };
+    put("profile", { ...old, t, checks: makeChecks(old.choice, t), tCustom: true });
+    toast("انعتمدت أهدافك الجديدة");
+  });
   function applyProfile(p) {
     START = p.start; TARGET = p.target; TOTAL = Math.max(1, dayDiff(p.start, p.target) + 1); TLABEL = p.targetLabel || ""; NAME = p.name || "";
     BASE = { date: p.baseDate || p.start, weight: p.weight, label: p.baseLabel || "البداية" };

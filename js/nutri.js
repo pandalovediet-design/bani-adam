@@ -13,6 +13,7 @@
   const r1 = (x) => Math.round(x * 10) / 10;
   const ar = (n) => n.toLocaleString("ar-EG");
 
+  let last = null;
   function calc(i) {
     const { sex, age, height: h, weight: w } = i;
     if (!(age >= 18 && age <= 80)) return { error: "الحاسبة للبالغين من 18 لـ80 سنة." };
@@ -91,7 +92,7 @@
     try { localStorage.setItem(KEY, JSON.stringify(Object.fromEntries(IDS.map((k) => [k, g(k)])))); } catch {}
     const r = calc({ sex: g("sex"), age: num(g("age")), height: num(g("height")), weight: num(g("weight")), activity: parseFloat(g("activity")), goal: g("goal"),
       bodyFat: num(g("bodyFat")), neck: num(g("neck")), waist: num(g("waist")), hip: num(g("hip")) });
-    const out = $("#nOut");
+    const out = $("#nOut"); last = r.error ? null : r;
     if (r.error) { out.innerHTML = `<div class="warn">${esc(r.error)}</div>`; return; }
     const srcTxt = { manual: "نسبة دهون أدخلتها", navy: "قياساتك (Navy)", bmi: "تقدير من BMI (أقل دقة)" }[r.src];
     const cell = (b, l) => `<div class="nk"><b>${b}</b><span>${l}</span></div>`;
@@ -99,10 +100,15 @@
       <div class="nk-grid">${cell(ar(r.protein), "بروتين (غ)")}${cell(ar(r.carbs), "كارب (غ)")}${cell(ar(r.fat), "دهون (غ)")}${cell(ar(r.water), "مي (لتر)")}${cell(ar(r.bf) + "%", "دهون الجسم")}${cell(ar(r.ffm), "كتلة خالية (كغ)")}${cell(ar(r.bmr), "الحرق الأساسي")}${cell(ar(r.tdee), "الحرق الكلي")}${cell(ar(r.bmi), "BMI")}</div>
       <p class="muted small" style="margin:10px 0 4px">توزيع الوجبات:</p>
       <ul class="list">${r.meals.map((m) => `<li><span>${m.l}</span><span class="muted small">${ar(m.kcal)} سعرة · بروتين ${ar(m.p)} غ</span></li>`).join("")}</ul>
+      <button type="button" class="btn full" id="nApply" style="margin-top:10px;width:100%">✓ اعتمدها كهدف يومي بالتطبيق</button>
       ${r.clamped ? `<div class="warn" style="margin-top:8px">وصلنا للحد الأدنى الآمن، فما نزّلنا السعرات أكثر. التنشيف الأقوى مش آمن.</div>` : ""}
       <p class="muted small" style="margin:10px 0 0">نسبة الدهون من: ${esc(srcTxt)}. طريقة الحرق: ${r.method === "katch" ? "Katch-McArdle" : "Mifflin-St Jeor"}.</p>`;
   });
 
+  $("#nOut").addEventListener("click", (e) => {
+    if (!e.target.closest("#nApply") || !last) return;
+    dispatchEvent(new CustomEvent("ba-targets", { detail: { protein: last.protein, kcal: last.target, water: last.water } }));
+  });
   // ---- الوصفات ----
   let ITEMS = []; const meals = new Set(); let kind = "";
   function drawMeals() {
