@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<script>(function(){try{var f=function(){var p=innerHeight>=innerWidth,s=p?Math.min(screen.width,screen.height):Math.max(screen.width,screen.height),z=1;if(matchMedia("(pointer:coarse)").matches&&s>0&&innerWidth>s*1.25)z=innerWidth/s;window.__Z=z;document.documentElement.style.zoom=z===1?"":String(z);};f();addEventListener("resize",f);}catch(e){window.__Z=1;}})();</script>
+<script>(function(){try{var f=function(){var p=innerHeight>=innerWidth,s=p?Math.min(screen.width,screen.height):Math.max(screen.width,screen.height),z=1;if(matchMedia("(pointer:coarse)").matches&&s>0&&innerWidth>s*1.25)z=innerWidth/s;window.__Z=z;var s=document.documentElement.style;s.zoom=z===1?"":String(z);s.webkitTextSizeAdjust=s.textSizeAdjust="100%";};f();addEventListener("resize",f);}catch(e){window.__Z=1;}})();</script>
 <title>ملاكمة بني آدم</title>
 <meta name="description" content="ملاكمة بالكاميرا: اضرب الأهداف حواليك بالإيد الصح، كمّل الكومبو، ميل وانزل عن الضربات، وقطّع المعجنات. بدون قفز.">
 <meta name="theme-color" content="#0e1520">
@@ -18,6 +18,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
 <style>
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 /* Brand "مشروع بني آدم". Layout: the mirrored camera fills the screen as a dim ring, pads and gloves drawn on top, HUD strips at top, overlays for setup and summary. */
 :root { --bg: #0e1520; --panel: rgb(14 21 32 / .84); --raise: #1c2a40; --line: #2a3a52; --fg: #f8f4ec; --muted: #94a3b8; --accent: #f28a2e; --good: #3ec28f; --bad: #e5675a;
   --display: "Tajawal", "IBM Plex Sans Arabic", system-ui, sans-serif; --body: "IBM Plex Sans Arabic", Tahoma, system-ui, sans-serif; color-scheme: dark;
