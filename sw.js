@@ -1,7 +1,7 @@
 // Bani Adam service worker: pages work offline, the pose model is kept after the first download.
-const SHELL = "ba-shell-v13";
+const SHELL = "ba-shell-v14";
 const EXT = "ba-ext-v1";
-const PAGES = ["/", "/game", "/boxing", "/mimic", "/coach", "/nogym", "/data/nogym.json", "/body/front.webp", "/body/back.webp", "/manifest.webmanifest", "/brand/favicon.svg", "/brand/app-icon.png", "/brand/icon-192.png"];
+const PAGES = ["/", "/game", "/boxing", "/mimic", "/coach", "/nogym", "/exercises", "/nutrition", "/ruh", "/css/sub.css", "/js/shared.js", "/data/nogym.json", "/data/exercises.json", "/data/recipes.json", "/body/front.webp", "/body/back.webp", "/manifest.webmanifest", "/brand/favicon.svg", "/brand/app-icon.png", "/brand/icon-192.png"];
 const EXT_HOSTS = ["cdn.jsdelivr.net", "storage.googleapis.com", "fonts.googleapis.com", "fonts.gstatic.com"];
 
 self.addEventListener("install", (e) => {
@@ -25,6 +25,11 @@ self.addEventListener("fetch", (e) => {
       // network first, so updates arrive; the cached page when offline
       e.respondWith(fetch(req).then(async (res) => { const c = await clean(res); if (c.ok) (await caches.open(SHELL)).put(pageKey(req.url), c.clone()); return c; })
         .catch(async () => (await caches.match(pageKey(req.url))) || (await caches.match("/"))));
+      return;
+    }
+    if (url.pathname.startsWith("/data/")) {
+      // content files (exercises, recipes): network first so new items show right away; cached copy when offline
+      e.respondWith(fetch(req).then(async (res) => { if (res.ok) (await caches.open(SHELL)).put(req, res.clone()); return res; }).catch(() => caches.match(req)));
       return;
     }
     e.respondWith(caches.match(req).then((hit) => {

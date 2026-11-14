@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>روح وجسد — مؤقت راحة قرآني، مسبحة، مواقيت الصلاة | بني آدم</title>
+<meta name="description" content="استغل وقت الراحة بين الجولات بآية وتفسير ميسّر، وعدّ أذكارك، وشوف مواقيت الصلاة واتجاه القبلة، واسمع القرآن وأنت بتتمرن.">
+<meta name="theme-color" content="#0e1520">
+<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/brand/app-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="بني آدم">
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;600&family=Amiri+Quran&display=swap">
+<link rel="stylesheet" href="/css/sub.css">
+<style>
+.quran { font-family: "Amiri Quran", "Amiri", serif; font-size: 1.7rem; line-height: 2.2; text-align: center; }
+.tafsir { font-size: .9rem; line-height: 1.9; color: var(--muted); border-top: 1px solid var(--line); margin-top: 12px; padding-top: 10px; }
+.timer { font-family: var(--display); font-weight: 900; font-size: 4.2rem; text-align: center; font-variant-numeric: tabular-nums; line-height: 1; margin: 6px 0; }
+.timer.done { color: var(--good); }
+.ring { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.ring i { display: block; height: 100%; background: var(--accent); width: 100%; transition: width .25s linear; }
+.tasbtn { width: min(78vw, 280px); aspect-ratio: 1; border-radius: 50%; margin: 10px auto; display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, #2a3f60, #152033); border: 3px solid var(--accent); color: var(--fg); cursor: pointer; font: inherit; touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+.tasbtn:active { transform: scale(.97); }
+.tasbtn b { font-family: var(--display); font-size: 5rem; font-variant-numeric: tabular-nums; line-height: 1; }
+.tasbtn small { color: var(--muted); }
+.dhikr { text-align: center; font-family: "Amiri Quran", serif; font-size: 1.8rem; line-height: 1.8; }
+.ptime { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 14px; background: var(--raise); border: 1px solid var(--line); }
+.ptime.next { background: rgb(242 138 46 / .14); border-color: var(--accent); }
+.ptime b { font-variant-numeric: tabular-nums; }
+.compass { position: relative; width: 170px; height: 170px; margin: 8px auto; border-radius: 50%; border: 2px solid var(--line); background: var(--raise); }
+.compass .arrow { position: absolute; inset: 0; transition: transform .2s linear; }
+.compass .arrow::before { content: ""; position: absolute; left: 50%; top: 8px; transform: translateX(-50%); border: 10px solid transparent; border-bottom: 34px solid var(--accent); border-top: 0; }
+.compass .arrow::after { content: "🕋"; position: absolute; left: 50%; top: 0; transform: translate(-50%, -2px); font-size: 0; }
+.compass .n { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); color: var(--muted); font-size: .7rem; }
+.pad > * + * { margin-top: 12px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top"><a class="back" href="/">→ بني آدم</a></div>
+
+  <section class="card hero">
+    <h1>روح <span>وجسد</span></h1>
+    <p class="muted">راحتك بين الجولات فرصة. آية وتفسير، وذكر بإيدك، وأنت بتبني جسمك.</p>
+  </section>
+
+  <div class="tabs" role="tablist" aria-label="أدوات الراحة والذكر" id="tabs">
+    <button type="button" role="tab" data-t="rest" aria-selected="true">⏱️ المؤقت</button>
+    <button type="button" role="tab" data-t="tas" aria-selected="false">📿 المسبحة</button>
+    <button type="button" role="tab" data-t="pray" aria-selected="false">🕌 الصلاة</button>
+    <button type="button" role="tab" data-t="listen" aria-selected="false">🎧 استماع</button>
+  </div>
+
+  <!-- المؤقت -->
+  <section id="p-rest" class="card pad">
+    <p class="muted small" style="margin:0;text-align:center">مدة الراحة</p>
+    <div class="chips" id="durs" style="justify-content:center"></div>
+    <div class="timer" id="clock" aria-live="off">1:00</div>
+    <div class="ring" aria-hidden="true"><i id="ringI"></i></div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn" id="rStart" type="button">ابدأ</button>
+      <button class="btn ghost" id="rReset" type="button">إعادة</button>
+    </div>
+    <div class="card" style="background:var(--bg)" id="verse" aria-live="polite"><p class="muted small" style="text-align:center;margin:0">جاري تحميل آية…</p></div>
+    <div style="display:flex;gap:8px;justify-content:center"><button class="btn ghost" id="rNext" type="button">آية ثانية</button></div>
+    <label class="small muted" style="display:flex;gap:8px;align-items:center;justify-content:center"><input type="checkbox" id="snd" checked> صوت وهزّة عند النهاية</label>
+  </section>
+
+  <!-- المسبحة -->
+  <section id="p-tas" class="card pad" hidden>
+    <div class="chips" id="adhk" style="justify-content:flex-start"></div>
+    <div class="dhikr" id="dtxt"></div>
+    <button class="tasbtn" id="tap" type="button" aria-label="عدّ"><span><b id="cnt">0</b><br><small id="tgt"></small></span></button>
+    <div class="chips" id="tgts" style="justify-content:center"></div>
+    <p class="muted small" style="text-align:center;margin:0" id="rounds"></p>
+    <div style="display:flex;gap:8px;justify-content:center"><button class="btn ghost" id="tReset" type="button">تصفير هالذكر</button></div>
+  </section>
+
+  <!-- الصلاة -->
+  <section id="p-pray" class="card pad" hidden>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h2 id="locL">عمّان</h2><button class="btn ghost" id="geo" type="button">📍 حدّد موقعي</button></div>
+    <p class="muted small" id="hijri" style="margin:0"></p>
+    <div id="times" style="display:grid;gap:8px"><p class="muted small">جاري التحميل…</p></div>
+    <h2>اتجاه القبلة</h2>
+    <p class="muted small" id="qinfo" style="margin:0"></p>
+    <div class="compass" id="compass" hidden><div class="arrow" id="arrow"></div><span class="n">شمال ↑</span></div>
+    <div style="display:flex;gap:8px;justify-content:center"><button class="btn ghost" id="cmp" type="button">🧭 شغّل البوصلة</button></div>
+    <p class="muted small" id="cmsg" style="margin:0;text-align:center"></p>
+    <p class="muted small" style="margin:0">مواقيت الصلاة: AlAdhan.com، طريقة وزارة الأوقاف الأردنية. الموقع بينطلب فقط لما تضغط الزر.</p>
+  </section>
+
+  <!-- استماع -->
+  <section id="p-listen" class="card pad" hidden>
+    <h2>🎧 استمع وأنت بتتمرن</h2>
+    <label class="field">السورة<select id="lsurah"></select></label>
+    <label class="field">القارئ<select id="lrec"></select></label>
+    <div><p class="muted small" style="margin:0 0 6px">مدة التمرين (بعدها بنوقف عند نهاية الآية)</p><div class="chips" id="ltim"></div></div>
+    <div class="card" style="background:var(--bg);text-align:center" id="lcur"><p class="muted small" style="margin:0">اضغط تشغيل</p></div>
+    <div style="display:flex;gap:8px;justify-content:center"><button class="btn ghost" id="lprev" type="button">→ السابقة</button><button class="btn" id="lplay" type="button">▶ تشغيل</button><button class="btn ghost" id="lnext" type="button">التالية ←</button></div>
+    <p class="muted small" id="lmsg" style="margin:0;text-align:center"></p>
+    <audio id="aud" preload="auto"></audio>
+  </section>
+
+  <section class="card muted small" style="line-height:1.8">
+    <p style="margin:0 0 6px">نص الآيات بالرسم العثماني من <b>Tanzil.net</b>، والتفسير الميسر من مجمع الملك فهد، عبر واجهة <b>AlQuran.cloud</b>. مواقيت الصلاة من <b>AlAdhan.com</b>.</p>
+    <p style="margin:0">التفسير مكتوب بشكل منفصل عن الآية، وهو ليس من القرآن. لو لاحظت أي خطأ أو ملاحظة، تواصل معنا.</p>
+  </section>
+</main>
+
+<script src="/js/shared.js"></script>
+<script>
+"use strict";
+const $ = (s) => document.querySelector(s);
+const ar = (n) => n.toLocaleString("ar-EG");
+const API = "https://api.alquran.cloud/v1";
+const store = { get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+
+// ---------- التبويبات ----------
+const PANES = { rest: "#p-rest", tas: "#p-tas", pray: "#p-pray", listen: "#p-listen" };
+$("#tabs").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-t]"); if (!b) return;
+  document.querySelectorAll("#tabs [data-t]").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+  Object.entries(PANES).forEach(([k, s]) => ($(s).hidden = k !== b.dataset.t));
+  if (b.dataset.t === "pray") initPray(); if (b.dataset.t === "listen") initListen();
+});
+
+// ---------- نص القرآن (من الواجهة، ما في شي مكتوب باليد غير أرقام الآيات) ----------
+// [سورة, من آية, إلى آية]. المراجع المنتقاة بانتظار مراجعة مختص قبل النشر الواسع.
+const SHORT = [[94,5,6],[2,153,153],[3,139,139],[13,28,28],[39,10,10],[65,3,3],[2,286,286],[94,7,8],[2,45,45],[2,152,152],[3,160,160],[3,173,173],[3,200,200],[8,46,46],[9,51,51],[11,112,112],[12,87,87],[14,7,7],[16,127,127],[20,25,26],[29,69,69],[33,3,3],[39,53,53],[40,60,60],[47,7,7],[64,16,16],[95,4,4]];
+const LONG = [[94,1,8],[112,1,4],[113,1,5],[114,1,6],[2,285,286],[2,255,255],[59,22,24],[93,1,11],[1,1,7],[2,186,186],[20,25,28],[67,1,2],[89,27,30],[95,1,8],[103,1,3],[108,1,3],[110,1,3],[91,1,15],[97,1,5],[98,1,8],[99,1,8],[100,1,11],[101,1,11],[102,1,8],[104,1,9],[105,1,5],[106,1,4],[107,1,7],[109,1,6],[111,1,5]];
+const strip = (s) => s.replace(/[ً-ٰٟۖ-ۭ]/g, "").replace(/ٱ/g, "ا");
+function noBasmala(text, surah, n) {
+  if (n !== 1 || surah === 1 || surah === 9) return text;
+  const w = text.split(" ");
+  return strip(w.slice(0, 4).join(" ")) === "بسم الله الرحمن الرحيم" ? w.slice(4).join(" ") : text;
+}
+const surahCache = new Map();
+async function getSurah(n) {
+  if (surahCache.has(n)) return surahCache.get(n);
+  const saved = store.get("ba-q-" + n, null);
+  if (saved) { surahCache.set(n, saved); return saved; }
+  const res = await fetch(`${API}/surah/${n}/editions/quran-uthmani,ar.muyassar`);
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const j = await res.json();
+  const q = j.data.find((e) => e.edition.identifier === "quran-uthmani"), t = j.data.find((e) => e.edition.identifier === "ar.muyassar");
+  if (!q || !t) throw new Error("editions");
+  const out = { name: q.name.replace(/^سُورَةُ\s*/, "").replace(/^سورة\s*/, ""), text: q.ayahs.map((a) => noBasmala(a.text, n, a.numberInSurah)), tafsir: t.ayahs.map((a) => a.text) };
+  surahCache.set(n, out); store.set("ba-q-" + n, out); // النص ما بتغيّر: نحفظه على الجهاز
+  return out;
+}
+
+// ---------- مؤقت الراحة ----------
+const DURS = [30, 60, 120, 180];
+const lab = (d) => (d < 60 ? `${d} ثانية` : d === 60 ? "دقيقة" : `${d / 60} دقائق`);
+const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+let dur = store.get("ba-rest-dur", 60), left = dur, running = false, endAt = 0, tick = null, lock = null, audioCtx = null, vIdx = { s: Math.floor(Math.random() * SHORT.length), l: Math.floor(Math.random() * LONG.length) };
+function drawDurs() { $("#durs").innerHTML = DURS.map((d) => `<button class="chip" type="button" data-d="${d}" aria-pressed="${d === dur}">${lab(d)}</button>`).join(""); }
+function paint() { $("#clock").textContent = fmt(left); $("#clock").classList.toggle("done", left === 0); $("#ringI").style.width = `${dur ? (left / dur) * 100 : 0}%`; $("#rStart").textContent = running ? "إيقاف مؤقت" : left === 0 ? "ابدأ من جديد" : left < dur ? "كمّل" : "ابدأ"; }
+$("#durs").addEventListener("click", (e) => { const b = e.target.closest("[data-d]"); if (!b) return; stopTimer(); dur = +b.dataset.d; store.set("ba-rest-dur", dur); left = dur; drawDurs(); paint(); showVerse(); });
+async function releaseLock() { try { await lock?.release(); } catch {} lock = null; }
+function stopTimer() { running = false; clearInterval(tick); releaseLock(); }
+function finish() {
+  stopTimer(); left = 0; paint();
+  if ($("#snd").checked) {
+    if (navigator.vibrate) navigator.vibrate([250, 120, 250]);
+    if (audioCtx) try { [0, 0.35].forEach((o) => { const x = audioCtx.createOscillator(), g = audioCtx.createGain(); x.type = "sine"; x.frequency.value = 660; g.gain.setValueAtTime(0.0001, audioCtx.currentTime + o); g.gain.exponentialRampToValueAtTime(0.12, audioCtx.currentTime + o + 0.04); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + o + 0.3); x.connect(g); g.connect(audioCtx.destination); x.start(audioCtx.currentTime + o); x.stop(audioCtx.currentTime + o + 0.32); }); } catch {}
+  }
+}
+$("#rStart").addEventListener("click", async () => {
+  if (running) { stopTimer(); left = Math.max(0, Math.ceil((endAt - Date.now()) / 1000)); paint(); return; }
+  if (left === 0) left = dur;
+  try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume?.(); } catch {}
+  try { lock = await navigator.wakeLock?.request("screen"); } catch {}
+  running = true; endAt = Date.now() + left * 1000; paint();
+  tick = setInterval(() => { left = Math.max(0, Math.ceil((endAt - Date.now()) / 1000)); paint(); if (left <= 0) finish(); }, 250);
+});
+$("#rReset").addEventListener("click", () => { stopTimer(); left = dur; paint(); });
+document.addEventListener("visibilitychange", () => { if (running && document.visibilityState === "visible" && !lock) navigator.wakeLock?.request("screen").then((l) => (lock = l)).catch(() => {}); });
+async function showVerse(advance) {
+  const long = dur >= 120, pool = long ? LONG : SHORT, k = long ? "l" : "s";
+  if (advance) vIdx[k] = (vIdx[k] + 1) % pool.length;
+  const [s, from, to] = pool[vIdx[k] % pool.length], box = $("#verse");
+  box.innerHTML = `<p class="muted small" style="text-align:center;margin:0">جاري تحميل آية…</p>`;
+  try {
+    const d = await getSurah(s);
+    const txt = [], taf = [];
+    for (let a = from; a <= to; a++) { if (!d.text[a - 1]) throw new Error("ayah"); txt.push(`${d.text[a - 1]} ﴿${ar(a)}﴾`); taf.push(d.tafsir[a - 1] || ""); }
+    box.innerHTML = `<p class="muted small" style="text-align:center;margin:0 0 6px">سورة ${esc(d.name)} — ${from === to ? "الآية " + ar(from) : `الآيات ${ar(from)}–${ar(to)}`}</p><p class="quran" dir="rtl">${esc(txt.join(" "))}</p><p class="tafsir">${esc(taf.join(" "))}</p>`;
+  } catch { box.innerHTML = `<p class="muted small" style="text-align:center;margin:0">ما قدرنا نحمّل الآية (تأكد من النت). اضغط "آية ثانية" للمحاولة.</p>`; }
+}
+$("#rNext").addEventListener("click", () => showVerse(true));
+drawDurs(); paint(); showVerse();
+
+// ---------- المسبحة ----------
+const ADH = [["subhan-wbhamdih", "سبحان الله وبحمده"], ["istighfar", "أستغفر الله"], ["hawqala", "لا حول ولا قوة إلا بالله"], ["subhanallah", "سبحان الله"], ["alhamdulillah", "الحمد لله"], ["allahu-akbar", "الله أكبر"], ["la-ilaha", "لا إله إلا الله"], ["subhan-azim", "سبحان الله العظيم"]];
+const TG = [33, 100, 0];
+const T = Object.assign({ id: ADH[0][0], counts: {}, rounds: {}, target: 33, haptic: true }, store.get("ba-tasbeeh-v1", {}));
+if (!ADH.some((a) => a[0] === T.id)) T.id = ADH[0][0]; if (!TG.includes(T.target)) T.target = 33;
+function drawTas() {
+  const cur = ADH.find((a) => a[0] === T.id), c = T.counts[T.id] || 0;
+  $("#adhk").innerHTML = ADH.map(([id, t]) => `<button class="chip" type="button" data-a="${id}" aria-pressed="${id === T.id}">${t}</button>`).join("");
+  $("#dtxt").textContent = cur[1]; $("#cnt").textContent = ar(c);
+  $("#tgt").textContent = T.target ? `من ${ar(T.target)}` : "بدون حد";
+  $("#tgts").innerHTML = TG.map((t) => `<button class="chip" type="button" data-g="${t}" aria-pressed="${t === T.target}">${t ? ar(t) : "حرّ"}</button>`).join("");
+  const r = T.rounds[T.id] || 0; $("#rounds").textContent = r ? `دورات مكتملة: ${ar(r)}` : "";
+}
+$("#adhk").addEventListener("click", (e) => { const b = e.target.closest("[data-a]"); if (b) { T.id = b.dataset.a; store.set("ba-tasbeeh-v1", T); drawTas(); } });
+$("#tgts").addEventListener("click", (e) => { const b = e.target.closest("[data-g]"); if (b) { T.target = +b.dataset.g; store.set("ba-tasbeeh-v1", T); drawTas(); } });
+$("#tap").addEventListener("click", () => {
+  if (navigator.vibrate && T.haptic) navigator.vibrate(30);
+  let c = (T.counts[T.id] || 0) + 1;
+  if (T.target && c >= T.target) { T.rounds[T.id] = (T.rounds[T.id] || 0) + 1; c = 0; if (navigator.vibrate && T.haptic) navigator.vibrate([120, 80, 120]); }
+  T.counts[T.id] = Math.min(c, 1000000); store.set("ba-tasbeeh-v1", T); drawTas();
+});
+$("#tReset").addEventListener("click", () => { T.counts[T.id] = 0; T.rounds[T.id] = 0; store.set("ba-tasbeeh-v1", T); drawTas(); });
+drawTas();
+
+// ---------- الصلاة والقبلة ----------
+const AMMAN = { lat: 31.9539, lng: 35.9106, label: "عمّان" }, KAABA = { lat: 21.4225, lng: 39.8262 };
+const PR = [["Fajr", "الفجر", 1], ["Sunrise", "الشروق", 0], ["Dhuhr", "الظهر", 1], ["Asr", "العصر", 1], ["Maghrib", "المغرب", 1], ["Isha", "العشاء", 1]];
+let loc = store.get("ba-prayer-loc", AMMAN), pData = null, pInit = false, pTick = null;
+const hm = (t) => { const [h, m] = t.slice(0, 5).split(":").map(Number); return h * 60 + m; };
+const to12 = (t) => { const [h, m] = t.slice(0, 5).split(":").map(Number); return `${ar(h % 12 === 0 ? 12 : h % 12)}:${ar(m).padStart(2, "٠")} ${h >= 12 ? "م" : "ص"}`; };
+function qibla(lat, lng) { const r = Math.PI / 180, d = (KAABA.lng - lng) * r, y = Math.sin(d) * Math.cos(KAABA.lat * r), x = Math.cos(lat * r) * Math.sin(KAABA.lat * r) - Math.sin(lat * r) * Math.cos(KAABA.lat * r) * Math.cos(d); return ((Math.atan2(y, x) / r) + 360) % 360; }
+const nowIn = (tz) => { try { const p = new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(new Date()); return (Number(p.find((x) => x.type === "hour").value) % 24) * 60 + Number(p.find((x) => x.type === "minute").value); } catch { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); } };
+async function loadPrayer() {
+  const d = new Date(), day = `${String(d.getDate()).padStart(2, "0")}-${String(d.getMonth() + 1).padStart(2, "0")}-${d.getFullYear()}`, key = `${loc.lat.toFixed(3)},${loc.lng.toFixed(3)},${day}`;
+  $("#locL").textContent = loc.label;
+  const cached = store.get("ba-prayer-day", null);
+  if (cached && cached.key === key) pData = cached; else {
+    $("#times").innerHTML = `<p class="muted small">جاري التحميل…</p>`;
+    try {
+      const r = await fetch(`https://api.aladhan.com/v1/timings/${day}?latitude=${loc.lat}&longitude=${loc.lng}&method=23`); if (!r.ok) throw new Error();
+      const j = (await r.json()).data; pData = { key, timings: j.timings, hijri: `${j.date.hijri.day} ${j.date.hijri.month.ar} ${j.date.hijri.year} هـ`, tz: j.meta.timezone }; store.set("ba-prayer-day", pData);
+    } catch { pData = null; $("#times").innerHTML = `<p class="muted small">ما قدرنا نحمّل المواقيت (تأكد من النت).</p>`; }
+  }
+  const q = qibla(loc.lat, loc.lng); $("#qinfo").textContent = `القبلة ${ar(Math.round(q))}° من الشمال (باتجاه عقارب الساعة).`; $("#qinfo").dataset.q = q;
+  drawPrayer();
+}
+function drawPrayer() {
+  if (!pData) return;
+  $("#hijri").textContent = pData.hijri;
+  const now = nowIn(pData.tz), list = PR.map(([k, n, p]) => ({ k, n, p, t: pData.timings[k], m: hm(pData.timings[k]) }));
+  const nx = list.find((x) => x.p && x.m > now), nxi = nx ? list.indexOf(nx) : 0, nxt = nx || list[0];
+  const diff = nx ? nx.m - now : 24 * 60 - now + list[0].m;
+  $("#times").innerHTML = list.map((x, i) => `<div class="ptime ${i === nxi && x.p ? "next" : ""}"><span>${x.n}${i === nxi && x.p ? ` <span class="muted small">— بعد ${diff >= 60 ? ar(Math.floor(diff / 60)) + " س و" : ""}${ar(diff % 60)} د</span>` : ""}</span><b>${to12(x.t)}</b></div>`).join("");
+}
+function initPray() { if (!pInit) { pInit = true; loadPrayer(); pTick = setInterval(drawPrayer, 30000); } }
+$("#geo").addEventListener("click", () => {
+  if (!navigator.geolocation) { $("#cmsg").textContent = "جوالك ما بيدعم تحديد الموقع."; return; }
+  $("#geo").disabled = true;
+  navigator.geolocation.getCurrentPosition((p) => { loc = { lat: p.coords.latitude, lng: p.coords.longitude, label: "موقعك الحالي" }; store.set("ba-prayer-loc", loc); $("#geo").disabled = false; loadPrayer(); },
+    () => { $("#geo").disabled = false; $("#cmsg").textContent = "ما قدرنا نحدّد موقعك. بنستخدم عمّان."; }, { timeout: 10000, maximumAge: 600000 });
+});
+let cmpOn = false;
+function onOri(e) {
+  const h = e.webkitCompassHeading != null ? e.webkitCompassHeading : e.absolute && e.alpha != null ? 360 - e.alpha : null; if (h == null) return;
+  $("#arrow").style.transform = `rotate(${(Number($("#qinfo").dataset.q) - h + 360) % 360}deg)`;
+}
+$("#cmp").addEventListener("click", async () => {
+  if (cmpOn) return;
+  try {
+    if (typeof DeviceOrientationEvent !== "undefined" && DeviceOrientationEvent.requestPermission) { if ((await DeviceOrientationEvent.requestPermission()) !== "granted") { $("#cmsg").textContent = "ما انعطت صلاحية البوصلة."; return; } }
+    addEventListener("deviceorientationabsolute", onOri, true); addEventListener("deviceorientation", onOri, true);
+    cmpOn = true; $("#compass").hidden = false; $("#cmsg").textContent = "وجّه الجوال أفقياً: السهم بيشاور على القبلة. ابعد عن المعادن والمغناطيس."; $("#arrow").style.transform = `rotate(${$("#qinfo").dataset.q}deg)`;
+  } catch { $("#cmsg").textContent = "البوصلة مش متوفرة على هالجهاز."; }
+});
+
+// ---------- استماع ----------
+const REC = [["ar.alafasy", "مشاري العفاسي"], ["ar.husary", "محمود الحصري"], ["ar.abdulsamad", "عبدالباسط عبدالصمد"], ["ar.abdurrahmaansudais", "عبدالرحمن السديس"], ["ar.saoodshuraym", "سعود الشريم"], ["ar.mahermuaiqly", "ماهر المعيقلي"], ["ar.hudhaify", "علي الحذيفي"], ["ar.muhammadayyoub", "محمد أيوب"], ["ar.muhammadjibreel", "محمد جبريل"], ["ar.abdullahbasfar", "عبدالله بصفر"], ["ar.shaatree", "أبو بكر الشاطري"], ["ar.ahmedajamy", "أحمد العجمي"], ["ar.hanirifai", "هاني الرفاعي"], ["ar.aymanswoaid", "أيمن سويد"]];
+const LT = [15, 30, 45, 0];
+const L = Object.assign({ surah: 18, reciter: REC[0][0], timer: 30 }, store.get("ba-listen-v1", {}));
+if (!REC.some((r) => r[0] === L.reciter)) L.reciter = REC[0][0]; if (!LT.includes(L.timer)) L.timer = 30; if (!(L.surah >= 1 && L.surah <= 114)) L.surah = 18;
+let lInit = false, lList = [], lIdx = 0, lPlaying = false, lEnd = 0, lSurahNames = [], lPre = null;
+const aud = $("#aud");
+function lSave() { store.set("ba-listen-v1", L); }
+function drawListen() {
+  $("#lsurah").innerHTML = (lSurahNames.length ? lSurahNames : Array.from({ length: 114 }, (_, i) => `سورة ${i + 1}`)).map((n, i) => `<option value="${i + 1}" ${i + 1 === L.surah ? "selected" : ""}>${ar(i + 1)}. ${esc(n)}</option>`).join("");
+  $("#lrec").innerHTML = REC.map(([id, n]) => `<option value="${id}" ${id === L.reciter ? "selected" : ""}>${n}</option>`).join("");
+  $("#ltim").innerHTML = LT.map((t) => `<button class="chip" type="button" data-t="${t}" aria-pressed="${t === L.timer}">${t ? ar(t) + " دقيقة" : "بدون توقف"}</button>`).join("");
+}
+async function fetchList(s, r) { const res = await fetch(`${API}/surah/${s}/${r}`); if (!res.ok) throw new Error(); const l = (await res.json()).data.ayahs; if (!l || !l.length) throw new Error(); return l; }
+function prefetch() { const key = `${L.surah}|${L.reciter}`; fetchList(L.surah, L.reciter).then((l) => { lPre = { key, l }; }).catch(() => { lPre = null; }); }
+function initListen() {
+  if (lInit) return; lInit = true; drawListen();
+  fetch(`${API}/surah`).then((r) => r.json()).then((j) => { if (Array.isArray(j.data) && j.data.length === 114) { lSurahNames = j.data.map((s) => s.name); drawListen(); } }).catch(() => {});
+  prefetch();
+}
+$("#lsurah").addEventListener("change", (e) => { L.surah = +e.target.value; lSave(); lStop(); prefetch(); });
+$("#lrec").addEventListener("change", (e) => { L.reciter = e.target.value; lSave(); lStop(); prefetch(); });
+$("#ltim").addEventListener("click", (e) => { const b = e.target.closest("[data-t]"); if (b) { L.timer = +b.dataset.t; lSave(); drawListen(); } });
+function lShow() { const a = lList[lIdx]; $("#lcur").innerHTML = a ? `<p class="muted small" style="margin:0">آية ${ar(a.numberInSurah)} من ${ar(lList.length)}</p><p class="quran" dir="rtl">${esc(noBasmala(a.text, L.surah, a.numberInSurah))}</p>` : `<p class="muted small" style="margin:0">اضغط تشغيل</p>`; $("#lplay").textContent = lPlaying ? "⏸ إيقاف" : "▶ تشغيل"; }
+function lPlayAt(i) { if (i < 0 || i >= lList.length) { lStop(); return; } lIdx = i; aud.src = lList[i].audio; aud.play().catch(() => { $("#lmsg").textContent = "ما انشغّل الصوت. جرّب مرة ثانية."; lPlaying = false; lShow(); }); lPlaying = true; lShow(); }
+function lStop() { aud.pause(); lPlaying = false; lShow(); }
+aud.addEventListener("ended", () => { if (L.timer && Date.now() >= lEnd) { lPlaying = false; $("#lmsg").textContent = "خلصت مدة التمرين. تقبّل الله."; lShow(); return; } lPlayAt(lIdx + 1); });
+$("#lplay").addEventListener("click", async () => {
+  $("#lmsg").textContent = "";
+  if (lPlaying) { lStop(); return; }
+  if (lList.length && aud.src && lList[lIdx] && lList._k === `${L.surah}|${L.reciter}`) { lEnd = Date.now() + L.timer * 60000; aud.play().catch(() => {}); lPlaying = true; lShow(); return; }
+  const key = `${L.surah}|${L.reciter}`;
+  try {
+    const l = lPre && lPre.key === key ? lPre.l : await fetchList(L.surah, L.reciter);
+    lList = l; lList._k = key; lEnd = Date.now() + L.timer * 60000; lPlayAt(0);
+  } catch { $("#lmsg").textContent = "ما قدرنا نحمّل التلاوة (تأكد من النت)."; }
+});
+$("#lnext").addEventListener("click", () => { if (lList.length) lPlayAt(Math.min(lIdx + 1, lList.length - 1)); });
+$("#lprev").addEventListener("click", () => { if (lList.length) lPlayAt(Math.max(lIdx - 1, 0)); });
+</script>
+</body>
+</html>
