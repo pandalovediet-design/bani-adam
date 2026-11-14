@@ -35,3 +35,8 @@
 ملفات مشتركة: `css/sub.css` و`js/shared.js` (المجسم، مناطق العضلات، قراءة روابط الفيديو). صور المجسم في `body/`.
 
 شكل عنصر تمرين (`data/nogym.json` داخل `workouts`): `{ "id", "title", "focus", "equipment", "level", "sets", "video", "steps": [], "mistake" }` حيث `focus` عضلة (chest, back, ...) أو `full_body` أو `cardio`، و`equipment` واحد من none, bands, dumbbell, chair, mat, pullup_bar, other.
+
+
+## تحديث: اللوح والأكل
+- تبويب «اليوم»: لوح على طريقة ترلو (عمودين: لسا / تمّت)، الضغط على البطاقة بنقلها.
+- «من غير حرمان» انضمّت لتبويب «الأكل» (أكل اليوم / الحاسبة / الوصفات) عبر `js/nutri.js`. صفحة `/nutrition` صارت تحويل لـ `/#food`. بيانات الوصفات ما زالت `data/recipes.json`.
