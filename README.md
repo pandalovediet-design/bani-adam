@@ -58,6 +58,6 @@
   "summary": "...", "steps": ["..."], "tips": ["..."], "mistakes": ["..."], "alternatives": ["glute-bridge"] }
 ```
 - `muscle`: chest, shoulders, biceps, triceps, forearms, abs, back, glutes, quads, hamstrings, calves، أو full_body / cardio.
-- `equipment` (أكثر من أداة ممكن): none, bands, dumbbell, kettlebell, chair, mat, pullup_bar, jump_rope, backpack, towel, wall, stairs, other.
+- `equipment` (أكثر من أداة ممكن): none, bands, dumbbell, kettlebell, chair, mat, pullup_bar, jump_rope, backpack, bottle, towel, wall, stairs, other.
 - `clip`: مقطع قصير مكرّر (mp4 أو webm أو gif/webp) بمجلد `media/ex/` وحجمه صغير (أقل من ~١ ميغا). `video`: رابط يوتيوب/إنستغرام/تيك توك للشرح الكامل.
 - التصوير بتكون إنت صاحبه، وما بننسخ صور أو فيديوهات من تطبيقات ثانية.
