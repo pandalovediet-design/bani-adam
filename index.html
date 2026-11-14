@@ -461,12 +461,12 @@ details.mini-d summary::-webkit-details-marker { display: none; }
 <div class="restbar" id="restBar" hidden dir="rtl"><div><span>راحة</span><b class="tab-num" id="rbTime" dir="ltr">1:30</b><button type="button" id="rbAdd">+15ث</button><button type="button" id="rbSkip">تخطّي</button></div></div>
 <button type="button" class="pfab" id="pfab" aria-label="افتح مساعد بني آدم" hidden></button>
 <section class="psheet" id="psheet" hidden dir="rtl" lang="ar" role="dialog" aria-label="مساعد بني آدم">
-  <div class="phead"><span class="panda" id="pbig"></span><div><b>بندا</b><span class="small muted" id="pstat">مساعد بني آدم</span></div><button type="button" class="mini x" id="pclose" aria-label="سكّر">×</button></div>
+  <div class="phead"><span class="panda" id="pbig"></span><div><b>باندا</b><span class="small muted" id="pstat">مساعد بني آدم</span></div><button type="button" class="mini x" id="pclose" aria-label="سكّر">×</button></div>
   <div class="pmsgs" id="pmsgs" aria-live="polite"></div>
   <div class="pform">
     <div class="chips" id="pchips" style="justify-content:flex-start"></div>
     <label class="row small" style="gap:8px;flex-wrap:nowrap"><input type="checkbox" id="pctx"> خلّيه يعرف هدفي وإنجاز أسبوعي (بدون اسمك)</label>
-    <div class="row"><input type="text" id="pin" maxlength="500" placeholder="اسأل بندا…" autocomplete="off" aria-label="سؤالك"><button type="button" class="btn" id="psend" style="padding:11px 18px">إرسال</button></div>
+    <div class="row"><input type="text" id="pin" maxlength="500" placeholder="اسأل باندا…" autocomplete="off" aria-label="سؤالك"><button type="button" class="btn" id="psend" style="padding:11px 18px">إرسال</button></div>
     <p class="pnote">سؤالك بيروح لجيميناي (جوجل) عشان يجاوب. اقتراحات بس، مش بديل عن الدكتور.</p>
   </div>
 </section>
@@ -1140,7 +1140,7 @@ details.mini-d summary::-webkit-details-marker { display: none; }
   const camLinks = () => document.querySelectorAll("[data-cam]").forEach((el) => { el.href = (inClaude ? SITE + "/" : "") + el.dataset.cam; });
   camLinks();
 
-  // ---------- بندا: pixel panda assistant ----------
+  // ---------- باندا: pixel panda assistant ----------
   const PAN = [
     "..KK........KK..", ".KKKK......KKKK.", ".KKKWWWWWWWWKKK.", "..WWWWWWWWWWWW..",
     ".WWKKKWWWWKKKWW.", ".WWKWKWWWWKWKWW.", ".WWWWWWKKWWWWWW.", "..WWWWKWWKWWWW..",
@@ -1206,7 +1206,7 @@ details.mini-d summary::-webkit-details-marker { display: none; }
   const PQ = ["رتّب لي يومي", "ليش ما بلتزم بعاداتي؟", "خطة تمرين لأسبوع", "شو آكل اليوم؟"];
   function pOpen() {
     $("psheet").hidden = false; $("pfab").hidden = true;
-    if (!$("pmsgs").children.length) { pBubble("bot", "أهلين" + (NAME ? " " + NAME : "") + "! أنا بندا. اسألني عن عاداتك أو تمرينك أو أكلك، وبرتّبلك الخطوة الجاية. اليوم السيئ عادي، بنرجع."); }
+    if (!$("pmsgs").children.length) { pBubble("bot", "أهلين" + (NAME ? " " + NAME : "") + "! أنا باندا. اسألني عن عاداتك أو تمرينك أو أكلك، وبرتّبلك الخطوة الجاية. اليوم السيئ عادي، بنرجع."); }
     $("pchips").hidden = chat.length > 0;
     $("pchips").innerHTML = PQ.map((q) => `<button type="button" class="chip" data-pq="${esc(q)}">${esc(q)}</button>`).join("");
     try { $("pctx").checked = localStorage.getItem("ba-ai-ctx") === "1"; } catch {}
@@ -1294,7 +1294,7 @@ details.mini-d summary::-webkit-details-marker { display: none; }
     let h = s > 0 ? `<div class="steps" aria-label="خطوة ${s} من 5">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= s ? "on" : ""}"></i>`).join("")}</div>` : "";
     if (s === 0) {
       h += `<div class="brand"><span class="wordmark"><small>مشروع</small>بني آدم</span></div>
-        <div class="pwelcome"><span class="panda">${pandaSvg("talk", 96)}</span><span class="small muted">أنا بندا، رفيقك</span></div>
+        <div class="pwelcome"><span class="panda">${pandaSvg("talk", 96)}</span><span class="small muted">أنا باندا، رفيقك</span></div>
         <h1>ابدأ نسختك <em>الجديدة</em></h1>
         <p class="lead">رفيق يومي لصحتك وعاداتك ودينك. بتسجّل يومك بدقيقة، وهو بيحسب ويرتّب ويطوّر تمرينك معك.</p>
         <ul class="feat">
