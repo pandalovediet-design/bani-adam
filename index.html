@@ -179,6 +179,31 @@ details.mini-d summary::-webkit-details-marker { display: none; }
 .restbar > div { pointer-events: auto; display: flex; align-items: center; gap: 10px; background: var(--fg); color: var(--bg); border-radius: 99px; padding: 6px 8px 6px 16px; box-shadow: 0 6px 20px rgb(0 0 0 / .25); }
 .restbar b { font-family: var(--display); font-size: 1.3rem; min-width: 3.2ch; text-align: center; }
 .restbar button { border: 0; border-radius: 99px; padding: 6px 12px; background: color-mix(in srgb, var(--bg) 18%, var(--fg)); color: var(--bg); font-size: .82rem; }
+/* panda assistant */
+.panda { display: inline-block; line-height: 0; position: relative; image-rendering: pixelated; }
+.panda svg { display: block; shape-rendering: crispEdges; }
+.panda.cheer { animation: pjump .5s ease-out 3; }
+@keyframes pjump { 0%,100% { transform: translateY(0) } 40% { transform: translateY(-14%) } }
+.panda.sleep::after { content: "z z"; position: absolute; top: -4px; inset-inline-end: -10px; font: 700 11px/1 var(--display); color: var(--accent); letter-spacing: 2px; line-height: 1; }
+.pfab { position: fixed; z-index: 6; left: max(12px, env(safe-area-inset-left, 0px)); bottom: calc(76px + env(safe-area-inset-bottom, 0px)); width: 58px; height: 58px; border-radius: 50%; border: 2px solid var(--accent); background: var(--surface); display: grid; place-items: center; padding: 0; box-shadow: 0 6px 18px rgb(0 0 0 / .4); }
+.psheet { position: fixed; z-index: 8; left: 0; right: 0; bottom: 0; max-height: min(78vh, 640px); height: 78vh; background: var(--bg); border-top: 2px solid var(--accent); border-radius: 22px 22px 0 0; display: grid; grid-template-rows: auto 1fr auto; box-shadow: 0 -10px 40px rgb(0 0 0 / .5); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.psheet > * { max-width: 560px; width: 100%; margin-inline: auto; padding-inline: max(14px, env(safe-area-inset-left, 0px)); min-width: 0; }
+.phead { display: flex; align-items: center; gap: 12px; padding-top: 12px; padding-bottom: 8px; }
+.phead b { font-family: var(--display); font-size: 1.1rem; display: block; }
+.phead .x { margin-inline-start: auto; }
+.pmsgs { overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 10px; padding-block: 6px; }
+.bub { max-width: 88%; padding: 10px 14px; border-radius: 16px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .95rem; }
+.bub.me { align-self: flex-start; background: var(--accent); color: var(--accent-ink); border-end-start-radius: 4px; font-weight: 500; }
+.bub.bot { align-self: flex-end; background: var(--surface); border: 1px solid var(--line); border-end-end-radius: 4px; }
+.bub.err { align-self: stretch; max-width: 100%; text-align: center; color: var(--warn); font-size: .85rem; background: none; border: 0; }
+.dots i { display: inline-block; width: 6px; height: 6px; margin: 0 2px; border-radius: 1px; background: var(--muted); animation: pdot 1s infinite; }
+.dots i:nth-child(2) { animation-delay: .15s } .dots i:nth-child(3) { animation-delay: .3s }
+@keyframes pdot { 0%,60%,100% { opacity: .3 } 30% { opacity: 1 } }
+.pform { padding-top: 8px; padding-bottom: 12px; display: grid; gap: 8px; border-top: 1px solid var(--line); background: var(--bg); }
+.pform .row { flex-wrap: nowrap; }
+.pform input[type=text] { flex: 1; }
+.pnote { font-size: .74rem; color: var(--muted); margin: 0; }
+.pwelcome { display: grid; justify-items: center; gap: 4px; padding-top: 4px; }
 /* settings + first-run setup */
 .gear { background: var(--raise); border: 1px solid var(--line); border-radius: 12px; width: 38px; height: 38px; display: grid; place-items: center; color: var(--muted); padding: 0; }
 .gear svg { width: 20px; height: 20px; }
@@ -434,6 +459,17 @@ details.mini-d summary::-webkit-details-marker { display: none; }
   <button role="tab" id="t-prog" data-v="prog" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>التقدّم</button>
 </nav>
 <div class="restbar" id="restBar" hidden dir="rtl"><div><span>راحة</span><b class="tab-num" id="rbTime" dir="ltr">1:30</b><button type="button" id="rbAdd">+15ث</button><button type="button" id="rbSkip">تخطّي</button></div></div>
+<button type="button" class="pfab" id="pfab" aria-label="افتح مساعد بني آدم" hidden></button>
+<section class="psheet" id="psheet" hidden dir="rtl" lang="ar" role="dialog" aria-label="مساعد بني آدم">
+  <div class="phead"><span class="panda" id="pbig"></span><div><b>بندا</b><span class="small muted" id="pstat">مساعد بني آدم</span></div><button type="button" class="mini x" id="pclose" aria-label="سكّر">×</button></div>
+  <div class="pmsgs" id="pmsgs" aria-live="polite"></div>
+  <div class="pform">
+    <div class="chips" id="pchips" style="justify-content:flex-start"></div>
+    <label class="row small" style="gap:8px;flex-wrap:nowrap"><input type="checkbox" id="pctx"> خلّيه يعرف هدفي وإنجاز أسبوعي (بدون اسمك)</label>
+    <div class="row"><input type="text" id="pin" maxlength="500" placeholder="اسأل بندا…" autocomplete="off" aria-label="سؤالك"><button type="button" class="btn" id="psend" style="padding:11px 18px">إرسال</button></div>
+    <p class="pnote">سؤالك بيروح لجيميناي (جوجل) عشان يجاوب. اقتراحات بس، مش بديل عن الدكتور.</p>
+  </div>
+</section>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <section class="setup" id="setup" hidden dir="rtl" lang="ar" aria-label="البداية"><div class="in" id="setupIn"></div></section>
 
@@ -887,6 +923,7 @@ details.mini-d summary::-webkit-details-marker { display: none; }
     const cm = $("cardioMin") ? parseInt($("cardioMin").value, 10) : 0;
     put(dayId(d), { ...day, session: type, seqPos: pos, sessionDone: true, ...(cm > 0 ? { cardioMin: cm } : {}), checks: { ...(day.checks || {}), train: true } });
     stopRest(); toast(type === "rest" ? "يوم راحة، الجسم بيبني" : "الله يعطيك العافية. سجلتها بالشيك اليومي");
+    if (type !== "rest") { const f = $("pfabp"); setPanda(f, "cheer"); setTimeout(() => setPanda(f, "idle"), 1800); }
   });
   $("wSave").addEventListener("click", () => {
     const w = parseFloat($("wIn").value), waist = parseFloat($("waistIn").value);
@@ -1103,6 +1140,88 @@ details.mini-d summary::-webkit-details-marker { display: none; }
   const camLinks = () => document.querySelectorAll("[data-cam]").forEach((el) => { el.href = (inClaude ? SITE + "/" : "") + el.dataset.cam; });
   camLinks();
 
+  // ---------- بندا: pixel panda assistant ----------
+  const PAN = [
+    "..KK........KK..", ".KKKK......KKKK.", ".KKKWWWWWWWWKKK.", "..WWWWWWWWWWWW..",
+    ".WWKKKWWWWKKKWW.", ".WWKWKWWWWKWKWW.", ".WWWWWWKKWWWWWW.", "..WWWWKWWKWWWW..",
+    "...WWWWWWWWWW...", "..KKOOOOOOOOKK..", ".KKKWWWWWWWWKKK.", ".KKKWWWWWWWWKKK.",
+    "..KKWWWWWWWWKK..", "...KWWWWWWWWK...", "...KKKK..KKKK...", "...KKKK..KKKK...",
+  ];
+  const PCOL = { K: "#0a0f17", W: "#f8f4ec", O: "#f28a2e" };
+  const PSTATE = {
+    blink: { 5: ".WWKKKWWWWKKKWW." },
+    sleep: { 5: ".WWKKKWWWWKKKWW." },
+    think: { 4: ".WWKWKWWWWKWKWW.", 5: ".WWKKKWWWWKKKWW." },
+    talk: { 7: "..WWWWWKKWWWWW.." },
+    cheer: { 7: "..WWWWWKKWWWWW..", 0: "O.KK........KK.O", 1: ".KKKK......KKKK." },
+  };
+  function pandaSvg(state, px) {
+    const rows = PAN.map((r, i) => (PSTATE[state] && PSTATE[state][i]) || r);
+    let s = "";
+    rows.forEach((r, y) => { for (let x = 0; x < 16; x++) { const c = PCOL[r[x]]; if (c) s += `<rect x="${x}" y="${y}" width="1" height="1" fill="${c}"/>`; } });
+    return `<svg viewBox="0 0 16 16" width="${px}" height="${px}" aria-hidden="true">${s}</svg>`;
+  }
+  const setPanda = (el, state, px) => { if (!el) return; el.dataset.state = state; el.className = "panda" + (state === "sleep" || state === "cheer" ? " " + state : ""); el.innerHTML = pandaSvg(state, px || +el.dataset.px || 48); };
+  const PAI = "https://iftvlczwvyzkawckipzq.supabase.co/functions/v1/ba-assistant";
+  const chat = []; // {role: "user"|"model", text}
+  let pBusy = false, pBase = "idle";
+  setPanda($("pbig"), "idle", 52);
+  $("pfab").innerHTML = `<span class="panda" id="pfabp" data-px="42"></span>`; setPanda($("pfabp"), "idle", 42);
+  setInterval(() => { // blink now and then
+    for (const el of [$("pfabp"), $("pbig")]) if (el && (el.dataset.state || "idle") === "idle") { setPanda(el, "blink"); setTimeout(() => { if (el.dataset.state === "blink") setPanda(el, "idle"); }, 140); }
+  }, 4200);
+  const pBubble = (kind, text) => { const d = document.createElement("div"); d.className = "bub " + kind; d.textContent = text; $("pmsgs").appendChild(d); $("pmsgs").scrollTop = 1e9; return d; };
+  const tidy = (t) => t.replace(/\*\*(.+?)\*\*/g, "$1").replace(/^\s*[*-]\s+/gm, "• ").replace(/^#+\s*/gm, "").trim();
+  function pContext() {
+    if (!$("pctx").checked) return "";
+    const n = dayDiff(START, today()) + 1, wk = [];
+    for (let i = 6; i >= 0; i--) { const dd = docs.get(dayId(addDays(today(), -i))); if (dd && !dd._del) wk.push(score(dd)); }
+    const ws = weighs(), last = ws[ws.length - 1];
+    return `الهدف: ${DIR < 0 ? "نزول وزن" : DIR > 0 ? "زيادة وزن" : "ثبات"} من ${BASE.weight} إلى ${GOAL} كغ، آخر وزن ${last.weight}. اليوم ${n > 0 ? n : 0} من ${TOTAL}. إنجاز اليوم ${score(getDay(today()))} من ${N}. إنجاز آخر أيام مسجّلة (من ${N}): ${wk.join("، ") || "ما في"}. بنود الشيك: ${CHECKS.map((c) => c.t).join("، ")}.`;
+  }
+  async function pAsk(q) {
+    q = (q || "").trim(); if (!q || pBusy) return;
+    pBusy = true; $("psend").disabled = true; $("pin").value = "";
+    $("pchips").hidden = true;
+    pBubble("me", q); chat.push({ role: "user", text: q.slice(0, 500) });
+    const wait = pBubble("bot dots", ""); wait.innerHTML = "<i></i><i></i><i></i>";
+    setPanda($("pbig"), "think"); $("pstat").textContent = "عم بفكّر…";
+    let out = "", err = "";
+    for (let tries = 0; tries < 3 && !out; tries++) {
+      try {
+        const res = await fetch(PAI, { method: "POST", headers: { "Content-Type": "application/json", apikey: CLOUD.key }, body: JSON.stringify({ messages: chat.slice(-10), context: pContext() }) });
+        const j = await res.json().catch(() => ({}));
+        if (res.ok && j.text) out = tidy(j.text);
+        else if (j.error === "limit") { err = "خلّصت أسئلة اليوم. ارجع بكرة، وبضلني هون."; break; }
+        else if (j.error === "origin" || j.error === "not_configured") { err = "المساعد مش شغّال هون هلأ."; break; }
+        else if (j.status === 429 || j.status === 503) { err = "جوجل مزدحم هلأ، جرّب بعد شوي."; await new Promise((r) => setTimeout(r, 2500)); }
+        else err = "صار خلل، جرّب كمان مرة.";
+      } catch { err = "ما في نت أو الاتصال ضعيف."; await new Promise((r) => setTimeout(r, 1500)); }
+    }
+    wait.remove();
+    if (out) { err = ""; chat.push({ role: "model", text: out }); pBubble("bot", out); setPanda($("pbig"), "talk"); setTimeout(() => setPanda($("pbig"), "idle"), 1400); }
+    else { chat.pop(); pBubble("err", err || "صار خلل، جرّب كمان مرة."); setPanda($("pbig"), "idle"); }
+    $("pstat").textContent = "مساعد بني آدم"; pBusy = false; $("psend").disabled = false; $("pin").focus();
+  }
+  const PQ = ["رتّب لي يومي", "ليش ما بلتزم بعاداتي؟", "خطة تمرين لأسبوع", "شو آكل اليوم؟"];
+  function pOpen() {
+    $("psheet").hidden = false; $("pfab").hidden = true;
+    if (!$("pmsgs").children.length) { pBubble("bot", "أهلين" + (NAME ? " " + NAME : "") + "! أنا بندا. اسألني عن عاداتك أو تمرينك أو أكلك، وبرتّبلك الخطوة الجاية. اليوم السيئ عادي، بنرجع."); }
+    $("pchips").hidden = chat.length > 0;
+    $("pchips").innerHTML = PQ.map((q) => `<button type="button" class="chip" data-pq="${esc(q)}">${esc(q)}</button>`).join("");
+    try { $("pctx").checked = localStorage.getItem("ba-ai-ctx") === "1"; } catch {}
+    setTimeout(() => $("pin").focus(), 50);
+  }
+  const pClose = () => { $("psheet").hidden = true; $("pfab").hidden = !!($("setup") && !$("setup").hidden) || inClaude; };
+  $("pfab").addEventListener("click", pOpen);
+  $("pclose").addEventListener("click", pClose);
+  $("psend").addEventListener("click", () => pAsk($("pin").value));
+  $("pin").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); pAsk($("pin").value); } });
+  $("pchips").addEventListener("click", (e) => { const b = e.target.closest("[data-pq]"); if (b) pAsk(b.dataset.pq); });
+  $("pctx").addEventListener("change", () => { try { localStorage.setItem("ba-ai-ctx", $("pctx").checked ? "1" : "0"); } catch {} });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("psheet").hidden) pClose(); });
+  const pandaAfterSetup = () => { $("pfab").hidden = inClaude || !$("psheet").hidden || !$("setup").hidden; };
+
   // ---------- profile: first-run setup, settings, data ----------
   const profile = () => { const p = docs.get("profile"); return p && !p._del && p.kind === "profile" ? p : null; };
   const addDays = (d, n) => iso(new Date(Date.parse(d + "T12:00:00") + n * 864e5));
@@ -1164,6 +1283,7 @@ details.mini-d summary::-webkit-details-marker { display: none; }
     if (open && $("setup").hidden) { if (!SU.edit && !p) SU.d = SU.d.age ? SU.d : blank(); drawSetup(); }
     $("setup").hidden = !open;
     document.documentElement.style.overflow = open ? "hidden" : "";
+    pandaAfterSetup();
   }
 
   function drawSetup() {
@@ -1174,6 +1294,7 @@ details.mini-d summary::-webkit-details-marker { display: none; }
     let h = s > 0 ? `<div class="steps" aria-label="خطوة ${s} من 5">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= s ? "on" : ""}"></i>`).join("")}</div>` : "";
     if (s === 0) {
       h += `<div class="brand"><span class="wordmark"><small>مشروع</small>بني آدم</span></div>
+        <div class="pwelcome"><span class="panda">${pandaSvg("talk", 96)}</span><span class="small muted">أنا بندا، رفيقك</span></div>
         <h1>ابدأ نسختك <em>الجديدة</em></h1>
         <p class="lead">رفيق يومي لصحتك وعاداتك ودينك. بتسجّل يومك بدقيقة، وهو بيحسب ويرتّب ويطوّر تمرينك معك.</p>
         <ul class="feat">
