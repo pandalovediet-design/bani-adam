@@ -85,6 +85,7 @@ h2 { font-size: 1.05rem; margin: 0; font-weight: 700; text-wrap: balance; }
 .tm.s-red { color: #f3b9b3; border-color: color-mix(in srgb, var(--bad, #e5675a) 55%, transparent); }
 .tm.s-warn { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
 .tm input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; padding: 0; border: 0; }
+#fastProt { flex-wrap: nowrap; } #fastProt .chip { padding: 6px 9px; font-size: .82rem; } .fring { position: relative; width: 168px; height: 168px; margin: 10px auto; } .fring svg { width: 100%; height: 100%; transform: rotate(-90deg); } .fring circle { fill: none; stroke-width: 9; } .fring .bg { stroke: var(--raise); } .fring .fg { stroke: var(--accent); stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset .6s; } .fring.ok .fg { stroke: var(--good); } .fin { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 2px; } .fin b { font-size: 1.9rem; font-family: var(--display); direction: ltr; }
 .hok { flex: none; width: 30px; height: 30px; border-radius: 9px; border: 2px solid var(--line); background: none; color: var(--bg); font-weight: 800; display: grid; place-items: center; padding: 0; }
 .hrow.done .hok { background: var(--good); border-color: var(--good); }
 .hrow .hx { flex: none; background: none; border: 0; color: var(--muted); font-size: 1.1rem; padding: 0 4px; }
@@ -424,6 +425,16 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
       <button type="button" role="tab" data-fs="ref" aria-selected="false">البروتين</button>
     </div>
     <div id="fs-day" style="display:grid;gap:16px">
+    <div class="card" id="fastCard">
+      <div class="row spread"><h2>الصيام المتقطع</h2><span class="tag" id="fastTag">مو شغّال</span></div>
+      <div class="chips" id="fastProt" style="justify-content:flex-start;margin-top:8px" role="group" aria-label="نظام الصيام"></div>
+      <div class="fring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" class="bg"/><circle cx="60" cy="60" r="52" class="fg" id="fastArc" pathLength="100"/></svg><div class="fin"><b class="tab-num" id="fastEl">٠٠:٠٠</b><span class="small muted" id="fastSub">اضغط ابدأ لما تبلّش</span></div></div>
+      <p class="small" id="fastNote" style="text-align:center;margin:0;min-height:1.4em"></p>
+      <div class="row" id="fastTimes" style="justify-content:center;gap:10px" hidden><label class="mini" style="display:inline-flex;gap:6px;align-items:center">بديت <input type="time" id="fastStart" style="background:none;border:0;color:var(--fg);font:inherit"></label><span class="small muted" id="fastEnd"></span></div>
+      <button class="btn full" type="button" id="fastBtn" style="width:100%;margin-top:10px">ابدأ الصيام</button>
+      <div id="fastHist" class="small muted" style="margin-top:10px"></div>
+      <p class="small muted" style="margin:10px 0 0">الصيام مش لكل الناس: إذا عندك سكري أو بتاخد أدوية، أو حامل أو مرضع، أو عندك تاريخ مع اضطرابات الأكل، استشر الدكتور أول. وفطّر فوراً إذا حسّيت بدوخة أو رجفة أو تعب شديد.</p>
+    </div>
     <div class="card">
       <h2>أكل اليوم</h2>
       <div class="bars">
@@ -1047,11 +1058,44 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     $("strip").innerHTML = s;
     $("stripNote").textContent = `أخضر = ${ar(GOAL_N)} من ${ar(N)} أو أكثر`;
   }
+  // ---------- الصيام المتقطع ----------
+  const fastDoc = () => { const d = docs.get("fast"); return d && !d._del && d.kind === "fast" ? d : { kind: "fast", hours: 16, start: null, hist: [] }; };
+  const fPad = (n) => ar(Math.floor(n)).padStart(1, "٠").replace(/^(.)$/, "٠$1");
+  const hmStr = (ms) => { const m = Math.max(0, Math.floor(ms / 60000)); return fPad(Math.floor(m / 60)) + ":" + fPad(m % 60); };
+  const clock = (t) => { const d = new Date(t); return d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0"); };
+  function renderFast() {
+    const f = fastDoc(), run = typeof f.start === "number", goal = f.hours * 3600e3, now = Date.now(), el = run ? Math.max(0, now - f.start) : 0, ok = run && el >= goal;
+    $("fastProt").innerHTML = [12, 14, 16, 18, 20].map((h) => `<button type="button" class="chip" data-fh="${h}" aria-pressed="${f.hours === h}" ${run ? "disabled" : ""}>${ar(h)}:${ar(24 - h)}</button>`).join("");
+    $("fastTag").textContent = run ? (ok ? "حققت الهدف ✓" : "صايم") : "مو شغّال";
+    document.querySelector("#fastCard .fring").classList.toggle("ok", ok);
+    $("fastArc").style.strokeDashoffset = String(100 - Math.min(100, run ? (el / goal) * 100 : 0));
+    $("fastEl").textContent = run ? hmStr(el) : hmStr(0);
+    $("fastSub").textContent = run ? (ok ? "فوق الهدف" : "من " + ar(f.hours) + " ساعة") : "اختار نظامك";
+    $("fastNote").textContent = run ? (ok ? "فيك تفطر وقت ما بدك. اشرب مي وابدأ بوجبة خفيفة." : "ضل " + hmStr(goal - el) + " وتوصل هدفك. المي والقهوة بدون سكر مسموحين.") : "";
+    $("fastTimes").hidden = !run;
+    if (run) { if (document.activeElement !== $("fastStart")) $("fastStart").value = clock(f.start); $("fastEnd").textContent = "الهدف الساعة " + clock(f.start + goal).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]); }
+    $("fastBtn").textContent = run ? "فطرت" : "ابدأ الصيام"; $("fastBtn").classList.toggle("ghost", run);
+    const h = (f.hist || []).slice(0, 5);
+    $("fastHist").innerHTML = !run && h.length ? "آخر مرات: " + h.map((x) => `<span class="tab-num">${hmStr(x.e - x.s)}${x.e - x.s >= (x.g || f.hours) * 3600e3 ? " ✓" : ""}</span>`).join(" · ") : "";
+  }
+  $("fastProt").addEventListener("click", (e) => { const b = e.target.closest("[data-fh]"); if (!b) return; const f = fastDoc(); put("fast", { ...f, hours: +b.dataset.fh }); });
+  $("fastBtn").addEventListener("click", () => {
+    const f = fastDoc();
+    if (typeof f.start === "number") { const hist = [{ s: f.start, e: Date.now(), g: f.hours }, ...(f.hist || [])].slice(0, 14); put("fast", { ...f, start: null, hist }); toast("بالهنا والشفا 🍽️"); }
+    else { put("fast", { ...f, start: Date.now() }); toast("بلّشنا الصيام"); }
+  });
+  $("fastStart").addEventListener("change", () => {
+    const f = fastDoc(), m = /^(\d{2}):(\d{2})$/.exec($("fastStart").value); if (!m || typeof f.start !== "number") return;
+    const d = new Date(); d.setHours(+m[1], +m[2], 0, 0); let t = d.getTime(); if (t > Date.now()) t -= 86400e3;
+    put("fast", { ...f, start: t });
+  });
+  setInterval(() => { const f = fastDoc(); if (typeof f.start === "number" && !$("v-food").hidden && document.activeElement !== $("fastStart")) renderFast(); }, 30000);
+
   function render() {
     syncProfile(); mergeChecks();
     // keep focus/typing safe: don't rebuild the session while a set input is focused
     const a = document.activeElement, typing = a && a.closest && a.closest("#sessBody") && a.tagName === "INPUT";
-    renderSet(); renderHeader(); renderChecks(); renderFood(); if (!typing) renderTrain(); else { renderLib(); renderStats(); } renderProgress();
+    renderSet(); renderHeader(); renderChecks(); renderFood(); renderFast(); if (!typing) renderTrain(); else { renderLib(); renderStats(); } renderProgress();
   }
 
   // ---------- events ----------
