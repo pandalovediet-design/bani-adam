@@ -235,7 +235,9 @@ requestAnimationFrame(loop);
 // ---------- save into the tracker's log (same site, same browser) ----------
 const LKEY = "bani-adam-v1";
 const pad = (n) => String(n).padStart(2, "0");
-const planDate = () => { const d = new Date(Date.now() - 6 * 3600e3); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+// the day ends at the hour the person chose at setup
+const DAY_END_H = (() => { try { const p = JSON.parse(localStorage.getItem("bani-adam-v1") || "{}").profile; return p && !p._del && Number.isFinite(p.dayEnd) ? p.dayEnd : 0; } catch { return 0; } })();
+const planDate = () => { const d = new Date(Date.now() - DAY_END_H * 3600e3); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
 function saveSet(id, r, w) {
   try {
     const all = JSON.parse(localStorage.getItem(LKEY) || "{}"), key = "day-" + planDate();

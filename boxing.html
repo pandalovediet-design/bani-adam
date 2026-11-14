@@ -420,7 +420,9 @@ $("go").addEventListener("click", async () => {
 $("again").addEventListener("click", () => { $("ovEnd").hidden = true; $("ovStart").hidden = false; g.state = "idle"; });
 
 const pad2 = (n) => String(n).padStart(2, "0");
-const planDate = () => { const d = new Date(Date.now() - 6 * 3600e3); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; };
+// the day ends at the hour the person chose at setup
+const DAY_END_H = (() => { try { const p = JSON.parse(localStorage.getItem("bani-adam-v1") || "{}").profile; return p && !p._del && Number.isFinite(p.dayEnd) ? p.dayEnd : 0; } catch { return 0; } })();
+const planDate = () => { const d = new Date(Date.now() - DAY_END_H * 3600e3); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; };
 function finish(done) {
   g.state = "over";
   const acc = g.hits + g.misses ? Math.round(g.hits / (g.hits + g.misses) * 100) : 0;
