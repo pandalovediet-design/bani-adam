@@ -1,5 +1,5 @@
 // Bani Adam service worker: pages work offline, the pose model is kept after the first download.
-const SHELL = "ba-shell-v10";
+const SHELL = "ba-shell-v11";
 const EXT = "ba-ext-v1";
 const PAGES = ["/", "/game", "/boxing", "/mimic", "/coach", "/manifest.webmanifest", "/brand/favicon.svg", "/brand/app-icon.png", "/brand/icon-192.png"];
 const EXT_HOSTS = ["cdn.jsdelivr.net", "storage.googleapis.com", "fonts.googleapis.com", "fonts.gstatic.com"];
@@ -45,6 +45,7 @@ self.addEventListener("push", (e) => {
   e.waitUntil(self.registration.showNotification(d.title || "مشروع بني آدم", {
     body: d.body || "", tag: d.tag || "ba", lang: "ar", dir: "rtl",
     icon: "/brand/icon-192.png", badge: "/brand/favicon.png", data: { url: d.url || "/" },
+    vibrate: [200, 100, 200], renotify: true, silent: false, requireInteraction: !!d.big,
   }));
 });
 self.addEventListener("notificationclick", (e) => {
