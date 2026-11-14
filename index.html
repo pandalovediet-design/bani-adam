@@ -213,6 +213,11 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); font-weight: 600; 
 .seg button { border: 0; background: none; border-radius: 10px; padding: 8px 2px; font-size: .85rem; color: var(--muted); }
 .seg button[aria-selected="true"] { background: var(--surface); color: var(--fg); font-weight: 600; box-shadow: 0 1px 2px rgb(0 0 0 / .15); }
 .sess-head { display: grid; gap: 6px; }
+.sprog { display: grid; gap: 6px; padding: 2px 4px; }
+.ex-mini { display: flex; align-items: center; gap: 10px; width: 100%; text-align: start; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 10px 12px; color: var(--fg); font: inherit; }
+.ex-mini > i { font-style: normal; flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--raise); font-size: .8rem; color: var(--muted); }
+.ex-mini > span:nth-child(2) { flex: 1; display: grid; gap: 2px; } .ex-mini small { color: var(--muted); font-size: .74rem; }
+.ex-mini.ok { opacity: .7; } .ex-mini.ok > i { background: var(--good); color: #0E1520; font-weight: 700; }
 .sess-name { font-family: var(--display); font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
 .sess-name small { font-family: var(--body); font-size: .8rem; color: var(--muted); font-weight: 400; display: block; margin-top: 4px; }
 .ex { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 14px; display: grid; gap: 10px; }
@@ -477,7 +482,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
           <div class="sess-name" id="sessName">علوي A</div>
           <span class="tag" id="sessTag">جلسة الليلة</span>
         </div>
-        <div class="chips" id="sessPick" style="justify-content:flex-start"></div>
+        <details class="mini-d"><summary>غيّر جلسة الليلة</summary><div class="chips" id="sessPick" style="justify-content:flex-start;margin-top:8px"></div></details>
         <details class="mini-d"><summary>إحماء 5 دقايق قبل ما تبلّش</summary>
           <ul class="cues" style="margin-top:8px">
             <li>دقيقتين مشي بالمكان أو ملاكمة خفيفة بالهوا</li>
@@ -956,13 +961,26 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     return html;
   }
   const extraRows = {};
+  let openEx = null;
+  function exMini(id, n) {
+    const def = EX[id], ok = n >= def.sets;
+    return `<button type="button" class="ex-mini${ok ? " ok" : ""}" data-openex="${id}"><i>${ok ? "✓" : ar(n) + "/" + ar(def.sets)}</i><span><b>${esc(def.n)}</b><small>${ar(def.sets)} × ${ar(def.lo)}–${ar(def.hi)}${def.unit ? " ث" : ""} · ${esc(def.eq)}</small></span><span class="tag">${MUSCLES[def.m]}</span></button>`;
+  }
   function renderTrain() {
     const day = getDay(today()), type = nextSession(), p = PROG[type];
     $("sessName").innerHTML = `${esc(p.n)}<small>${day.sessionDone ? "خلصت جلسة الليلة، الله يعطيك العافية" : day.picked ? "اخترتها لليلة" : "حسب الدور بالبرنامج"}</small>`;
     $("sessTag").textContent = day.sessionDone ? "✓ خلصت" : "جلسة الليلة";
     $("sessPick").innerHTML = Object.keys(PROG).map((k) => `<button type="button" class="chip" data-pick="${k}" aria-pressed="${k === type}">${esc(PROG[k].n)}</button>`).join("");
     let body = "";
-    if (p.ex) body = p.ex.map((id) => exCard(id, day, extraRows)).join("");
+    // وضع خطوة بخطوة: تمرين واحد مفتوح، والباقي سطور صغيرة
+    const doneOf = (id) => (day.sets || []).filter((s) => setId(s) === id).length;
+    const allEx = [...(p.ex || [])];
+    if (p.ex) {
+      const fin = allEx.filter((id) => doneOf(id) >= EX[id].sets).length;
+      const open = allEx.includes(openEx) ? openEx : allEx.find((id) => doneOf(id) < EX[id].sets) || null;
+      body = `<div class="sprog"><div class="row spread"><b>${fin >= allEx.length ? "خلّصت كل التمارين 💪" : `تمرين ${ar(Math.min(allEx.length, fin + 1))} من ${ar(allEx.length)}`}</b><span class="small muted">${ar(fin)} خلصوا</span></div><div class="bar"><i style="width:${(fin / allEx.length * 100).toFixed(0)}%${fin >= allEx.length ? ";background:var(--good)" : ""}"></i></div></div>`;
+      body += allEx.map((id) => id === open ? exCard(id, day, extraRows) : exMini(id, doneOf(id))).join("");
+    }
     else {
       body = `<div class="card"><p style="margin:0">${esc(p.desc)}</p>`;
       if (type === "cardio") body += `<label class="f" for="cardioMin">كم دقيقة عملت؟<input type="number" id="cardioMin" inputmode="numeric" min="1" value="${day.cardioMin || 40}"></label>`;
@@ -971,7 +989,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     }
     // other exercises logged today that aren't in this session (e.g. extras)
     const others = [...new Set([...(day.extras || []), ...(day.sets || []).map(setId)].filter((id) => id && EX[id] && (!p.ex || !p.ex.includes(id))))];
-    body += others.map((id) => exCard(id, day, extraRows)).join("");
+    body += others.map((id) => id === openEx ? exCard(id, day, extraRows) : exMini(id, doneOf(id))).join("");
     body += `<details class="mini-d card"><summary>+ تمرين إضافي من المكتبة</summary><div class="chips" style="justify-content:flex-start;margin-top:10px">${Object.keys(EX).filter((k) => hasEq(k) && !(p.ex || []).includes(k) && !others.includes(k)).map((k) => `<button type="button" class="chip" data-addex="${k}">${esc(EX[k].n)}</button>`).join("")}</div></details>`;
     $("sessBody").innerHTML = body;
     if (typeof camLinks === "function") camLinks();
@@ -1186,6 +1204,8 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     if (t.dataset.w != null) row.w = t.value; else row.r = t.value;
   });
   $("sessBody").addEventListener("click", (e) => {
+    const oe = e.target.closest("[data-openex]");
+    if (oe) { openEx = oe.dataset.openex; renderTrain(); const c = document.querySelector(`#sessBody [data-ex="${openEx}"]`); if (c) c.scrollIntoView({ block: "center", behavior: "smooth" }); return; }
     const d = today(), day = getDay(d), card = e.target.closest("[data-ex]");
     const done = e.target.closest("[data-done]"), undo = e.target.closest("[data-undo]");
     const more = e.target.closest("[data-more]"), add = e.target.closest("[data-addex]");
@@ -1195,6 +1215,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
       if (!(r > 0)) { toast("اكتب العدد"); row.querySelector("[data-r]").focus(); return; }
       if (drafts[id]) delete drafts[id][i];
       done.blur();
+      if ((day.sets || []).filter((s) => setId(s) === id).length + 1 >= EX[id].sets && openEx === id) openEx = null;
       put(dayId(d), { ...day, session: day.session || nextSession(), sets: [...(day.sets || []), { id, ex: EX[id].n, w: w > 0 ? w : 0, r, t: Date.now() }] });
       startRest(EX[id].rest);
     } else if (undo) {
