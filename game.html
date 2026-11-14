@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>(function(){try{var f=function(){var p=innerHeight>=innerWidth,s=p?Math.min(screen.width,screen.height):Math.max(screen.width,screen.height),z=1;if(matchMedia("(pointer:coarse)").matches&&s>0&&innerWidth>s*1.25)z=innerWidth/s;window.__Z=z;document.documentElement.style.zoom=z===1?"":String(z);};f();addEventListener("resize",f);}catch(e){window.__Z=1;}})();</script>
 <title>ركض بني آدم</title>
 <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/brand/app-icon.png">
@@ -226,7 +227,7 @@ function beep(f, d = 0.12, v = 0.12) {
 // ---------- world ----------
 const cv = $("world"), ctx = cv.getContext("2d");
 let W = 0, H = 0, DPR = 1;
-function resize() { DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * DPR; cv.height = H * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
+function resize() { DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth / (window.__Z || 1); H = innerHeight / (window.__Z || 1); cv.width = W * DPR; cv.height = H * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
 addEventListener("resize", resize); resize();
 
 const FAR = 60, PZ = 2; // player stands a little ahead of the screen edge
@@ -426,6 +427,5 @@ $("bCam").addEventListener("click", async () => {
 $("bKeys").addEventListener("click", () => { mode = "keys"; begin(); });
 $("bAgain").addEventListener("click", begin);
 </script>
-<script>(function(){try{if(matchMedia("(pointer:coarse)").matches&&innerWidth>760&&Math.min(screen.width,screen.height)<600){var d=document.createElement("div");d.dir="rtl";d.style.cssText="position:fixed;left:0;right:0;top:0;z-index:99;background:#f28a2e;color:#1a0f04;font:600 30px/1.45 'IBM Plex Sans Arabic',Tahoma,sans-serif;padding:20px 26px;text-align:center";d.textContent="الصفحة ظاهرة صغيرة لأنه «موقع سطح المكتب» شغّال بكروم. اضغط النقاط الثلاث فوق، وشيل الصح عنه.";document.body.appendChild(d);}}catch(e){}})();</script>
 </body>
 </html>
