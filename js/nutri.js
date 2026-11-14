@@ -7,6 +7,8 @@
   const KINDS = [["", "الكل"], ["video", "🎬 فيديو"], ["plan", "📋 خطط"]];
   const GOALS = { cut_soft: { label: "تنشيف هادي", pct: -0.12, protein: 1.9 }, cut: { label: "تنشيف", pct: -0.2, protein: 2.0 }, maintain: { label: "ثبات", pct: 0, protein: 1.6 }, bulk: { label: "تضخيم نظيف", pct: 0.1, protein: 1.8 } };
   const ACTIVITY = [[1.2, "قليل الحركة (شغل مكتب)"], [1.375, "خفيف (1-3 تمارين بالأسبوع)"], [1.55, "متوسط (3-5 تمارين)"], [1.725, "عالي (6-7 تمارين)"], [1.9, "شديد (شغل بدني + تمرين)"]];
+  const PRO_OPTS = [[0.7, "الحد الأدنى", "حماية العضل بوضع ثبات أو تمرين خفيف"], [0.85, "وسط", "تمرين منتظم وتنشيف هادي، لما الأكل يكون مضغوط"], [1.0, "مفضّل", "تنشيف مع تمرين حديد: أحسن حماية للعضل وشبع"]];
+  const PRO_DEFAULT = 1.0;
   const MEAL_SPLIT = [["فطور", 0.25], ["غداء", 0.35], ["عشاء", 0.25], ["سناك / مشروبات", 0.15]];
   const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : null; };
   const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -36,10 +38,11 @@
     const method = src === "bmi" ? "mifflin" : "katch", bmr = method === "katch" ? katch : mifflin, tdee = bmr * i.activity, g = GOALS[i.goal];
     const floor = Math.max(sex === "m" ? 1500 : 1200, bmr), raw = tdee * (1 + g.pct), clamped = g.pct < 0 && raw < floor;
     const target = Math.round((clamped ? floor : raw) / 10) * 10;
-    const protein = Math.round(Math.min(w * g.protein, (target * 0.4) / 4));
+    // البروتين على الكتلة الخالية (FFM)، مقرّبة شوي للوزن المثالي لأن FFM المقدّرة من BMI بتطلع عالية عند الوزن الزايد
+    const ideal = (sex === "m" ? 50 : 45.5) + 0.91 * (h - 152.4), baseKg = ffm > ideal ? ffm - 0.25 * (ffm - ideal) : ffm, baseLb = baseKg * 2.20462;
     const fat = Math.round(Math.max((target * 0.25) / 9, w * 0.6));
-    const carbs = Math.max(0, Math.round((target - protein * 4 - fat * 9) / 4));
-    return { ok: true, bmi: r1(bmi), bf: r1(bf), src, ffm: r1(ffm), bmr: Math.round(bmr), method, tdee: Math.round(tdee), target, clamped, protein, carbs, fat, water: r1(w * 0.035 + (i.activity >= 1.55 ? 0.5 : 0)),
+    const protein = Math.round(baseLb * PRO_DEFAULT), carbs = Math.max(0, Math.round((target - protein * 4 - fat * 9) / 4));
+    return { ok: true, baseKg: r1(baseKg), baseLb, fatG: fat, bmi: r1(bmi), bf: r1(bf), src, ffm: r1(ffm), bmr: Math.round(bmr), method, tdee: Math.round(tdee), target, clamped, protein, carbs, fat, water: r1(w * 0.035 + (i.activity >= 1.55 ? 0.5 : 0)),
       meals: MEAL_SPLIT.map(([l, s]) => ({ l, kcal: Math.round((target * s) / 10) * 10, p: Math.round(protein * s) })) };
   }
 
@@ -95,16 +98,27 @@
     const out = $("#nOut"); last = r.error ? null : r;
     if (r.error) { out.innerHTML = `<div class="warn">${esc(r.error)}</div>`; return; }
     const srcTxt = { manual: "نسبة دهون أدخلتها", navy: "قياساتك (Navy)", bmi: "تقدير من BMI (أقل دقة)" }[r.src];
+    drawOut(r, PRO_DEFAULT, srcTxt);
+  });
+  function drawOut(r, ratio, srcTxt) {
+    const protein = Math.round(r.baseLb * ratio), carbs = Math.max(0, Math.round((r.target - protein * 4 - r.fatG * 9) / 4));
+    last = { ...r, protein, carbs, ratio };
     const cell = (b, l) => `<div class="nk"><b>${b}</b><span>${l}</span></div>`;
-    out.innerHTML = `<div class="nk-main"><span>سعراتك اليومية للهدف</span><b>${ar(r.target)}</b><span>سعرة</span></div>
-      <div class="nk-grid">${cell(ar(r.protein), "بروتين (غ)")}${cell(ar(r.carbs), "كارب (غ)")}${cell(ar(r.fat), "دهون (غ)")}${cell(ar(r.water), "مي (لتر)")}${cell(ar(r.bf) + "%", "دهون الجسم")}${cell(ar(r.ffm), "كتلة خالية (كغ)")}${cell(ar(r.bmr), "الحرق الأساسي")}${cell(ar(r.tdee), "الحرق الكلي")}${cell(ar(r.bmi), "BMI")}</div>
-      <p class="muted small" style="margin:10px 0 4px">توزيع الوجبات:</p>
-      <ul class="list">${r.meals.map((m) => `<li><span>${m.l}</span><span class="muted small">${ar(m.kcal)} سعرة · بروتين ${ar(m.p)} غ</span></li>`).join("")}</ul>
+    $("#nOut").innerHTML = `<div class="nk-main"><span>سعراتك اليومية للهدف</span><b>${ar(r.target)}</b><span>سعرة</span></div>
+      <div class="nk-grid">${cell(ar(protein), "بروتين (غ)")}${cell(ar(carbs), "كارب (غ)")}${cell(ar(r.fatG), "دهون (غ)")}${cell(ar(r.water), "مي (لتر)")}${cell(ar(r.bf) + "%", "دهون الجسم")}${cell(ar(r.ffm), "كتلة خالية (كغ)")}${cell(ar(r.bmr), "الحرق الأساسي")}${cell(ar(r.tdee), "الحرق الكلي")}${cell(ar(r.bmi), "BMI")}</div>
+      <p class="muted small" style="margin:12px 0 6px">نسبة البروتين (غ لكل باوند من الكتلة الخالية، حوالي ${ar(Math.round(r.baseKg))} كغ):</p>
+      <div class="npro">${PRO_OPTS.map(([x, l, u]) => `<button type="button" class="chip" data-ratio="${x}" aria-pressed="${x === ratio}"><span><b>${ar(x)}</b> · ${l} · <span class="tab-num">${ar(Math.round(r.baseLb * x))} غ</span></span><small>${u}</small></button>`).join("")}</div>
+      <p class="muted small" style="margin:12px 0 4px">توزيع الوجبات:</p>
+      <ul class="list">${r.meals.map((m) => `<li><span>${m.l}</span><span class="muted small">${ar(m.kcal)} سعرة · بروتين ${ar(Math.round(protein * (m.kcal / r.target)))} غ</span></li>`).join("")}</ul>
       <button type="button" class="btn full" id="nApply" style="margin-top:10px;width:100%">✓ اعتمدها كهدف يومي بالتطبيق</button>
       ${r.clamped ? `<div class="warn" style="margin-top:8px">وصلنا للحد الأدنى الآمن، فما نزّلنا السعرات أكثر. التنشيف الأقوى مش آمن.</div>` : ""}
-      <p class="muted small" style="margin:10px 0 0">نسبة الدهون من: ${esc(srcTxt)}. طريقة الحرق: ${r.method === "katch" ? "Katch-McArdle" : "Mifflin-St Jeor"}.</p>`;
+      <p class="muted small" style="margin:10px 0 0">نسبة الدهون من: ${esc(srcTxt)}. طريقة الحرق: ${r.method === "katch" ? "Katch-McArdle" : "Mifflin-St Jeor"}. الكتلة الخالية مقرّبة شوي للوزن المثالي.</p>`;
+    $("#nOut")._src = srcTxt; $("#nOut")._r = r;
+  }
+  $("#nOut").addEventListener("click", (e) => {
+    const c = e.target.closest("[data-ratio]"); if (!c) return;
+    const o = $("#nOut"); drawOut(o._r, parseFloat(c.dataset.ratio), o._src);
   });
-
   $("#nOut").addEventListener("click", (e) => {
     if (!e.target.closest("#nApply") || !last) return;
     dispatchEvent(new CustomEvent("ba-targets", { detail: { protein: last.protein, kcal: last.target, water: last.water } }));
