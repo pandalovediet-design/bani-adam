@@ -1,5 +1,5 @@
 // Bani Adam service worker: pages work offline, the pose model is kept after the first download.
-const SHELL = "ba-shell-v9";
+const SHELL = "ba-shell-v10";
 const EXT = "ba-ext-v1";
 const PAGES = ["/", "/game", "/boxing", "/mimic", "/coach", "/manifest.webmanifest", "/brand/favicon.svg", "/brand/app-icon.png", "/brand/icon-192.png"];
 const EXT_HOSTS = ["cdn.jsdelivr.net", "storage.googleapis.com", "fonts.googleapis.com", "fonts.gstatic.com"];
@@ -37,4 +37,21 @@ self.addEventListener("fetch", (e) => {
     // pinned library versions, the pose model and fonts: cache first
     e.respondWith(caches.open(EXT).then(async (c) => (await c.match(req)) || fetch(req).then((res) => { if (res.ok || res.type === "opaque") c.put(req, res.clone()); return res; })));
   }
+});
+
+// تذكيرات من السيرفر (Web Push)
+self.addEventListener("push", (e) => {
+  let d = {}; try { d = e.data ? e.data.json() : {}; } catch {}
+  e.waitUntil(self.registration.showNotification(d.title || "مشروع بني آدم", {
+    body: d.body || "", tag: d.tag || "ba", lang: "ar", dir: "rtl",
+    icon: "/brand/icon-192.png", badge: "/brand/favicon.png", data: { url: d.url || "/" },
+  }));
+});
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || "/";
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((all) => {
+    for (const c of all) if (new URL(c.url).origin === location.origin && "focus" in c) return c.focus();
+    return self.clients.openWindow(url);
+  }));
 });

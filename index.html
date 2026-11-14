@@ -432,6 +432,32 @@ details.mini-d summary::-webkit-details-marker { display: none; }
         <div class="row" style="margin-top:8px"><button class="mini" id="syncShow" type="button">اظهر الكود</button><button class="mini" id="syncCopy" type="button">انسخ رابط الربط</button><button class="mini" id="syncNow" type="button">زامن هلأ</button></div>
       </div>
     </div>
+    <div class="card" id="pushCard" hidden>
+      <div class="row spread"><h2>التذكيرات</h2><span class="tag" id="pushTag">مطفية</span></div>
+      <div id="pushOff">
+        <p class="small muted" style="margin:0 0 10px">إشعارات على جوالك حتى لو الموقع مسكّر: صباح الخير، المي، الصلاة، والأذكار. بدون حساب، ومنك بتقدر تطفيها بأي وقت.</p>
+        <p class="note" id="pushIos" hidden style="margin:0 0 10px">بالآيفون: افتح الموقع بسفاري، اضغط مشاركة، ثم "إضافة إلى الشاشة الرئيسية"، وافتحه من الأيقونة، وبعدين فعّل التذكيرات (iOS ١٦٫٤ وفوق).</p>
+        <p class="err" id="pushErr" role="alert"></p>
+        <button class="btn full" id="pushOn" type="button" style="width:100%">فعّل التذكيرات</button>
+      </div>
+      <div id="pushOnBox" hidden>
+        <p class="small muted" style="margin:0 0 8px">شو بدك تذكّرك فيه؟</p>
+        <div class="chips" id="pushKinds" style="justify-content:flex-start">
+          <button type="button" class="chip" data-k="morning" aria-pressed="true">صباح الخير ☀️</button>
+          <button type="button" class="chip" data-k="water" aria-pressed="true">المي 💧</button>
+          <button type="button" class="chip" data-k="prayer" aria-pressed="true">الصلاة 🤍</button>
+          <button type="button" class="chip" data-k="adhkar" aria-pressed="true">الأذكار 📿</button>
+        </div>
+        <p class="small muted" style="margin:12px 0 8px">كيف بدك نناديك؟</p>
+        <div class="chips" id="pushTone" style="justify-content:flex-start">
+          <button type="button" class="chip" data-t="batal" aria-pressed="true">يا بطل</button>
+          <button type="button" class="chip" data-t="warda" aria-pressed="false">يا وردة</button>
+          <button type="button" class="chip" data-t="plain" aria-pressed="false">بدون</button>
+        </div>
+        <p class="small muted" style="margin:12px 0 0">المي: ١٠ص و١م و٤م و٧م. الصباح: ٧:٣٠. مواقيت الصلاة لعمّان (الأوقاف الأردنية)، وأذكار الصباح بعد الفجر بـ٤٠ دقيقة والمساء بعد العصر بـ٢٠ دقيقة.</p>
+        <div class="row" style="margin-top:10px"><button class="mini" id="pushTest" type="button">جرّب إشعار</button><button class="mini" id="pushOff2" type="button" style="color:var(--bad)">طفّي التذكيرات</button></div>
+      </div>
+    </div>
     <div class="card">
       <h2>بياناتك</h2>
       <p class="small muted" style="margin:0">تسجيلك محفوظ على هالجهاز، وعلى السحابة بس إذا فعّلت المزامنة. ما في حساب ولا إعلانات، وما حدا بيشوف بياناتك.</p>
@@ -1137,6 +1163,57 @@ details.mini-d summary::-webkit-details-marker { display: none; }
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") cloudSync(); });
     setInterval(cloudSync, 60000);
   }
+  // ---------- تذكيرات (Web Push): السيرفر بيبعت بوقتها حتى لو الموقع مسكّر ----------
+  const VAPID_PUB = "BMzY7qw48dbmJ6Tw1g8ewybyf5oQAZYgWgayLggPJQlX5wRVC_CWX4gevlN7VS20DnXGKb3Q7fXGXzdsl6u6b8M";
+  if (!inClaude && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window) {
+    const PP = "ba-push-prefs";
+    let pp = { morning: true, water: true, prayer: true, adhkar: true, tone: "batal" };
+    try { pp = { ...pp, ...JSON.parse(ls.get(PP) || "{}") }; } catch {}
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !navigator.standalone && !matchMedia("(display-mode: standalone)").matches;
+    const b64 = (b) => { const p = "=".repeat((4 - (b.length % 4)) % 4), r = atob((b + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(r, (c) => c.charCodeAt(0)); };
+    const tz = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Amman"; } catch { return "Asia/Amman"; } };
+    const getSub = async () => { try { return await (await navigator.serviceWorker.ready).pushManager.getSubscription(); } catch { return null; } };
+    const drawPush = (on) => {
+      $("pushCard").hidden = false;
+      $("pushOff").hidden = on; $("pushOnBox").hidden = !on;
+      $("pushTag").textContent = on ? "شغّالة ✓" : "مطفية";
+      $("pushIos").hidden = !ios;
+      document.querySelectorAll("#pushKinds .chip").forEach((c) => c.setAttribute("aria-pressed", String(pp[c.dataset.k] !== false)));
+      document.querySelectorAll("#pushTone .chip").forEach((c) => c.setAttribute("aria-pressed", String(pp.tone === c.dataset.t)));
+    };
+    async function pushSave(sub) {
+      const j = sub.toJSON();
+      await rpc("ba_push_sub", { p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth, p_tz: tz(), p_prefs: pp });
+    }
+    let pushT = null;
+    const pushLater = () => { ls.set(PP, JSON.stringify(pp)); clearTimeout(pushT); pushT = setTimeout(async () => { const s = await getSub(); if (s) pushSave(s).catch(() => toast("ما انحفظت التعديلات، جرّب كمان شوي")); }, 700); };
+    $("pushOn").addEventListener("click", async () => {
+      $("pushErr").textContent = "";
+      try {
+        if (Notification.permission === "denied") { $("pushErr").textContent = "الإشعارات مقفلة لهالموقع. فعّلها من إعدادات المتصفح وجرّب كمان مرة."; return; }
+        const perm = await Notification.requestPermission();
+        if (perm !== "granted") { $("pushErr").textContent = "ما انعطت الصلاحية. بدون موافقتك ما بنقدر نبعت."; return; }
+        const reg = await navigator.serviceWorker.ready;
+        const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64(VAPID_PUB) }));
+        await pushSave(sub); ls.set(PP, JSON.stringify(pp)); drawPush(true); toast("انفعلت التذكيرات ✓");
+      } catch (e) { $("pushErr").textContent = ios ? "بالآيفون لازم تفتح الموقع من أيقونة الشاشة الرئيسية." : "ما زبطت. جرّب كمان مرة أو من متصفح ثاني."; }
+    });
+    $("pushKinds").addEventListener("click", (e) => { const c = e.target.closest(".chip"); if (!c) return; pp[c.dataset.k] = pp[c.dataset.k] === false; drawPush(true); pushLater(); });
+    $("pushTone").addEventListener("click", (e) => { const c = e.target.closest(".chip"); if (!c) return; pp.tone = c.dataset.t; drawPush(true); pushLater(); });
+    $("pushTest").addEventListener("click", async () => {
+      const s = await getSub(); if (!s) { toast("فعّل التذكيرات أول"); return; }
+      try { await pushSave(s); const r = await fetch("https://iftvlczwvyzkawckipzq.supabase.co/functions/v1/ba-push", { method: "POST", headers: { "Content-Type": "application/json", apikey: CLOUD.key }, body: JSON.stringify({ action: "test", endpoint: s.endpoint }) }); toast(r.ok ? "بعتنالك إشعار، استنى ثواني" : r.status === 429 ? "استنى دقيقة وجرّب" : "ما قدرنا نبعت، جرّب تفعّلها من جديد"); }
+      catch { toast("ما في اتصال"); }
+    });
+    $("pushOff2").addEventListener("click", async () => {
+      const s = await getSub();
+      if (s) { const ep = s.endpoint; try { await s.unsubscribe(); } catch {} rpc("ba_push_unsub", { p_endpoint: ep }).catch(() => {}); }
+      drawPush(false); toast("انطفت التذكيرات");
+    });
+    // على كل فتحة: جدّد الاشتراك بالسيرفر (المتصفح أحياناً بيغيّر العنوان، والتوقيت ممكن يتغير)
+    getSub().then((s) => { if (s && Notification.permission === "granted") { pushSave(s).catch(() => {}); drawPush(true); } else drawPush(false); });
+  }
+
   const camLinks = () => document.querySelectorAll("[data-cam]").forEach((el) => { el.href = (inClaude ? SITE + "/" : "") + el.dataset.cam; });
   camLinks();
 
