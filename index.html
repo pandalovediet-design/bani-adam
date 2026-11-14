@@ -921,7 +921,7 @@ details.mini-d summary::-webkit-details-marker { display: none; }
   const inClaude = /claude|anthropic/.test(location.hostname) || location.protocol === "about:" || location.protocol === "blob:";
 
   // ---------- cloud sync (site only): a private vault code, newest write wins per document ----------
-  const CLOUD = { url: "https://tehsqksgwszixljlizha.supabase.co/rest/v1/rpc/", key: "sb_publishable_qucQinbywzqUE0tZOB19kw_GYkrrgZM" };
+  const CLOUD = { url: "https://iftvlczwvyzkawckipzq.supabase.co/rest/v1/rpc/", key: "sb_publishable_QMHY2znAEE-nQ38R0_OyIA_xxlaEWFP" };
   const ls = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} }, del: (k) => { try { localStorage.removeItem(k); } catch {} } };
   let vault = ls.get("ba-vault"), cloudTimer = null, syncing = false;
   const okVault = (v) => /^ba(-[a-z0-9]{5}){6}$/.test(v || "");
