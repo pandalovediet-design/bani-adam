@@ -91,6 +91,19 @@ h2 { font-size: 1.05rem; margin: 0; font-weight: 700; text-wrap: balance; }
 .hlegend { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
 .hlegend span { display: inline-flex; align-items: center; gap: 5px; }
 #habEdit[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+/* protein reference */
+.rlist { display: grid; gap: 8px; }
+.rrow { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.rrow.open { border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.rh { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; width: 100%; text-align: start; background: none; border: 0; color: var(--fg); padding: 10px 12px; align-items: center; }
+.rn { font-weight: 600; font-size: .95rem; } .rn em { font-style: normal; font-weight: 400; font-size: .75rem; color: var(--muted); }
+.rv { color: var(--accent); font-weight: 800; }
+.rp { grid-row: span 2; display: grid; justify-items: end; line-height: 1.1; } .rp b { font-family: var(--display); font-size: 1.5rem; color: var(--accent); } .rp small { font-size: .65rem; color: var(--muted); }
+.rm { font-size: .75rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 2px 12px; }
+.rbar { grid-column: 1 / -1; height: 5px; border-radius: 99px; background: var(--raise); overflow: hidden; margin-top: 4px; } .rbar i { display: block; height: 100%; background: var(--good); }
+.reff { grid-column: 1 / -1; font-size: .72rem; color: var(--good); }
+.rcalc { padding: 0 12px 12px; display: grid; gap: 8px; } .rcalc label { display: grid; gap: 4px; font-size: .8rem; color: var(--muted); }
+.rres { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; } .rres span { background: var(--raise); border-radius: 10px; padding: 6px 2px; text-align: center; font-size: .68rem; color: var(--muted); display: grid; } .rres b { font-size: .95rem; color: var(--fg); }
 /* nutrition inside food tab */
 #nutRoot .f { display: grid; gap: 4px; font-size: .85rem; color: var(--muted); }
 #nutRoot select { width: 100%; background: var(--raise); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; color: var(--fg); min-width: 0; font: inherit; }
@@ -404,10 +417,11 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
 
   <!-- FOOD -->
   <section id="v-food" class="view" hidden>
-    <div class="seg" role="tablist" aria-label="أقسام الأكل" id="foodSeg" style="grid-template-columns:repeat(3,1fr)">
+    <div class="seg" role="tablist" aria-label="أقسام الأكل" id="foodSeg" style="grid-template-columns:repeat(4,1fr)">
       <button type="button" role="tab" data-fs="day" aria-selected="true">أكل اليوم</button>
       <button type="button" role="tab" data-fs="calc" aria-selected="false">الحاسبة</button>
       <button type="button" role="tab" data-fs="rec" aria-selected="false">الوصفات</button>
+      <button type="button" role="tab" data-fs="ref" aria-selected="false">البروتين</button>
     </div>
     <div id="fs-day" style="display:grid;gap:16px">
     <div class="card">
@@ -439,6 +453,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     </div>
       </div>
     <div id="fs-nut" hidden><div id="nutRoot"></div></div>
+    <div id="fs-ref" hidden style="display:none"><div id="refRoot" style="display:grid;gap:16px"></div></div>
   </section>
 
   <!-- TRAIN -->
@@ -652,6 +667,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
 
 <script src="/js/shared.js"></script>
 <script src="/js/nutri.js" defer></script>
+<script src="/js/protein.js" defer></script>
 <script src="/js/train-extra.js" defer></script>
 <script>
 (() => {
@@ -1165,10 +1181,10 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
   }
   // food sub-tabs (اليوم / الحاسبة / الوصفات)
   function showFood(s) {
-    const day = s === "day";
-    $("fs-day").style.display = day ? "grid" : "none"; $("fs-nut").hidden = day;
+    const day = s === "day", ref = s === "ref";
+    $("fs-day").style.display = day ? "grid" : "none"; $("fs-nut").hidden = day || ref; $("fs-ref").style.display = ref ? "block" : "none"; $("fs-ref").hidden = !ref;
     document.querySelectorAll("#foodSeg [data-fs]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.fs === s)));
-    if (!day) { const t = document.getElementById(s === "calc" ? "nCalc" : "nRecCard"), m = document.getElementById("nMain"), d = document.getElementById("nDetail"); if (d) d.hidden = true; if (m) m.hidden = false; if (t) setTimeout(() => t.scrollIntoView({ block: "start" }), 30); }
+    if (!day && !ref) { const t = document.getElementById(s === "calc" ? "nCalc" : "nRecCard"), m = document.getElementById("nMain"), d = document.getElementById("nDetail"); if (d) d.hidden = true; if (m) m.hidden = false; if (t) setTimeout(() => t.scrollIntoView({ block: "start" }), 30); }
   }
   $("foodSeg").addEventListener("click", (e) => { const b = e.target.closest("[data-fs]"); if (b) showFood(b.dataset.fs); });
   document.addEventListener("click", (e) => { const b = e.target.closest("[data-gofood]"); if (!b) return; show("food"); showFood(b.dataset.gofood); });
