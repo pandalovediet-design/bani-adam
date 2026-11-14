@@ -1187,16 +1187,16 @@ details.mini-d summary::-webkit-details-marker { display: none; }
     const wait = pBubble("bot dots", ""); wait.innerHTML = "<i></i><i></i><i></i>";
     setPanda($("pbig"), "think"); $("pstat").textContent = "عم بفكّر…";
     let out = "", err = "";
-    for (let tries = 0; tries < 3 && !out; tries++) {
+    for (let tries = 0; tries < 2 && !out; tries++) {
       try {
         const res = await fetch(PAI, { method: "POST", headers: { "Content-Type": "application/json", apikey: CLOUD.key }, body: JSON.stringify({ messages: chat.slice(-10), context: pContext() }) });
         const j = await res.json().catch(() => ({}));
         if (res.ok && j.text) out = tidy(j.text);
         else if (j.error === "limit") { err = "خلّصت أسئلة اليوم. ارجع بكرة، وبضلني هون."; break; }
         else if (j.error === "origin" || j.error === "not_configured") { err = "المساعد مش شغّال هون هلأ."; break; }
-        else if (j.status === 429 || j.status === 503) { err = "جوجل مزدحم هلأ، جرّب بعد شوي."; await new Promise((r) => setTimeout(r, 2500)); }
+        else if (j.error === "busy" || j.status === 429 || j.status === 503 || j.status === 504) { err = "جوجل مزدحم هلأ، جرّب بعد شوي."; await new Promise((r) => setTimeout(r, 800)); }
         else err = "صار خلل، جرّب كمان مرة.";
-      } catch { err = "ما في نت أو الاتصال ضعيف."; await new Promise((r) => setTimeout(r, 1500)); }
+      } catch { err = "ما في نت أو الاتصال ضعيف."; await new Promise((r) => setTimeout(r, 800)); }
     }
     wait.remove();
     if (out) { err = ""; chat.push({ role: "model", text: out }); pBubble("bot", out); setPanda($("pbig"), "talk"); setTimeout(() => setPanda($("pbig"), "idle"), 1400); }
