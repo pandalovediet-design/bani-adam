@@ -16,6 +16,7 @@
     { "src": "/brand/me-icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
+    { "name": "روح وجسد", "url": "/#ruh", "icons": [{ "src": "/brand/me-icon-192.png", "sizes": "192x192" }] },
     { "name": "ملاكمة", "url": "/boxing", "icons": [{ "src": "/brand/me-icon-192.png", "sizes": "192x192" }] },
     { "name": "قلّدني", "url": "/mimic", "icons": [{ "src": "/brand/me-icon-192.png", "sizes": "192x192" }] },
     { "name": "عدّاد العدّات", "url": "/coach", "icons": [{ "src": "/brand/me-icon-192.png", "sizes": "192x192" }] }

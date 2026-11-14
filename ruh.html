@@ -129,6 +129,8 @@ $("#tabs").addEventListener("click", (e) => {
   Object.entries(PANES).forEach(([k, s]) => ($(s).hidden = k !== b.dataset.t));
   if (b.dataset.t === "pray") initPray(); if (b.dataset.t === "listen") initListen();
 });
+// فتح أداة معيّنة من رابط مثل /ruh#tas (من تبويب روح وجسد بالتطبيق)
+{ const h = location.hash.slice(1); if (PANES[h]) setTimeout(() => { const b = document.querySelector(`#tabs [data-t="${h}"]`); b && b.click(); }, 0); }
 
 // ---------- نص القرآن (من الواجهة، ما في شي مكتوب باليد غير أرقام الآيات) ----------
 // [سورة, من آية, إلى آية]. المراجع المنتقاة بانتظار مراجعة مختص قبل النشر الواسع.

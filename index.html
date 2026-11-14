@@ -354,7 +354,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
 
 <div class="wrap" dir="rtl" lang="ar">
   <header class="top">
-    <div class="brand cover"><img class="cover-img" src="/brand/cover.webp" alt="مشروع بني آدم — لما الكل نايم، أنا ببلّش" width="1228" height="376" fetchpriority="high" decoding="async"><button type="button" class="gear" id="gear" aria-label="الإعدادات" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div>
+    <div class="brand cover"><img class="cover-img" src="/brand/cover.webp" alt="مشروع بني آدم — لما الكل نايم، أنا ببلّش" width="1228" height="376" fetchpriority="high" decoding="async"><button type="button" class="gear" id="gear" aria-label="أنا: تقدّمي وإعداداتي" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></button></div>
     <div>
       <div class="eyebrow" id="dateLine">الليل إلك</div>
       <div class="day" id="dayTitle">يوم <span>1</span></div>
@@ -382,28 +382,19 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
       </details>
       <p class="small muted" style="margin:0">اضغط على العادة أو على ✓ لما تخلصها، واضغط على الوقت لتغيّره. يوم خربان؟ عادي. القاعدة وحدة: ما تفوّت يومين ورا بعض.</p>
     </div>
+    <div id="lfQuick"></div>
     <div class="card panda-card" id="pandaCard">
       <div class="pc-top"><span class="panda" id="pcard" data-px="64"></span><div><h2>باندا، مساعدك</h2><p class="small muted">اسأله عن يومك أو أكلك أو تمرينك، وبرتّبلك الخطوة الجاية.</p></div></div>
       <div class="chips" id="pcChips" style="justify-content:flex-start"></div>
       <button class="btn" id="pcOpen" type="button">اسأل باندا</button>
     </div>
-    <div class="card" id="playCard">
-      <div class="row spread"><h2>العب وتحرّك</h2><span class="tag">بالكاميرا</span></div>
-      <div class="tiles">
-        <a class="tile" data-cam="boxing.html" target="_blank" rel="noopener"><span class="e">🥊</span><b>ملاكمة</b><span class="s">أهداف وكومبو وتفادي</span></a>
-        <a class="tile" data-cam="game.html" target="_blank" rel="noopener"><span class="e">🏃</span><b>ركض</b><span class="s">اركض بمكانك وزيح وانزل</span></a>
-        <a class="tile" data-cam="mimic.html" target="_blank" rel="noopener"><span class="e">🧍</span><b>قلّدني</b><span class="s">إحماء وتمدد: قلّد وثبّت</span></a>
-        <a class="tile" data-cam="coach.html" target="_blank" rel="noopener"><span class="e">📷</span><b>عدّاد العدّات</b><span class="s">سكوات وأكتاف وركب</span></a>
-      </div>
-      <p class="small muted" style="margin:0">جسمك هو الجويستيك. بتفتح بصفحة لحالها وبدها كاميرا، وما في صورة بتطلع من جوالك.</p>
-    </div>
-    <div class="card" id="nogymCard">
-      <div class="row spread"><h2>جسد وروح وأكل</h2><span class="tag">بدون حساب</span></div>
-      <div class="tiles">
-        <button type="button" class="tile" data-gotrain="lib"><span class="e">🏠</span><b>تمارين البيت</b><span class="s">من غير جيم، بأي أدوات</span></button>
-        <button type="button" class="tile" data-gotrain="lib"><span class="e">💪</span><b>المكتبة</b><span class="s">اضغط العضلة وشوف شرحها</span></button>
-        <button type="button" class="tile" data-gofood="calc"><span class="e">🥗</span><b>من غير حرمان</b><span class="s">حاسبة سعرات ووصفات</span></button>
-        <a class="tile" href="/ruh"><span class="e">🕌</span><b>روح وجسد</b><span class="s">آية بالراحة، مسبحة، مواقيت</span></a>
+    <div class="card" id="moveCard">
+      <div class="row spread"><h2>تحرّك هلأ</h2><span class="tag">بالكاميرا</span></div>
+      <div class="chips" style="justify-content:flex-start">
+        <a class="chip" data-cam="boxing.html" target="_blank" rel="noopener">🥊 ملاكمة</a>
+        <a class="chip" data-cam="game.html" target="_blank" rel="noopener">🏃 ركض</a>
+        <a class="chip" data-cam="mimic.html" target="_blank" rel="noopener">🧍 قلّدني</a>
+        <a class="chip" data-cam="coach.html" target="_blank" rel="noopener">📷 عدّاد العدّات</a>
       </div>
     </div>
     <div class="card" id="moreCard">
@@ -453,6 +444,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
           <label class="f" for="mfC">سعرات<input type="number" id="mfC" inputmode="numeric" min="0" max="3000" step="10"></label>
           <label class="full row small" style="gap:8px"><input type="checkbox" id="mfS"> أكلة غلط (معجنات، حلو، مقالي)</label>
           <button class="btn full" id="mfAdd" type="button">ضيفها</button>
+          <button class="btn ghost full" id="bcOpen" type="button">📷 امسح باركود المنتج</button>
         </div>
         <p class="small muted" style="margin:8px 0 0">الأرقام مكتوبة على الغلاف، أو دوّر عليها مرة وحدة وخلص.</p>
         <ul class="list" id="mfList" style="margin-top:8px"></ul>
@@ -472,7 +464,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     <div class="seg" role="tablist" aria-label="أقسام التمرين" id="trainSeg">
       <button type="button" role="tab" data-s="sess" aria-selected="true">الجلسة</button>
       <button type="button" role="tab" data-s="lib" aria-selected="false">المكتبة</button>
-      <button type="button" role="tab" data-s="tim" aria-selected="false">المؤقتات</button>
+      <button type="button" role="tab" data-s="tim" aria-selected="false">ألعاب ومؤقتات</button>
       <button type="button" role="tab" data-s="stat" aria-selected="false">الأرقام</button>
     </div>
 
@@ -558,6 +550,8 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
 
   <!-- PROGRESS -->
   <section id="v-prog" class="view" hidden>
+    <div class="seg meseg" role="tablist" aria-label="أنا" style="grid-template-columns:repeat(2,1fr)"><button type="button" role="tab" data-me="prog" aria-selected="true">تقدّمي</button><button type="button" role="tab" data-me="set" aria-selected="false">الإعدادات</button></div>
+    <div id="lfWeek"></div>
     <div class="card">
       <h2>الوزن</h2>
       <svg class="chart" id="chart" viewBox="0 0 340 190" role="img" aria-label="الوزن عبر الأسابيع"></svg>
@@ -580,10 +574,15 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
       <div class="row spread"><h2>آخر 14 يوم</h2><span class="small muted" id="stripNote"></span></div>
       <div class="strip" id="strip"></div>
     </div>
+    <div id="lfTrends"></div>
   </section>
+
+  <!-- RUH -->
+  <section id="v-ruh" class="view" hidden><div id="lfRuh" style="display:grid;gap:16px"></div></section>
 
   <!-- SETTINGS -->
   <section id="v-set" class="view" hidden>
+    <div class="seg meseg" role="tablist" aria-label="أنا" style="grid-template-columns:repeat(2,1fr)"><button type="button" role="tab" data-me="prog" aria-selected="false">تقدّمي</button><button type="button" role="tab" data-me="set" aria-selected="true">الإعدادات</button></div>
     <div class="card">
       <div class="row spread"><h2>ملفك</h2><span class="tag" id="profTag"></span></div>
       <div class="sum" id="profSum"></div>
@@ -652,7 +651,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
   <button role="tab" id="t-food" data-v="food" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M8 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4"/></svg>من غير حرمان</button>
   <button role="tab" id="t-panda" data-panda type="button" aria-label="اسأل باندا" aria-selected="false"><span class="panda" id="ptab" data-px="24"></span>باندا</button>
   <button role="tab" id="t-train" data-v="train" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12"/></svg>من غير جيم</button>
-  <button role="tab" id="t-prog" data-v="prog" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>التقدّم</button>
+  <button role="tab" id="t-ruh" data-v="ruh" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>روح وجسد</button>
 </nav>
 <div class="restbar" id="restBar" hidden dir="rtl"><div><span>راحة</span><b class="tab-num" id="rbTime" dir="ltr">1:30</b><button type="button" id="rbAdd">+15ث</button><button type="button" id="rbSkip">تخطّي</button></div></div>
 <button type="button" class="pfab" id="pfab" aria-label="افتح مساعد بني آدم" hidden></button>
@@ -674,6 +673,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
 <script src="/js/nutri.js" defer></script>
 <script src="/js/protein.js" defer></script>
 <script src="/js/train-extra.js" defer></script>
+<script src="/js/life.js" defer></script>
 <script>
 (() => {
   // ---------- plan constants ----------
@@ -830,9 +830,12 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     for (const [k, q] of Object.entries(day.foods || {})) { const f = all.find((x) => x.k === k); if (f && q > 0) { p += f.p * q; c += f.c * q; } }
     return { p, c };
   }
+  // other sections (روح وجسد، المي، النوم) can tick a daily item by themselves; see js/life.js
+  const autoDone = (k, day) => { try { return !!(window.BA_auto && window.BA_auto(k, day)); } catch { return false; } };
+  const autoNote = (k, day) => { try { const t = window.BA_note && window.BA_note(k, day); return t ? `<span class="auto-note tab-num">${esc(t)}</span>` : ""; } catch { return ""; } };
   function score(day) {
     const t = foodTotals(day);
-    return CHECKS.reduce((n, ch) => n + ((ch.auto ? t.p >= P_OK : !!(day.checks || {})[ch.k]) ? 1 : 0), 0);
+    return CHECKS.reduce((n, ch) => n + ((ch.auto ? t.p >= P_OK : !!(day.checks || {})[ch.k] || autoDone(ch.k, day)) ? 1 : 0), 0);
   }
   function weighs() {
     const list = [...docs.values()].filter((d) => d && d.kind === "weigh" && typeof d.weight === "number").sort((a, b) => a.date.localeCompare(b.date));
@@ -885,13 +888,13 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     const hd = habDoc(), times = hd.times || {}, tm = (v) => { const m = /^(\d{1,2}):(\d{2})$/.exec(v || ""); return m ? (+m[1] * 60 + +m[2]) : null; };
     const dayMin = (min) => ((min - DAY_SHIFT_H * 60) % 1440 + 1440) % 1440, nowD = new Date(), nowMin = dayMin(nowD.getHours() * 60 + nowD.getMinutes());
     const rows = CHECKS.map((ch, i) => {
-      const on = ch.auto ? t.p >= P_OK : !!(day.checks || {})[ch.k], tv = times[ch.k] || "", m = tm(tv), dm = m == null ? null : dayMin(m);
+      const ad = !ch.auto && autoDone(ch.k, day), on = ch.auto ? t.p >= P_OK : !!(day.checks || {})[ch.k] || ad, tv = times[ch.k] || "", m = tm(tv), dm = m == null ? null : dayMin(m);
       const st = on ? "done" : dm == null ? "gray" : nowMin > dm ? "red" : dm - nowMin <= 60 ? "warn" : "gray";
       return { ch, on, tv, dm, st, i };
     }).sort((a, b) => (a.on - b.on) || ((a.on ? 0 : (a.dm ?? 9999) - (b.dm ?? 9999))) || (a.i - b.i));
     const edit = $("habEdit").getAttribute("aria-pressed") === "true";
     $("checks").innerHTML = rows.map(({ ch, on, tv, st }) => {
-      const pro = ch.auto ? `<span class="auto-note tab-num">${ar(Math.round(t.p))} غ</span>` : "";
+      const pro = ch.auto ? `<span class="auto-note tab-num">${ar(Math.round(t.p))} غ</span>` : autoNote(ch.k, day);
       return `<div class="hrow${on ? " done" : ""}" data-k="${esc(ch.k)}"><i class="hd s-${st}"></i>
         <button type="button" class="ht" data-tg="${esc(ch.k)}" title="${esc(ch.s || "")}">${esc(ch.t)}${pro}</button>
         <label class="tm s-${st}" title="موعدها">${tv ? "⏰ <bdi dir=\"ltr\">" + tv.replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]) + "</bdi>" : "＋ وقت"}<input type="time" data-time="${esc(ch.k)}" value="${esc(tv)}" aria-label="موعد ${esc(ch.t)}"></label>
@@ -1096,6 +1099,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     // keep focus/typing safe: don't rebuild the session while a set input is focused
     const a = document.activeElement, typing = a && a.closest && a.closest("#sessBody") && a.tagName === "INPUT";
     renderSet(); renderHeader(); renderChecks(); renderFood(); renderFast(); if (!typing) renderTrain(); else { renderLib(); renderStats(); } renderProgress();
+    if (window.BA_render) { try { window.BA_render(); } catch (e) { console.error(e); } }
   }
 
   // ---------- events ----------
@@ -1109,6 +1113,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     const ch = CHECKS.find((c) => c.k === b.dataset.tg); if (!ch) return;
     if (ch.auto) { toast("بينحسب من صفحة الأكل"); return; }
     const d = today(), day = getDay(d);
+    if (autoDone(ch.k, day) && !(day.checks || {})[ch.k]) { toast("انحسبت لحالها من تسجيلك"); return; }
     put(dayId(d), { ...day, checks: { ...(day.checks || {}), [ch.k]: !(day.checks || {})[ch.k] } });
   });
   $("checks").addEventListener("change", (e) => {
@@ -1209,12 +1214,13 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
   $("weighs").addEventListener("click", (e) => { const b = e.target.closest("[data-wdel]"); if (b) remove("weigh-" + b.dataset.wdel); });
 
   // tabs
-  const views = ["today", "food", "train", "prog", "set"];
+  const views = ["today", "food", "train", "ruh", "prog", "set"];
   let lastTab = "today";
   function show(v) {
     views.forEach((x) => { $("v-" + x).hidden = x !== v; const t = $("t-" + x); if (t) t.setAttribute("aria-selected", String(x === v)); });
-    $("gear").setAttribute("aria-pressed", String(v === "set"));
-    if (v !== "set") { lastTab = v; try { localStorage.setItem("bani-adam-tab", v); } catch {} }
+    $("gear").setAttribute("aria-pressed", String(v === "set" || v === "prog"));
+    if (v === "ruh" && window.BA_ruh) window.BA_ruh();
+    if (v !== "set" && v !== "prog") { lastTab = v; try { localStorage.setItem("bani-adam-tab", v); } catch {} }
     window.scrollTo({ top: 0 });
   }
   // food sub-tabs (اليوم / الحاسبة / الوصفات)
@@ -1231,8 +1237,21 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
   if (/^#train-(home|guide|lib)$/.test(location.hash)) { show("train"); showSub("lib"); }
 
   document.querySelector("nav.tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (b) show(b.dataset.v); });
-  $("gear").addEventListener("click", () => show($("v-set").hidden ? "set" : lastTab));
+  $("gear").addEventListener("click", () => show($("v-set").hidden && $("v-prog").hidden ? "prog" : lastTab));
+  document.addEventListener("click", (e) => { const b = e.target.closest("[data-me]"); if (b) show(b.dataset.me); });
+  if (location.hash === "#ruh") show("ruh");
+  if (location.hash === "#me") show("prog");
   try { const v = localStorage.getItem("bani-adam-tab"); if (views.includes(v)) show(v); } catch {}
+
+  // ---------- bridge for js/life.js ----------
+  window.BA = {
+    docs, put, getDay, dayId, today, iso, ar, esc, toast, fmtDate, dayDiff, score, show,
+    myFoods, addMyFood(f, log) { const k = "my" + Date.now().toString(36), list = [...myFoods(), { k, ...f }].slice(-40); put("myfoods", { kind: "myfoods", list }); if (log) { const d = today(), day = getDay(d); put(dayId(d), { ...day, foods: { ...(day.foods || {}), [k]: 1 } }); } },
+    get checks() { return CHECKS; }, get goalN() { return GOAL_N; }, get n() { return N; }, get water() { return WATER; },
+    get start() { return START; }, get target() { return TARGET; }, get tlabel() { return TLABEL; }, get dayShift() { return DAY_SHIFT_H; },
+    render: () => render(), weighs: () => weighs(), foodTotals: (d) => foodTotals(d), get pOk() { return P_OK; },
+  };
+  if (window.BA_render) render();
 
   // ---------- sound ----------
   let actx = null, lock = null;
