@@ -235,7 +235,38 @@ details.mini-d summary::-webkit-details-marker { display: none; }
 .sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .note { background: var(--raise); border-radius: 14px; padding: 12px 14px; font-size: .85rem; margin: 0; }
 .note.warn-n { border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent); }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+/* polish: global look, panda tab, discover cards */
+nav.tabs { grid-template-columns: repeat(5, 1fr); gap: 2px; }
+nav.tabs button { position: relative; transition: color .15s, background .15s, transform .12s; }
+nav.tabs button:active { transform: scale(.94); }
+nav.tabs button[aria-selected="true"] { background: color-mix(in srgb, var(--accent) 13%, transparent); }
+nav.tabs button[data-panda] { color: var(--fg); }
+nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 45%, transparent)); }
+.pfab { display: none !important; }
+.view:not([hidden]) { animation: vin .28s ease-out both; }
+@keyframes vin { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.card { box-shadow: 0 1px 0 rgb(255 255 255 / .03) inset, 0 8px 24px rgb(0 0 0 / .18); transition: border-color .2s; }
+.btn { transition: transform .12s, filter .15s; }
+.btn:active { transform: scale(.98); }
+.btn:hover { filter: brightness(1.06); }
+.chk { transition: border-color .2s, background .2s, transform .12s; }
+.chk:active { transform: scale(.985); }
+.chip { transition: background .15s, border-color .15s, transform .12s; }
+.chip:active { transform: scale(.96); }
+.panda-card { background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 10%, var(--surface)), var(--surface) 70%); border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
+.pc-top { display: flex; gap: 14px; align-items: center; }
+.pc-top p { margin: 2px 0 0; }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile { display: grid; gap: 2px; align-content: start; text-align: start; text-decoration: none; color: inherit; background: var(--raise); border: 1px solid transparent; border-radius: 14px; padding: 12px; transition: border-color .15s, transform .12s; }
+.tile:hover, .tile:focus-visible { border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.tile:active { transform: scale(.98); }
+.tile b { font-family: var(--display); font-size: 1rem; }
+.tile .e { font-size: 1.6rem; line-height: 1.2; }
+.tile .s { font-size: .76rem; color: var(--muted); line-height: 1.35; }
+.tiles.one { grid-template-columns: 1fr; }
+.tiles.one .tile { grid-template-columns: auto 1fr; align-items: center; column-gap: 12px; }
+.tiles.one .tile .e { grid-row: span 2; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 
 <div class="wrap" dir="rtl" lang="ar">
@@ -259,6 +290,29 @@ details.mini-d summary::-webkit-details-marker { display: none; }
       <div class="row spread"><h2>الشيك اليومي</h2><span class="tag" id="goalTag"></span></div>
       <div class="checks" id="checks"></div>
       <p class="small muted" style="margin:0">يوم خربان؟ عادي. القاعدة وحدة: ما تفوّت يومين ورا بعض.</p>
+    </div>
+    <div class="card panda-card" id="pandaCard">
+      <div class="pc-top"><span class="panda" id="pcard" data-px="64"></span><div><h2>باندا، مساعدك</h2><p class="small muted">اسأله عن يومك أو أكلك أو تمرينك، وبرتّبلك الخطوة الجاية.</p></div></div>
+      <div class="chips" id="pcChips" style="justify-content:flex-start"></div>
+      <button class="btn" id="pcOpen" type="button">اسأل باندا</button>
+    </div>
+    <div class="card" id="playCard">
+      <div class="row spread"><h2>العب وتحرّك</h2><span class="tag">بالكاميرا</span></div>
+      <div class="tiles">
+        <a class="tile" data-cam="boxing.html" target="_blank" rel="noopener"><span class="e">🥊</span><b>ملاكمة</b><span class="s">أهداف وكومبو وتفادي</span></a>
+        <a class="tile" data-cam="game.html" target="_blank" rel="noopener"><span class="e">🏃</span><b>ركض</b><span class="s">اركض بمكانك وزيح وانزل</span></a>
+        <a class="tile" data-cam="mimic.html" target="_blank" rel="noopener"><span class="e">🧍</span><b>قلّدني</b><span class="s">إحماء وتمدد: قلّد وثبّت</span></a>
+        <a class="tile" data-cam="coach.html" target="_blank" rel="noopener"><span class="e">📷</span><b>عدّاد العدّات</b><span class="s">سكوات وأكتاف وركب</span></a>
+      </div>
+      <p class="small muted" style="margin:0">جسمك هو الجويستيك. بتفتح بصفحة لحالها وبدها كاميرا، وما في صورة بتطلع من جوالك.</p>
+    </div>
+    <div class="card" id="moreCard">
+      <h2>خلّي التطبيق يشتغل إلك</h2>
+      <div class="tiles one">
+        <button type="button" class="tile" data-goset="pushCard"><span class="e">🔔</span><b>التذكيرات</b><span class="s">صباح الخير، المي، الصلاة، الأذكار</span></button>
+        <button type="button" class="tile" data-goset="syncCard"><span class="e">☁️</span><b>المزامنة</b><span class="s">سجلك على كل أجهزتك وما بيضيع</span></button>
+        <button type="button" class="tile" id="installTile" hidden><span class="e">📲</span><b>ضيفه لشاشة جوالك</b><span class="s">يفتح مثل أي تطبيق، وبدون نت</span></button>
+      </div>
     </div>
   </section>
 
@@ -481,6 +535,7 @@ details.mini-d summary::-webkit-details-marker { display: none; }
 <nav class="tabs" role="tablist" aria-label="أقسام" dir="rtl">
   <button role="tab" id="t-today" data-v="today" aria-selected="true" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>اليوم</button>
   <button role="tab" id="t-food" data-v="food" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M8 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4"/></svg>الأكل</button>
+  <button role="tab" id="t-panda" data-panda type="button" aria-label="اسأل باندا" aria-selected="false"><span class="panda" id="ptab" data-px="24"></span>باندا</button>
   <button role="tab" id="t-train" data-v="train" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12"/></svg>التمرين</button>
   <button role="tab" id="t-prog" data-v="prog" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>التقدّم</button>
 </nav>
@@ -821,7 +876,7 @@ details.mini-d summary::-webkit-details-marker { display: none; }
     const left = DIR < 0 ? last.weight - GOAL_HI : DIR > 0 ? GOAL_LO - last.weight : Math.abs(last.weight - GOAL);
     $("sLeft").textContent = ar(Math.max(0, +left.toFixed(1))); $("sLeftL").textContent = `للهدف ${ar(GOAL)}`;
     // chart
-    const W = 340, H = 190, L = 40, R = 12, T = 12, B = 28;
+    const W = 340, H = 190, L = 48, R = 14, T = 12, B = 28;
     const t0 = Date.parse(BASE.date), t1 = Math.max(Date.parse(TARGET), Date.parse(last.date), t0 + 7 * 864e5);
     const vals = ws.map((w) => w.weight);
     const yMax = Math.ceil(Math.max(...vals, BASE.weight, GOAL_HI) + 1), yMin = Math.floor(Math.min(...vals, GOAL_LO) - 1);
@@ -832,7 +887,7 @@ details.mini-d summary::-webkit-details-marker { display: none; }
     const span = yMax - yMin, step = span > 40 ? 10 : span > 20 ? 5 : span > 12 ? 4 : 2;
     for (let v = Math.ceil(yMin / step) * step; v <= yMax; v += step) {
       g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/>`;
-      g += `<text x="${L - 6}" y="${y(v) + 4}" fill="var(--muted)" font-size="10" text-anchor="end" font-family="IBM Plex Sans Arabic, sans-serif">${v}</text>`;
+      g += `<text x="${L - 12}" y="${y(v) + 4}" fill="var(--muted)" font-size="10" text-anchor="end" font-family="IBM Plex Sans Arabic, sans-serif">${v}</text>`;
     }
     const mon = (d) => new Date(d + "T12:00:00").toLocaleDateString("ar-EG", { month: "short" });
     const ticks = [[BASE.date, mon(BASE.date)]];
@@ -949,7 +1004,7 @@ details.mini-d summary::-webkit-details-marker { display: none; }
     const cm = $("cardioMin") ? parseInt($("cardioMin").value, 10) : 0;
     put(dayId(d), { ...day, session: type, seqPos: pos, sessionDone: true, ...(cm > 0 ? { cardioMin: cm } : {}), checks: { ...(day.checks || {}), train: true } });
     stopRest(); toast(type === "rest" ? "يوم راحة، الجسم بيبني" : "الله يعطيك العافية. سجلتها بالشيك اليومي");
-    if (type !== "rest") { const f = $("pfabp"); setPanda(f, "cheer"); setTimeout(() => setPanda(f, "idle"), 1800); }
+    if (type !== "rest") { for (const f of [$("pfabp"), $("ptab"), $("pcard")]) { setPanda(f, "cheer"); setTimeout(() => setPanda(f, "idle"), 1800); } }
   });
   $("wSave").addEventListener("click", () => {
     const w = parseFloat($("wIn").value), waist = parseFloat($("waistIn").value);
@@ -1298,6 +1353,22 @@ details.mini-d summary::-webkit-details-marker { display: none; }
   $("pctx").addEventListener("change", () => { try { localStorage.setItem("ba-ai-ctx", $("pctx").checked ? "1" : "0"); } catch {} });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("psheet").hidden) pClose(); });
   const pandaAfterSetup = () => { $("pfab").hidden = inClaude || !$("psheet").hidden || !$("setup").hidden; };
+
+  // ---------- بطاقة باندا + اكتشف + تبويب باندا ----------
+  setPanda($("ptab"), "idle", 24); setPanda($("pcard"), "idle", 64);
+  if (inClaude) { $("pandaCard").hidden = true; $("t-panda").hidden = true; document.querySelector("nav.tabs").style.gridTemplateColumns = "repeat(4, 1fr)"; }
+  $("pcChips").innerHTML = PQ.slice(0, 3).map((q) => `<button type="button" class="chip" data-pq="${esc(q)}">${esc(q)}</button>`).join("");
+  $("pcChips").addEventListener("click", (e) => { const b = e.target.closest("[data-pq]"); if (b) { pOpen(); pAsk(b.dataset.pq); } });
+  $("pcOpen").addEventListener("click", pOpen);
+  document.querySelector("nav.tabs").addEventListener("click", (e) => { if (e.target.closest("[data-panda]")) pOpen(); });
+  document.querySelectorAll("[data-goset]").forEach((b) => b.addEventListener("click", () => {
+    show("set"); const t = $(b.dataset.goset); setTimeout(() => { if (t && !t.hidden) t.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60);
+  }));
+  { let dip = null; // زر التثبيت بس لما المتصفح بيسمح
+    addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); dip = e; $("installTile").hidden = false; });
+    $("installTile").addEventListener("click", async () => { if (!dip) return; dip.prompt(); try { await dip.userChoice; } catch {} dip = null; $("installTile").hidden = true; });
+    addEventListener("appinstalled", () => { $("installTile").hidden = true; });
+  }
 
   // ---------- profile: first-run setup, settings, data ----------
   const profile = () => { const p = docs.get("profile"); return p && !p._del && p.kind === "profile" ? p : null; };
