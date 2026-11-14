@@ -71,26 +71,26 @@ h2 { font-size: 1.05rem; margin: 0; font-weight: 700; text-wrap: balance; }
 .brand.cover { position: relative; display: block; border-radius: 20px; overflow: hidden; border: 1px solid var(--line); line-height: 0; }
 .cover-img { display: block; width: 100%; height: auto; }
 .brand.cover .gear { position: absolute; top: 10px; left: 10px; background: rgb(14 21 32 / .65); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-color: rgb(255 255 255 / .18); line-height: normal; }
-/* Trello-style board */
-.board { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: start; }
-.bcol { background: var(--bg); border: 1px solid var(--line); border-radius: 16px; padding: 8px; display: grid; gap: 8px; min-width: 0; border-top: 3px solid var(--accent); }
-.bcol.done { border-top-color: var(--good); }
-.bh { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px; font-family: var(--display); }
-.bh .cnt { background: var(--raise); border-radius: 99px; min-width: 24px; text-align: center; font-size: .78rem; padding: 1px 8px; color: var(--muted); }
-.bl { display: grid; gap: 8px; }
-.tcard { display: grid; gap: 6px; text-align: start; background: var(--raise); border: 1px solid var(--line); border-radius: 12px; padding: 10px; color: var(--fg); box-shadow: 0 1px 2px rgb(0 0 0 / .25); transition: transform .12s, border-color .2s; min-width: 0; animation: vin .25s ease-out both; }
-.tcard:active { transform: scale(.97); }
-.tcard .ic { color: var(--accent); display: block; line-height: 0; }
-.tcard .ic svg { width: 20px; height: 20px; }
-.tcard .t { font-weight: 600; font-size: .9rem; line-height: 1.35; overflow-wrap: anywhere; }
-.tcard .s { display: block; font-size: .72rem; color: var(--muted); font-weight: 400; margin-top: 2px; }
-.tcard .tag { justify-self: start; }
-.tcard.first { border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
-.tcard.auto { border-style: dashed; }
-.bcol.done .tcard { border-color: color-mix(in srgb, var(--good) 45%, transparent); }
-.bcol.done .tcard .t { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--good) 70%, transparent); opacity: .85; }
-.bcol.done .tcard .ic { color: var(--good); }
-.bempty { font-size: .76rem; color: var(--muted); text-align: center; padding: 14px 4px; border: 1px dashed var(--line); border-radius: 12px; }
+/* daily checklist: compact rows with due times */
+.hlist { display: grid; gap: 4px; }
+.hrow { display: flex; align-items: center; gap: 10px; padding: 8px 6px; border-radius: 12px; background: var(--raise); animation: vin .2s ease-out both; }
+.hrow .hd, .hlegend .hd { flex: none; width: 12px; height: 12px; border-radius: 50%; display: inline-block; background: var(--muted); opacity: .55; }
+.hd.s-warn { background: var(--accent); opacity: 1; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.hd.s-red { background: var(--bad, #e5675a); opacity: 1; box-shadow: 0 0 0 3px color-mix(in srgb, var(--bad, #e5675a) 25%, transparent); }
+.hd.s-done { background: var(--good); opacity: 1; }
+.hrow .ht { flex: 1; min-width: 0; text-align: start; background: none; border: 0; color: var(--fg); font-weight: 600; font-size: .95rem; padding: 4px 0; overflow-wrap: anywhere; }
+.hrow.done .ht { color: var(--muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--good) 70%, transparent); font-weight: 500; }
+.hrow .auto-note { font-size: .68rem; color: var(--muted); font-weight: 400; margin-inline-start: 6px; }
+.tm { position: relative; flex: none; display: inline-flex; align-items: center; gap: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: 99px; padding: 3px 10px; font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tm.s-red { color: #f3b9b3; border-color: color-mix(in srgb, var(--bad, #e5675a) 55%, transparent); }
+.tm.s-warn { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.tm input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; padding: 0; border: 0; }
+.hok { flex: none; width: 30px; height: 30px; border-radius: 9px; border: 2px solid var(--line); background: none; color: var(--bg); font-weight: 800; display: grid; place-items: center; padding: 0; }
+.hrow.done .hok { background: var(--good); border-color: var(--good); }
+.hrow .hx { flex: none; background: none; border: 0; color: var(--muted); font-size: 1.1rem; padding: 0 4px; }
+.hlegend { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+.hlegend span { display: inline-flex; align-items: center; gap: 5px; }
+#habEdit[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 /* nutrition inside food tab */
 #nutRoot .f { display: grid; gap: 4px; font-size: .85rem; color: var(--muted); }
 #nutRoot select { width: 100%; background: var(--raise); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; color: var(--fg); min-width: 0; font: inherit; }
@@ -356,9 +356,17 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
   <!-- TODAY -->
   <section id="v-today" class="view" aria-labelledby="t-today">
     <div class="card">
-      <div class="row spread"><h2>الشيك اليومي</h2><span class="tag" id="goalTag"></span></div>
-      <div class="board" id="checks"></div>
-      <p class="small muted" style="margin:0">اضغط على البطاقة لتنقلها بين لسا وتمّت. يوم خربان؟ عادي. القاعدة وحدة: ما تفوّت يومين ورا بعض.</p>
+      <div class="row spread"><h2>الشيك اليومي</h2><span class="row" style="gap:6px"><button type="button" class="mini" id="habEdit" aria-pressed="false" aria-label="تعديل">✎</button><span class="tag" id="goalTag"></span></span></div>
+      <div class="hlist" id="checks"></div>
+      <div class="hlegend small muted"><span><i class="hd s-gray"></i> لسا</span><span><i class="hd s-warn"></i> قرّب</span><span><i class="hd s-red"></i> فات وقتها</span><span><i class="hd s-done"></i> تمّت</span></div>
+      <details class="mini-d" id="habBox"><summary>+ عادة جديدة</summary>
+        <div class="form" style="margin-top:10px">
+          <label class="f full" for="habN">شو العادة؟<input type="text" id="habN" maxlength="30" placeholder="مثلاً: مشي بعد العشا"></label>
+          <label class="f" for="habT">موعدها (اختياري)<input type="time" id="habT"></label>
+          <button class="btn" id="habAdd" type="button" style="align-self:end">ضيفها</button>
+        </div>
+      </details>
+      <p class="small muted" style="margin:0">اضغط على العادة أو على ✓ لما تخلصها، واضغط على الوقت لتغيّره. يوم خربان؟ عادي. القاعدة وحدة: ما تفوّت يومين ورا بعض.</p>
     </div>
     <div class="card panda-card" id="pandaCard">
       <div class="pc-top"><span class="panda" id="pcard" data-px="64"></span><div><h2>باندا، مساعدك</h2><p class="small muted">اسأله عن يومك أو أكلك أو تمرينك، وبرتّبلك الخطوة الجاية.</p></div></div>
@@ -654,7 +662,12 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
   // Everything personal comes from the profile doc made at first run (see setup below).
   let START, TARGET, TOTAL, TLABEL, NAME, BASE, GOAL, GOAL_HI, GOAL_LO, DIR;
   let P_TARGET, P_OK, K_TARGET, K_MAX, WATER, DAY_SHIFT_H = 0;
-  let CHECKS = [], N = 8, GOAL_N = 6;
+  let CHECKS = [], BASE_CHECKS = [], N = 8, GOAL_N = 6;
+  const habDoc = () => { const d = docs.get("habits"); return d && !d._del && d.kind === "habits" ? d : { kind: "habits", times: {}, custom: [] }; };
+  function mergeChecks() {
+    const cu = (habDoc().custom || []).filter((h) => h && h.k && h.t).map((h) => ({ k: h.k, t: h.t, s: "", custom: true }));
+    CHECKS = BASE_CHECKS.concat(cu); N = CHECKS.length; GOAL_N = Math.max(1, Math.ceil(N * 0.75));
+  }
   // Daily-check menu offered at setup; meds and the person's own habits are added around it.
   const ITEM_ORDER = ["sleep", "prayer", "quran", "protein", "water", "train", "steps", "sweets", "vlog"];
   const ITEMS = {
@@ -851,13 +864,22 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
   }
   function renderChecks() {
     const day = getDay(today()), t = foodTotals(day);
-    const cards = CHECKS.map((ch) => {
-      const on = ch.auto ? t.p >= P_OK : !!(day.checks || {})[ch.k];
-      const tag = ch.auto ? `<span class="tag tab-num">${ar(Math.round(t.p))} غ</span>` : ch.first ? `<span class="tag">الأهم</span>` : "";
-      return { on, html: `<button type="button" class="tcard${ch.first ? " first" : ""}${ch.auto ? " auto" : ""}" data-k="${ch.k}" aria-pressed="${on}" ${ch.auto ? 'aria-disabled="true"' : ""}><span class="ic">${icon(ch.k)}</span><span class="t">${esc(ch.t)}<span class="s">${esc(ch.s)}</span></span>${tag}</button>` };
-    });
-    const col = (cls, name, on) => { const c = cards.filter((x) => x.on === on); return `<div class="bcol ${cls}"><div class="bh"><b>${name}</b><span class="cnt tab-num">${ar(c.length)}</span></div><div class="bl">${c.map((x) => x.html).join("") || `<div class="bempty">${on ? "لسا ما خلصت إشي" : "خلصت كل شي، يعطيك العافية"}</div>`}</div></div>`; };
-    $("checks").innerHTML = col("todo", "لسا", false) + col("done", "تمّت", true);
+    const hd = habDoc(), times = hd.times || {}, tm = (v) => { const m = /^(\d{1,2}):(\d{2})$/.exec(v || ""); return m ? (+m[1] * 60 + +m[2]) : null; };
+    const dayMin = (min) => ((min - DAY_SHIFT_H * 60) % 1440 + 1440) % 1440, nowD = new Date(), nowMin = dayMin(nowD.getHours() * 60 + nowD.getMinutes());
+    const rows = CHECKS.map((ch, i) => {
+      const on = ch.auto ? t.p >= P_OK : !!(day.checks || {})[ch.k], tv = times[ch.k] || "", m = tm(tv), dm = m == null ? null : dayMin(m);
+      const st = on ? "done" : dm == null ? "gray" : nowMin > dm ? "red" : dm - nowMin <= 60 ? "warn" : "gray";
+      return { ch, on, tv, dm, st, i };
+    }).sort((a, b) => (a.on - b.on) || ((a.on ? 0 : (a.dm ?? 9999) - (b.dm ?? 9999))) || (a.i - b.i));
+    const edit = $("habEdit").getAttribute("aria-pressed") === "true";
+    $("checks").innerHTML = rows.map(({ ch, on, tv, st }) => {
+      const pro = ch.auto ? `<span class="auto-note tab-num">${ar(Math.round(t.p))} غ</span>` : "";
+      return `<div class="hrow${on ? " done" : ""}" data-k="${esc(ch.k)}"><i class="hd s-${st}"></i>
+        <button type="button" class="ht" data-tg="${esc(ch.k)}" title="${esc(ch.s || "")}">${esc(ch.t)}${pro}</button>
+        <label class="tm s-${st}" title="موعدها">${tv ? "⏰ <bdi dir=\"ltr\">" + tv.replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]) + "</bdi>" : "＋ وقت"}<input type="time" data-time="${esc(ch.k)}" value="${esc(tv)}" aria-label="موعد ${esc(ch.t)}"></label>
+        ${edit && ch.custom ? `<button type="button" class="hx" data-hdel="${esc(ch.k)}" aria-label="احذف ${esc(ch.t)}">×</button>` : ""}
+        <button type="button" class="hok" data-tg="${esc(ch.k)}" aria-pressed="${on}" aria-label="${on ? "ألغي" : "تمّت"} ${esc(ch.t)}">${on ? "✓" : ""}</button></div>`;
+    }).join("");
   }
   function renderFood() {
     const day = getDay(today()), t = foodTotals(day);
@@ -1017,7 +1039,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     $("stripNote").textContent = `أخضر = ${ar(GOAL_N)} من ${ar(N)} أو أكثر`;
   }
   function render() {
-    syncProfile();
+    syncProfile(); mergeChecks();
     // keep focus/typing safe: don't rebuild the session while a set input is focused
     const a = document.activeElement, typing = a && a.closest && a.closest("#sessBody") && a.tagName === "INPUT";
     renderSet(); renderHeader(); renderChecks(); renderFood(); if (!typing) renderTrain(); else { renderLib(); renderStats(); } renderProgress();
@@ -1025,12 +1047,34 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
 
   // ---------- events ----------
   $("checks").addEventListener("click", (e) => {
-    const b = e.target.closest(".tcard"); if (!b) return;
-    const ch = CHECKS.find((c) => c.k === b.dataset.k);
+    const del = e.target.closest("[data-hdel]");
+    if (del) {
+      const k = del.dataset.hdel, hd = habDoc(), times = { ...(hd.times || {}) }; delete times[k];
+      put("habits", { kind: "habits", times, custom: (hd.custom || []).filter((h) => h.k !== k) }); toast("انحذفت"); return;
+    }
+    const b = e.target.closest("[data-tg]"); if (!b) return;
+    const ch = CHECKS.find((c) => c.k === b.dataset.tg); if (!ch) return;
     if (ch.auto) { toast("بينحسب من صفحة الأكل"); return; }
     const d = today(), day = getDay(d);
     put(dayId(d), { ...day, checks: { ...(day.checks || {}), [ch.k]: !(day.checks || {})[ch.k] } });
   });
+  $("checks").addEventListener("change", (e) => {
+    const i = e.target.closest("[data-time]"); if (!i) return;
+    const hd = habDoc(), times = { ...(hd.times || {}) };
+    if (i.value) times[i.dataset.time] = i.value; else delete times[i.dataset.time];
+    put("habits", { kind: "habits", times, custom: hd.custom || [] });
+  });
+  $("habEdit").addEventListener("click", () => { const b = $("habEdit"); b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")); renderChecks(); });
+  $("habAdd").addEventListener("click", () => {
+    const n = $("habN").value.trim().slice(0, 30), tv = $("habT").value; if (!n) { toast("اكتب اسم العادة"); return; }
+    const hd = habDoc(), custom = hd.custom || []; if (custom.length >= 12) { toast("وصلت الحد (١٢ عادة)"); return; }
+    const k = "c" + Date.now().toString(36), times = { ...(hd.times || {}) }; if (tv) times[k] = tv;
+    put("habits", { kind: "habits", times, custom: [...custom, { k, t: n }] });
+    $("habN").value = ""; $("habT").value = ""; toast("انضافت");
+  });
+  // dots follow the clock
+  const tickDots = () => { const a = document.activeElement; if (a && a.closest && a.closest("#checks")) return; if (!$("v-today").hidden) renderChecks(); };
+  setInterval(tickDots, 60000); document.addEventListener("visibilitychange", () => { if (!document.hidden) tickDots(); });
   $("foods").addEventListener("click", (e) => {
     const b = e.target.closest("[data-f]"); if (!b) return;
     const d = today(), day = getDay(d), k = b.dataset.f;
@@ -1553,8 +1597,8 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     GOAL = p.goal; GOAL_LO = GOAL - 2; GOAL_HI = GOAL + 2; DIR = GOAL < p.weight - 0.5 ? -1 : GOAL > p.weight + 0.5 ? 1 : 0;
     ({ p: P_TARGET, pOk: P_OK, k: K_TARGET, kMax: K_MAX, water: WATER } = p.t);
     DAY_SHIFT_H = Number.isFinite(p.dayEnd) ? p.dayEnd : 0;
-    CHECKS = Array.isArray(p.checks) && p.checks.length ? p.checks : [{ k: "train", t: "تمرين", s: "" }];
-    N = CHECKS.length; GOAL_N = Math.max(1, Math.ceil(N * 0.75));
+    BASE_CHECKS = Array.isArray(p.checks) && p.checks.length ? p.checks : [{ k: "train", t: "تمرين", s: "" }];
+    mergeChecks();
     EQ = p.eq || {}; PROG = buildProg();
   }
   const blank = () => ({ name: "", sex: "", age: "", h: "", w: "", goal: "", tChip: "", target: "", targetLabel: "", start: planDate(), activity: "", dayEnd: 0, eq: { db: false, bar: false, band: false }, items: ["sleep", "prayer", "quran", "protein", "water", "train"], meds: [], habits: [] });
@@ -1736,7 +1780,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     a.download = `bani-adam-${today()}.json`; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000); toast("نزلت النسخة");
   });
-  const OK_ID = /^(day-\d{4}-\d{2}-\d{2}|weigh-\d{4}-\d{2}-\d{2}|profile|myfoods)$/;
+  const OK_ID = /^(day-\d{4}-\d{2}-\d{2}|weigh-\d{4}-\d{2}-\d{2}|profile|myfoods|habits)$/;
   function bulk(entries) {
     const now = Date.now();
     for (const [id, data] of entries) {
