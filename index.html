@@ -525,6 +525,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
           <button type="button" class="chip" data-k="water" aria-pressed="true">المي 💧</button>
           <button type="button" class="chip" data-k="prayer" aria-pressed="true">الصلاة 🤍</button>
           <button type="button" class="chip" data-k="adhkar" aria-pressed="true">الأذكار 📿</button>
+          <button type="button" class="chip" data-k="steps" aria-pressed="true">الخطوات 🚶</button>
         </div>
         <p class="small muted" style="margin:12px 0 8px">كيف بدك نناديك؟</p>
         <div class="chips" id="pushTone" style="justify-content:flex-start">
@@ -534,6 +535,28 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
         </div>
         <p class="small muted" style="margin:12px 0 0">المي: ١٠ص و١م و٤م و٧م. الصباح: ٧:٣٠. مواقيت الصلاة لعمّان (الأوقاف الأردنية)، وأذكار الصباح بعد الفجر بـ٤٠ دقيقة والمساء بعد العصر بـ٢٠ دقيقة.</p>
         <div class="row" style="margin-top:10px"><button class="mini" id="pushTest" type="button">جرّب إشعار</button><button class="mini" id="pushOff2" type="button" style="color:var(--bad)">طفّي التذكيرات</button></div>
+      </div>
+    </div>
+    <div class="card" id="stepsCard" hidden>
+      <div class="row spread"><h2>خطواتك الحقيقية</h2><span class="tag" id="stepsTag">مطفية</span></div>
+      <div id="stepsOff">
+        <p class="small muted" style="margin:0 0 10px">اربط خطوات سامسونغ هيلث، والتذكيرات بتصير بأرقامك الفعلية: "مشيت ٤٢٠٠ من ١٠٠٠٠". بدها تطبيق صغير على جوالك (أندرويد). فعّل التذكيرات أول.</p>
+        <label class="f" for="stepsGoal">هدفك باليوم (خطوة)<input type="number" id="stepsGoal" inputmode="numeric" min="1000" max="100000" step="500" value="10000"></label>
+        <p class="err" id="stepsErr" role="alert"></p>
+        <button class="btn full" id="stepsOn" type="button" style="width:100%">اربط الخطوات</button>
+      </div>
+      <div id="stepsOnBox" hidden>
+        <div class="sum"><div class="stat"><b class="tab-num" id="stNow">—</b><span>خطوات اليوم</span></div><div class="stat"><b class="tab-num" id="stGoal">—</b><span>الهدف</span></div></div>
+        <p class="small muted" style="margin:0" id="stWhen">لسا ما وصلت أي بيانات من جوالك.</p>
+        <div class="note" style="margin:0"><b>على جوالك (مرة وحدة):</b>
+          <ol style="margin:6px 0 0;padding-inline-start:20px;display:grid;gap:4px">
+            <li>سامسونغ هيلث ← الإعدادات ← Health Connect ← فعّل مشاركة الخطوات.</li>
+            <li>نزّل تطبيق <b>Health Connect Webhook</b> من Google Play.</li>
+            <li>أعطه صلاحية قراءة الخطوات، وضيف الرابط تحت كـ Webhook، وفعّل المزامنة كل فترة.</li>
+          </ol></div>
+        <code id="stUrl" dir="ltr" style="display:block;background:var(--raise);border-radius:10px;padding:8px 10px;font-size:.74rem;word-break:break-all">••••••</code>
+        <div class="row"><button class="mini" id="stCopy" type="button">انسخ الرابط</button><button class="mini" id="stRefresh" type="button">حدّث الأرقام</button><button class="mini" id="stOff" type="button" style="color:var(--bad)">فكّ الربط</button></div>
+        <p class="small muted" style="margin:0">الرابط سرّي، ما تشاركه مع حدا.</p>
       </div>
     </div>
     <div class="card">
@@ -1292,6 +1315,44 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     });
     // على كل فتحة: جدّد الاشتراك بالسيرفر (المتصفح أحياناً بيغيّر العنوان، والتوقيت ممكن يتغير)
     getSub().then((s) => { if (s && Notification.permission === "granted") { pushSave(s).catch(() => {}); drawPush(true); } else drawPush(false); });
+  }
+
+  // ---------- ربط الخطوات: سامسونغ هيلث ← Health Connect ← Webhook ← السيرفر ← تذكيرات بأرقامك ----------
+  if (!inClaude && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window) {
+    const ST = "ba-steps-token", STU = "https://iftvlczwvyzkawckipzq.supabase.co/functions/v1/ba-steps?t=";
+    const getSub2 = async () => { try { return await (await navigator.serviceWorker.ready).pushManager.getSubscription(); } catch { return null; } };
+    const fmtN = (n) => ar(n);
+    async function stepsDraw() {
+      $("stepsCard").hidden = false;
+      const t = ls.get(ST);
+      $("stepsOff").hidden = !!t; $("stepsOnBox").hidden = !t;
+      $("stepsTag").textContent = t ? "مربوطة ✓" : "مطفية";
+      if (!t) return;
+      $("stUrl").textContent = STU + t;
+      try {
+        const r = await rpc("ba_steps_get", { p_token: t }); const x = r && r[0];
+        if (!x) { $("stNow").textContent = "—"; return; }
+        $("stGoal").textContent = fmtN(x.goal);
+        if (x.steps == null) { $("stNow").textContent = "—"; $("stWhen").textContent = "لسا ما وصلت أي بيانات من جوالك."; return; }
+        $("stNow").textContent = fmtN(x.steps);
+        const ago = Math.max(0, Math.round((Date.now() - Date.parse(x.updated)) / 60000));
+        $("stWhen").textContent = "آخر مزامنة قبل " + (ago < 60 ? fmtN(ago) + " دقيقة" : fmtN(Math.round(ago / 60)) + " ساعة") + (x.day === iso(new Date()) ? "" : " (رقم يوم قديم)") + ".";
+      } catch { $("stWhen").textContent = "ما قدرت أجيب الأرقام هلأ."; }
+    }
+    $("stepsOn").addEventListener("click", async () => {
+      $("stepsErr").textContent = "";
+      const goal = Math.round(+$("stepsGoal").value);
+      if (!(goal >= 1000 && goal <= 100000)) { $("stepsErr").textContent = "اكتب هدف بين ١٠٠٠ و١٠٠٠٠٠."; return; }
+      const s = await getSub2();
+      if (!s) { $("stepsErr").textContent = "فعّل التذكيرات أول من البطاقة اللي فوق."; return; }
+      try { const t = await rpc("ba_steps_link", { p_endpoint: s.endpoint, p_goal: goal }); ls.set(ST, t); await stepsDraw(); toast("انربطت. كمّل الخطوات على جوالك"); }
+      catch { $("stepsErr").textContent = "ما زبطت. جرّب كمان مرة."; }
+    });
+    $("stCopy").addEventListener("click", () => { navigator.clipboard.writeText($("stUrl").textContent).then(() => toast("انسخ الرابط")).catch(() => toast("انسخه من فوق")); });
+    $("stRefresh").addEventListener("click", stepsDraw);
+    $("stOff").addEventListener("click", async () => { const t = ls.get(ST); if (t) { try { await rpc("ba_steps_unlink", { p_token: t }); } catch {} } ls.del(ST); await stepsDraw(); toast("انفك الربط"); });
+    stepsDraw();
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && ls.get(ST)) stepsDraw(); });
   }
 
   const camLinks = () => document.querySelectorAll("[data-cam]").forEach((el) => { el.href = (inClaude ? SITE + "/" : "") + el.dataset.cam; });
