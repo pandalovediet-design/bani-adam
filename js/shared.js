@@ -4,7 +4,7 @@ const ZONES = {"front":[["chest","118,178 150,168 188,172 190,200 188,240 160,25
 const VIEW = { front: { w: 390, h: 806, src: "/body/front.webp" }, back: { w: 345, h: 806, src: "/body/back.webp" } };
 const MUSCLE = { chest: "الصدر", shoulders: "الأكتاف", biceps: "البايسبس", triceps: "الترايسبس", forearms: "السواعد", abs: "البطن", back: "الظهر", glutes: "المؤخرة", quads: "الفخذ الأمامي", hamstrings: "الفخذ الخلفي", calves: "السمانة" };
 const FOCUS = { full_body: "كامل الجسم", cardio: "كارديو", ...MUSCLE };
-const EQUIP = { none: ["🙌", "بدون أدوات"], bands: ["🪢", "حبال مقاومة"], dumbbell: ["🏋️", "دمبل منزلي"], chair: ["🪑", "كرسي"], mat: ["🧘", "ماط"], pullup_bar: ["🤸", "بار تعليق"], other: ["🎒", "أدوات ثانية"] };
+const EQUIP = { none: ["🙌", "بدون أدوات"], bands: ["🪢", "حبال مقاومة"], dumbbell: ["🏋️", "دمبل منزلي"], kettlebell: ["🔔", "كيتل بيل"], chair: ["🪑", "كرسي"], mat: ["🧘", "ماط"], pullup_bar: ["🤸", "بار تعليق"], jump_rope: ["🪢", "حبل قفز"], backpack: ["🎒", "شنطة ثقيلة"], towel: ["🧻", "منشفة"], wall: ["🧱", "جدار"], stairs: ["🪜", "درج"], other: ["🧰", "أدوات ثانية"] };
 const LEVEL = { beginner: "مبتدئ", intermediate: "متوسط", advanced: "متقدم" };
 const BACK_SIDE = ["back", "triceps", "glutes", "hamstrings"], FRONT_SIDE = ["chest", "biceps", "abs", "quads"];
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

@@ -46,3 +46,18 @@
 - تحديث: «المكتبة» بتبويب «من غير جيم» صارت وحدة: تمارين البيت + دليل العضلات + تمارين برنامجك، وخريطة الجسم بتفلتر الكل (`js/train-extra.js`). تبويبا «تمارين البيت» و«دليل العضلات» انشالوا.
 
 - تبويب «من غير حرمان» فيه قسم «البروتين»: مرجع مصادر بروتين لكل ١٠٠ غ (`data/protein.json` عبر `js/protein.js`). كل عنصر: n اسم، c فئة، s حالة، p بروتين، cb كارب، f دهون، k سعرات، v=1 إذا الرقم بيتفاوت.
+
+## موسوعة التمارين (تبويب «من غير جيم» ← المكتبة)
+تمرين واحد موحّد بملف واحد: `data/exercises.json` (القديمان `nogym.json` وأدلة العضلات انضموا لهالملف). فيها بحث، أدوات البيت (بيفلتر على اللي معك + «بدون أدوات» دايماً)، خريطة الجسم، مفضلة (على الجهاز)، صفحة تمرين بإبراز العضلات الرئيسية (برتقالي) والثانوية (أزرق)، وتمارين بديلة، وسلسلة بالترتيب.
+القالب (كل الحقول اختيارية ما عدا `id` و`name` و`muscle`):
+```json
+{ "id": "pushup", "name": "ضغط", "en": "Push-Up",
+  "muscle": "chest", "secondary": ["triceps", "shoulders", "abs"],
+  "equipment": ["none"], "level": "beginner", "sets": "3×10",
+  "clip": "/media/ex/pushup.mp4", "thumb": "/media/ex/pushup.webp", "video": "https://www.youtube.com/watch?v=...",
+  "summary": "...", "steps": ["..."], "tips": ["..."], "mistakes": ["..."], "alternatives": ["glute-bridge"] }
+```
+- `muscle`: chest, shoulders, biceps, triceps, forearms, abs, back, glutes, quads, hamstrings, calves، أو full_body / cardio.
+- `equipment` (أكثر من أداة ممكن): none, bands, dumbbell, kettlebell, chair, mat, pullup_bar, jump_rope, backpack, towel, wall, stairs, other.
+- `clip`: مقطع قصير مكرّر (mp4 أو webm أو gif/webp) بمجلد `media/ex/` وحجمه صغير (أقل من ~١ ميغا). `video`: رابط يوتيوب/إنستغرام/تيك توك للشرح الكامل.
+- التصوير بتكون إنت صاحبه، وما بننسخ صور أو فيديوهات من تطبيقات ثانية.
