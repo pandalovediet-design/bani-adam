@@ -8,13 +8,13 @@
   const GOALS = { cut_soft: { label: "تنشيف هادي", pct: -0.12, protein: 1.9 }, cut: { label: "تنشيف", pct: -0.2, protein: 2.0 }, maintain: { label: "ثبات", pct: 0, protein: 1.6 }, bulk: { label: "تضخيم نظيف", pct: 0.1, protein: 1.8 } };
   const ACTIVITY = [[1.2, "قليل الحركة (شغل مكتب)"], [1.375, "خفيف (1-3 تمارين بالأسبوع)"], [1.55, "متوسط (3-5 تمارين)"], [1.725, "عالي (6-7 تمارين)"], [1.9, "شديد (شغل بدني + تمرين)"]];
   const PRO_OPTS = [
-    [0.5, "قليل الحركة", "بدون تمرين حديد: مشي وشغل عادي"],
-    [0.7, "الحد الأدنى", "حماية العضل بوضع ثبات أو تمرين خفيف، وهو الحد اللي بعده الفايدة بتقل عند معظم الناس"],
-    [0.85, "وسط", "تمرين منتظم وتنشيف هادي، لما الأكل يكون مضغوط"],
-    [1.0, "مفضّل", "تنشيف مع تمرين حديد: أحسن حماية للعضل وشبع (حوالي ٢٫٣ غ/كغ)"],
-    [1.2, "عجز كبير", "تنشيف قوي مع حديد ثقيل، أو وانت قريب من نهاية الدايت"],
-    [1.4, "الحد الأعلى", "أعلى رقم بالدراسات (٣٫١ غ/كغ) للرياضي المتمرن بعجز شديد. مش لازم لأغلب الناس"]];
-  const PRO_DEFAULT = 1.0;
+    [1.1, "قليل الحركة", "بدون تمرين حديد: مشي وشغل عادي"],
+    [1.5, "الحد الأدنى", "حماية العضل بوضع ثبات أو تمرين خفيف، وبعده الفايدة بتقل عند معظم الناس"],
+    [1.9, "وسط", "تمرين منتظم وتنشيف هادي، لما الأكل يكون مضغوط"],
+    [2.2, "مفضّل", "تنشيف مع تمرين حديد: أحسن حماية للعضل وشبع"],
+    [2.6, "عجز كبير", "تنشيف قوي مع حديد ثقيل، أو وانت قريب من نهاية الدايت"],
+    [3.1, "الحد الأعلى", "أعلى رقم بالدراسات للرياضي المتمرن بعجز شديد. مش لازم لأغلب الناس"]];
+  const PRO_DEFAULT = 2.2;
   const MEAL_SPLIT = [["فطور", 0.25], ["غداء", 0.35], ["عشاء", 0.25], ["سناك / مشروبات", 0.15]];
   const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : null; };
   const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -47,8 +47,8 @@
     // البروتين على الكتلة الخالية (FFM)، مقرّبة شوي للوزن المثالي لأن FFM المقدّرة من BMI بتطلع عالية عند الوزن الزايد
     const ideal = (sex === "m" ? 50 : 45.5) + 0.91 * (h - 152.4), baseKg = ffm > ideal ? ffm - 0.25 * (ffm - ideal) : ffm, baseLb = baseKg * 2.20462;
     const fat = Math.round(Math.max((target * 0.25) / 9, w * 0.6));
-    const protein = Math.round(baseLb * PRO_DEFAULT), carbs = Math.max(0, Math.round((target - protein * 4 - fat * 9) / 4));
-    return { ok: true, baseKg: r1(baseKg), baseLb, fatG: fat, bmi: r1(bmi), bf: r1(bf), src, ffm: r1(ffm), bmr: Math.round(bmr), method, tdee: Math.round(tdee), target, clamped, protein, carbs, fat, water: r1(w * 0.035 + (i.activity >= 1.55 ? 0.5 : 0)),
+    const protein = Math.round(baseKg * PRO_DEFAULT), carbs = Math.max(0, Math.round((target - protein * 4 - fat * 9) / 4));
+    return { ok: true, baseKg: r1(baseKg), fatG: fat, bmi: r1(bmi), bf: r1(bf), src, ffm: r1(ffm), bmr: Math.round(bmr), method, tdee: Math.round(tdee), target, clamped, protein, carbs, fat, water: r1(w * 0.035 + (i.activity >= 1.55 ? 0.5 : 0)),
       meals: MEAL_SPLIT.map(([l, s]) => ({ l, kcal: Math.round((target * s) / 10) * 10, p: Math.round(protein * s) })) };
   }
 
@@ -107,19 +107,19 @@
     drawOut(r, PRO_DEFAULT, srcTxt);
   });
   function drawOut(r, ratio, srcTxt) {
-    const protein = Math.round(r.baseLb * ratio), carbs = Math.max(0, Math.round((r.target - protein * 4 - r.fatG * 9) / 4));
+    const protein = Math.round(r.baseKg * ratio), carbs = Math.max(0, Math.round((r.target - protein * 4 - r.fatG * 9) / 4));
     last = { ...r, protein, carbs, ratio };
     const cell = (b, l) => `<div class="nk"><b>${b}</b><span>${l}</span></div>`;
     $("#nOut").innerHTML = `<div class="nk-main"><span>سعراتك اليومية للهدف</span><b>${ar(r.target)}</b><span>سعرة</span></div>
       <div class="nk-grid">${cell(ar(protein), "بروتين (غ)")}${cell(ar(carbs), "كارب (غ)")}${cell(ar(r.fatG), "دهون (غ)")}${cell(ar(r.water), "مي (لتر)")}${cell(ar(r.bf) + "%", "دهون الجسم")}${cell(ar(r.ffm), "كتلة خالية (كغ)")}${cell(ar(r.bmr), "الحرق الأساسي")}${cell(ar(r.tdee), "الحرق الكلي")}${cell(ar(r.bmi), "BMI")}</div>
-      <p class="muted small" style="margin:12px 0 6px">نسبة البروتين (غ لكل باوند من الكتلة الخالية، حوالي ${ar(Math.round(r.baseKg))} كغ):</p>
-      <div class="npro">${PRO_OPTS.map(([x, l, u]) => `<button type="button" class="chip" data-ratio="${x}" aria-pressed="${x === ratio}"><span><b>${ar(x)}</b> · ${l} · <span class="tab-num">${ar(Math.round(r.baseLb * x))} غ</span></span><small>${u}</small></button>`).join("")}</div>
+      <p class="muted small" style="margin:12px 0 6px">نسبة البروتين (غ لكل كيلو من الكتلة الخالية، حوالي ${ar(Math.round(r.baseKg))} كغ):</p>
+      <div class="npro">${PRO_OPTS.map(([x, l, u]) => `<button type="button" class="chip" data-ratio="${x}" aria-pressed="${x === ratio}"><span><b>${ar(x)}</b> · ${l} · <span class="tab-num">${ar(Math.round(r.baseKg * x))} غ</span></span><small>${u}</small></button>`).join("")}</div>
       <p class="muted small" style="margin:12px 0 4px">توزيع الوجبات:</p>
       <ul class="list">${r.meals.map((m) => `<li><span>${m.l}</span><span class="muted small">${ar(m.kcal)} سعرة · بروتين ${ar(Math.round(protein * (m.kcal / r.target)))} غ</span></li>`).join("")}</ul>
       <button type="button" class="btn full" id="nApply" style="margin-top:10px;width:100%">✓ اعتمدها كهدف يومي بالتطبيق</button>
       ${r.clamped ? `<div class="warn" style="margin-top:8px">وصلنا للحد الأدنى الآمن، فما نزّلنا السعرات أكثر. التنشيف الأقوى مش آمن.</div>` : ""}
       <p class="muted small" style="margin:10px 0 0">نسبة الدهون من: ${esc(srcTxt)}. طريقة الحرق: ${r.method === "katch" ? "Katch-McArdle" : "Mifflin-St Jeor"}. الكتلة الخالية مقرّبة شوي للوزن المثالي.</p>
-      <p class="muted small" style="margin:6px 0 0">المصادر: موقف الجمعية الدولية لتغذية الرياضيين ISSN 2017 (١٫٤–٢ غ/كغ للمتمرن، و٢٫٣–٣٫١ غ/كغ من الكتلة الخالية وقت العجز)، وتحليل Morton 2018. الأرقام العالية (١٫٢ وفوق) استشر دكتورك قبلها إذا عندك مشكلة بالكلى.</p>`;
+      <p class="muted small" style="margin:6px 0 0">المصادر: موقف الجمعية الدولية لتغذية الرياضيين ISSN 2017 (١٫٤–٢ غ/كغ من وزن الجسم للمتمرن، و٢٫٣–٣٫١ غ/كغ من الكتلة الخالية وقت العجز)، وتحليل Morton 2018. الأرقام العالية (٢٫٦ وفوق) استشر دكتورك قبلها إذا عندك مشكلة بالكلى.</p>`;
     $("#nOut")._src = srcTxt; $("#nOut")._r = r;
   }
   $("#nOut").addEventListener("click", (e) => {
