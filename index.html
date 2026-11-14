@@ -378,8 +378,8 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     <div class="card" id="nogymCard">
       <div class="row spread"><h2>جسد وروح وأكل</h2><span class="tag">بدون حساب</span></div>
       <div class="tiles">
-        <a class="tile" href="/nogym"><span class="e">🏠</span><b>من غير جيم</b><span class="s">تمارين من البيت بأي أدوات</span></a>
-        <a class="tile" href="/exercises"><span class="e">💪</span><b>دليل التمارين</b><span class="s">اضغط العضلة وشوف شرحها</span></a>
+        <button type="button" class="tile" data-gotrain="home"><span class="e">🏠</span><b>تمارين البيت</b><span class="s">من غير جيم، بأي أدوات</span></button>
+        <button type="button" class="tile" data-gotrain="guide"><span class="e">💪</span><b>دليل العضلات</b><span class="s">اضغط العضلة وشوف شرحها</span></button>
         <button type="button" class="tile" data-gofood="calc"><span class="e">🥗</span><b>من غير حرمان</b><span class="s">حاسبة سعرات ووصفات</span></button>
         <a class="tile" href="/ruh"><span class="e">🕌</span><b>روح وجسد</b><span class="s">آية بالراحة، مسبحة، مواقيت</span></a>
       </div>
@@ -435,12 +435,16 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
 
   <!-- TRAIN -->
   <section id="v-train" class="view" hidden>
-    <div class="seg" role="tablist" aria-label="أقسام التمرين" id="trainSeg">
+    <div class="seg" role="tablist" aria-label="أقسام التمرين" id="trainSeg" style="grid-template-columns:repeat(3,1fr)">
       <button type="button" role="tab" data-s="sess" aria-selected="true">الجلسة</button>
       <button type="button" role="tab" data-s="lib" aria-selected="false">المكتبة</button>
       <button type="button" role="tab" data-s="tim" aria-selected="false">المؤقتات</button>
       <button type="button" role="tab" data-s="stat" aria-selected="false">الأرقام</button>
+      <button type="button" role="tab" data-s="home" aria-selected="false">تمارين البيت</button>
+      <button type="button" role="tab" data-s="guide" aria-selected="false">دليل العضلات</button>
     </div>
+    <div id="s-home" class="sub" style="display:none;margin-top:12px"><div id="trHome"></div></div>
+    <div id="s-guide" class="sub" style="display:none;margin-top:12px"><div id="trGuide"></div></div>
 
     <div id="s-sess" class="sub" style="display:grid;gap:12px;margin-top:12px">
       <div class="card sess-head">
@@ -643,6 +647,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
 
 <script src="/js/shared.js"></script>
 <script src="/js/nutri.js" defer></script>
+<script src="/js/train-extra.js" defer></script>
 <script>
 (() => {
   // ---------- plan constants ----------
@@ -1049,7 +1054,8 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
   $("mfList").addEventListener("click", (e) => { const b = e.target.closest("[data-mfdel]"); if (b) put("myfoods", { kind: "myfoods", list: myFoods().filter((f) => f.k !== b.dataset.mfdel) }); });
   // training sub-tabs
   function showSub(s) {
-    ["sess", "lib", "tim", "stat"].forEach((x) => { $("s-" + x).style.display = x === s ? "grid" : "none"; });
+    ["sess", "lib", "tim", "stat", "home", "guide"].forEach((x) => { $("s-" + x).style.display = x === s ? "grid" : "none"; });
+    if ((s === "home" || s === "guide") && window.baMountTrain) window.baMountTrain(s);
     document.querySelectorAll("#trainSeg [data-s]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.s === s)));
   }
   $("trainSeg").addEventListener("click", (e) => { const b = e.target.closest("[data-s]"); if (b) showSub(b.dataset.s); });
@@ -1124,7 +1130,9 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
   }
   $("foodSeg").addEventListener("click", (e) => { const b = e.target.closest("[data-fs]"); if (b) showFood(b.dataset.fs); });
   document.addEventListener("click", (e) => { const b = e.target.closest("[data-gofood]"); if (!b) return; show("food"); showFood(b.dataset.gofood); });
+  document.addEventListener("click", (e) => { const b = e.target.closest("[data-gotrain]"); if (!b) return; show("train"); showSub(b.dataset.gotrain); });
   if (location.hash === "#food") { show("food"); showFood("calc"); }
+  if (location.hash === "#train-home" || location.hash === "#train-guide") { show("train"); showSub(location.hash.slice(7)); }
 
   document.querySelector("nav.tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (b) show(b.dataset.v); });
   $("gear").addEventListener("click", () => show($("v-set").hidden ? "set" : lastTab));
