@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0e1520">
+<meta name="color-scheme" content="dark">
 <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/brand/app-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -20,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
 <style>
-/* Brand "مشروع بني آدم": night navy, streetlight orange, warm white. Layout: one phone column, brand + day counter header, four views behind a bottom tab bar. */
+/* Brand "مشروع بني آدم": one night look on purpose (navy, streetlight orange, warm white), whatever the phone theme. Layout: one phone column, brand + day counter header, four views behind a bottom tab bar. */
 :root {
   --bg: #0e1520; --surface: #152033; --raise: #1c2a40; --line: #2a3a52;
   --fg: #f8f4ec; --muted: #94a3b8; --accent: #f28a2e; --accent-ink: #1a0f04;
@@ -30,14 +31,6 @@
   --swash: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'%3E%3Cpath d='M196 4c3 0 4 6 1 8-26 3-70 6-108 9-32 3-58 5-80 8-6 1-9-6-4-9 20-6 52-10 86-12 36-2 72-3 105-4zM150 16c-30 3-62 6-96 10-3 0-3 3 0 3 34-2 66-5 96-9 2 0 2-4 0-4z' fill='%23F28A2E'/%3E%3C/svg%3E");
   --r: 18px; color-scheme: dark;
 }
-@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
-  --bg: #f8f4ec; --surface: #fffdf8; --raise: #efe8dc; --line: #e0d6c6;
-  --fg: #0e1520; --muted: #5b6576; --accent: #d9701c; --accent-ink: #ffffff;
-  --good: #1f8a62; --warn: #a97a10; --bad: #c0453a; color-scheme: light } }
-:root[data-theme="light"] {
-  --bg: #f8f4ec; --surface: #fffdf8; --raise: #efe8dc; --line: #e0d6c6;
-  --fg: #0e1520; --muted: #5b6576; --accent: #d9701c; --accent-ink: #ffffff;
-  --good: #1f8a62; --warn: #a97a10; --bad: #c0453a; color-scheme: light }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -1024,5 +1017,6 @@ details.mini-d summary::-webkit-details-marker { display: none; }
 })();
 </script>
 
+<script>(function(){try{if(matchMedia("(pointer:coarse)").matches&&innerWidth>760&&Math.min(screen.width,screen.height)<600){var d=document.createElement("div");d.dir="rtl";d.style.cssText="position:fixed;left:0;right:0;top:0;z-index:99;background:#f28a2e;color:#1a0f04;font:600 30px/1.45 'IBM Plex Sans Arabic',Tahoma,sans-serif;padding:20px 26px;text-align:center";d.textContent="الصفحة ظاهرة صغيرة لأنه «موقع سطح المكتب» شغّال بكروم. اضغط النقاط الثلاث فوق، وشيل الصح عنه.";document.body.appendChild(d);}}catch(e){}})();</script>
 </body>
 </html>
