@@ -386,8 +386,8 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     <div class="card" id="nogymCard">
       <div class="row spread"><h2>جسد وروح وأكل</h2><span class="tag">بدون حساب</span></div>
       <div class="tiles">
-        <button type="button" class="tile" data-gotrain="home"><span class="e">🏠</span><b>تمارين البيت</b><span class="s">من غير جيم، بأي أدوات</span></button>
-        <button type="button" class="tile" data-gotrain="guide"><span class="e">💪</span><b>دليل العضلات</b><span class="s">اضغط العضلة وشوف شرحها</span></button>
+        <button type="button" class="tile" data-gotrain="lib"><span class="e">🏠</span><b>تمارين البيت</b><span class="s">من غير جيم، بأي أدوات</span></button>
+        <button type="button" class="tile" data-gotrain="lib"><span class="e">💪</span><b>المكتبة</b><span class="s">اضغط العضلة وشوف شرحها</span></button>
         <button type="button" class="tile" data-gofood="calc"><span class="e">🥗</span><b>من غير حرمان</b><span class="s">حاسبة سعرات ووصفات</span></button>
         <a class="tile" href="/ruh"><span class="e">🕌</span><b>روح وجسد</b><span class="s">آية بالراحة، مسبحة، مواقيت</span></a>
       </div>
@@ -443,16 +443,12 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
 
   <!-- TRAIN -->
   <section id="v-train" class="view" hidden>
-    <div class="seg" role="tablist" aria-label="أقسام التمرين" id="trainSeg" style="grid-template-columns:repeat(3,1fr)">
+    <div class="seg" role="tablist" aria-label="أقسام التمرين" id="trainSeg">
       <button type="button" role="tab" data-s="sess" aria-selected="true">الجلسة</button>
       <button type="button" role="tab" data-s="lib" aria-selected="false">المكتبة</button>
       <button type="button" role="tab" data-s="tim" aria-selected="false">المؤقتات</button>
       <button type="button" role="tab" data-s="stat" aria-selected="false">الأرقام</button>
-      <button type="button" role="tab" data-s="home" aria-selected="false">تمارين البيت</button>
-      <button type="button" role="tab" data-s="guide" aria-selected="false">دليل العضلات</button>
     </div>
-    <div id="s-home" class="sub" style="display:none;margin-top:12px"><div id="trHome"></div></div>
-    <div id="s-guide" class="sub" style="display:none;margin-top:12px"><div id="trGuide"></div></div>
 
     <div id="s-sess" class="sub" style="display:grid;gap:12px;margin-top:12px">
       <div class="card sess-head">
@@ -477,7 +473,8 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     </div>
 
     <div id="s-lib" class="sub" style="display:none;gap:12px;margin-top:12px">
-      <div class="lib-f" id="libFilter"></div>
+      <div id="trLib"></div>
+      <div class="row spread" style="margin-top:4px"><h2>من برنامجك</h2><span class="small muted" id="libCnt"></span></div>
       <div id="libList" style="display:grid;gap:10px"></div>
     </div>
 
@@ -945,10 +942,12 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     renderLib(); renderStats();
   }
   // ----- training: library -----
-  let libM = "all";
+  const LIB_MAP = { chest: "chest", back: "back", shoulders: "shoulders", biceps: "arms", triceps: "arms", forearms: "arms", quads: "legs", calves: "legs", hamstrings: "posterior", glutes: "posterior", abs: "core" };
+  let libSet = new Set();
+  addEventListener("ba-lib-muscles", (e) => { libSet = new Set((e.detail || []).map((m) => LIB_MAP[m]).filter(Boolean)); renderLib(); });
   function renderLib() {
-    $("libFilter").innerHTML = [["all", "الكل"], ...Object.entries(MUSCLES)].map(([k, l]) => `<button type="button" class="chip" data-libm="${k}" aria-pressed="${k === libM}">${l}</button>`).join("");
-    $("libList").innerHTML = Object.entries(EX).filter(([, d]) => libM === "all" || d.m === libM).map(([id, d]) => {
+    $("libCnt").textContent = libSet.size ? "حسب العضلات المختارة" : "كل التمارين";
+    $("libList").innerHTML = Object.entries(EX).filter(([, d]) => !libSet.size || libSet.has(d.m)).map(([id, d]) => {
       const l = lastPerf(id);
       return `<div class="card" style="gap:8px"><div class="ex-h"><div><b>${esc(d.n)}</b><div class="ex-meta">${esc(d.eq)} · ${ar(d.sets)} × ${ar(d.lo)}–${ar(d.hi)}${d.unit ? " ثانية" : ""}${d.per ? " " + d.per : ""}</div></div><span class="tag">${MUSCLES[d.m]}</span></div>
         <ul class="cues">${d.cues.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>${d.warn ? `<div class="warn">${esc(d.warn)}</div>` : ""}
@@ -1098,12 +1097,11 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
   $("mfList").addEventListener("click", (e) => { const b = e.target.closest("[data-mfdel]"); if (b) put("myfoods", { kind: "myfoods", list: myFoods().filter((f) => f.k !== b.dataset.mfdel) }); });
   // training sub-tabs
   function showSub(s) {
-    ["sess", "lib", "tim", "stat", "home", "guide"].forEach((x) => { $("s-" + x).style.display = x === s ? "grid" : "none"; });
-    if ((s === "home" || s === "guide") && window.baMountTrain) window.baMountTrain(s);
+    ["sess", "lib", "tim", "stat"].forEach((x) => { $("s-" + x).style.display = x === s ? "grid" : "none"; });
+    if (s === "lib" && window.baMountTrain) window.baMountTrain();
     document.querySelectorAll("#trainSeg [data-s]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.s === s)));
   }
   $("trainSeg").addEventListener("click", (e) => { const b = e.target.closest("[data-s]"); if (b) showSub(b.dataset.s); });
-  $("libFilter").addEventListener("click", (e) => { const b = e.target.closest("[data-libm]"); if (b) { libM = b.dataset.libm; renderLib(); } });
   $("sessPick").addEventListener("click", (e) => {
     const b = e.target.closest("[data-pick]"); if (!b) return;
     const d = today(), day = getDay(d); put(dayId(d), { ...day, session: b.dataset.pick, picked: true });
@@ -1176,7 +1174,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
   document.addEventListener("click", (e) => { const b = e.target.closest("[data-gofood]"); if (!b) return; show("food"); showFood(b.dataset.gofood); });
   document.addEventListener("click", (e) => { const b = e.target.closest("[data-gotrain]"); if (!b) return; show("train"); showSub(b.dataset.gotrain); });
   if (location.hash === "#food") { show("food"); showFood("calc"); }
-  if (location.hash === "#train-home" || location.hash === "#train-guide") { show("train"); showSub(location.hash.slice(7)); }
+  if (/^#train-(home|guide|lib)$/.test(location.hash)) { show("train"); showSub("lib"); }
 
   document.querySelector("nav.tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (b) show(b.dataset.v); });
   $("gear").addEventListener("click", () => show($("v-set").hidden ? "set" : lastTab));
