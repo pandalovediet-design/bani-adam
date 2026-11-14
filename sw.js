@@ -1,5 +1,5 @@
 // Bani Adam service worker: pages work offline, the pose model is kept after the first download.
-const SHELL = "ba-shell-v11";
+const SHELL = "ba-shell-v12";
 const EXT = "ba-ext-v1";
 const PAGES = ["/", "/game", "/boxing", "/mimic", "/coach", "/manifest.webmanifest", "/brand/favicon.svg", "/brand/app-icon.png", "/brand/icon-192.png"];
 const EXT_HOSTS = ["cdn.jsdelivr.net", "storage.googleapis.com", "fonts.googleapis.com", "fonts.gstatic.com"];
@@ -42,10 +42,15 @@ self.addEventListener("fetch", (e) => {
 // تذكيرات من السيرفر (Web Push)
 self.addEventListener("push", (e) => {
   let d = {}; try { d = e.data ? e.data.json() : {}; } catch {}
-  e.waitUntil(self.registration.showNotification(d.title || "مشروع بني آدم", {
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((all) => {
+    // التطبيق مفتوح وظاهر: الصفحة بتعرض التذكير بنص الشاشة
+    const open = all.filter((c) => c.visibilityState === "visible");
+    if (open.length) { open.forEach((c) => c.postMessage({ type: "ba-reminder", d })); return; }
+    return self.registration.showNotification(d.title || "مشروع بني آدم", {
     body: d.body || "", tag: d.tag || "ba", lang: "ar", dir: "rtl",
     icon: "/brand/icon-192.png", badge: "/brand/favicon.png", data: { url: d.url || "/" },
     vibrate: [200, 100, 200], renotify: true, silent: false, requireInteraction: !!d.big,
+    });
   }));
 });
 self.addEventListener("notificationclick", (e) => {
