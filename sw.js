@@ -1,5 +1,5 @@
 // Bani Adam service worker: pages work offline, the pose model is kept after the first download.
-const SHELL = "ba-shell-v27";
+const SHELL = "ba-shell-v28";
 const EXT = "ba-ext-v1";
 const PAGES = ["/", "/game", "/boxing", "/mimic", "/coach", "/nogym", "/exercises", "/nutrition", "/ruh", "/css/sub.css", "/js/shared.js", "/js/nutri.js", "/js/protein.js", "/data/protein.json", "/js/train-extra.js", "/data/nogym.json", "/data/exercises.json", "/data/recipes.json", "/body/front.webp", "/body/back.webp", "/manifest.webmanifest", "/brand/favicon.svg", "/brand/cover.webp", "/brand/me-icon-192.png", "/brand/me-apple-touch.png"];
 const EXT_HOSTS = ["cdn.jsdelivr.net", "storage.googleapis.com", "fonts.googleapis.com", "fonts.gstatic.com"];

@@ -612,12 +612,6 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
           <button type="button" class="chip" data-k="prayer" aria-pressed="true">الصلاة 🤍</button>
           <button type="button" class="chip" data-k="adhkar" aria-pressed="true">الأذكار 📿</button>
         </div>
-        <p class="small muted" style="margin:12px 0 8px">كيف بدك نناديك؟</p>
-        <div class="chips" id="pushTone" style="justify-content:flex-start">
-          <button type="button" class="chip" data-t="batal" aria-pressed="true">يا بطل</button>
-          <button type="button" class="chip" data-t="warda" aria-pressed="false">يا وردة</button>
-          <button type="button" class="chip" data-t="plain" aria-pressed="false">بدون</button>
-        </div>
         <p class="small muted" style="margin:12px 0 0">المي: ١٠ص و١م و٤م و٧م. الصباح: ٧:٣٠. مواقيت الصلاة لعمّان (الأوقاف الأردنية)، وأذكار الصباح بعد الفجر بـ٤٠ دقيقة والمساء بعد العصر بـ٢٠ دقيقة.</p>
         <div class="row" style="margin-top:10px"><button class="mini" id="pushTest" type="button">جرّب إشعار</button><button class="mini" id="pushOff2" type="button" style="color:var(--bad)">طفّي التذكيرات</button></div>
       </div>
@@ -1390,7 +1384,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
   const VAPID_PUB = "BMzY7qw48dbmJ6Tw1g8ewybyf5oQAZYgWgayLggPJQlX5wRVC_CWX4gevlN7VS20DnXGKb3Q7fXGXzdsl6u6b8M";
   if (!inClaude && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window) {
     const PP = "ba-push-prefs";
-    let pp = { morning: true, water: true, prayer: true, adhkar: true, tone: "batal" };
+    let pp = { morning: true, water: true, prayer: true, adhkar: true };
     try { pp = { ...pp, ...JSON.parse(ls.get(PP) || "{}") }; } catch {}
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !navigator.standalone && !matchMedia("(display-mode: standalone)").matches;
     const b64 = (b) => { const p = "=".repeat((4 - (b.length % 4)) % 4), r = atob((b + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(r, (c) => c.charCodeAt(0)); };
@@ -1402,11 +1396,12 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
       $("pushTag").textContent = on ? "شغّالة ✓" : "مطفية";
       $("pushIos").hidden = !ios;
       document.querySelectorAll("#pushKinds .chip").forEach((c) => c.setAttribute("aria-pressed", String(pp[c.dataset.k] !== false)));
-      document.querySelectorAll("#pushTone .chip").forEach((c) => c.setAttribute("aria-pressed", String(pp.tone === c.dataset.t)));
     };
+    // بس علامة (ثقيل أو لا) بتروح للسيرفر عشان المزح، مش الوزن نفسه
+    const heavy = () => { try { const p = profile(), c = JSON.parse(ls.get("ba-calc-v1") || localStorage.getItem("ba-calc-v1") || "{}"), w = +(p && p.weight) || +c.weight, h = +c.height; if (!w) return false; return h > 120 ? w / ((h / 100) ** 2) >= 30 : w >= 100; } catch { return false; } };
     async function pushSave(sub) {
       const j = sub.toJSON();
-      await rpc("ba_push_sub", { p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth, p_tz: tz(), p_prefs: pp });
+      await rpc("ba_push_sub", { p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth, p_tz: tz(), p_prefs: { morning: pp.morning, water: pp.water, prayer: pp.prayer, adhkar: pp.adhkar, big: heavy() } });
     }
     let pushT = null;
     const pushLater = () => { ls.set(PP, JSON.stringify(pp)); clearTimeout(pushT); pushT = setTimeout(async () => { const s = await getSub(); if (s) pushSave(s).catch(() => toast("ما انحفظت التعديلات، جرّب كمان شوي")); }, 700); };
@@ -1422,7 +1417,6 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
       } catch (e) { $("pushErr").textContent = ios ? "بالآيفون لازم تفتح الموقع من أيقونة الشاشة الرئيسية." : "ما زبطت. جرّب كمان مرة أو من متصفح ثاني."; }
     });
     $("pushKinds").addEventListener("click", (e) => { const c = e.target.closest(".chip"); if (!c) return; pp[c.dataset.k] = pp[c.dataset.k] === false; drawPush(true); pushLater(); });
-    $("pushTone").addEventListener("click", (e) => { const c = e.target.closest(".chip"); if (!c) return; pp.tone = c.dataset.t; drawPush(true); pushLater(); });
     $("pushTest").addEventListener("click", async () => {
       const s = await getSub(); if (!s) { toast("فعّل التذكيرات أول"); return; }
       try { await pushSave(s); const r = await fetch("https://iftvlczwvyzkawckipzq.supabase.co/functions/v1/ba-push", { method: "POST", headers: { "Content-Type": "application/json", apikey: CLOUD.key }, body: JSON.stringify({ action: "test", endpoint: s.endpoint }) }); toast(r.ok ? "بعتنالك إشعار، استنى ثواني" : r.status === 429 ? "استنى دقيقة وجرّب" : "ما قدرنا نبعت، جرّب تفعّلها من جديد"); }
