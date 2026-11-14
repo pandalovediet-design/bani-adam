@@ -81,3 +81,7 @@ ol.st li b { flex: none; width: 22px; height: 22px; border-radius: 50%; backgrou
 .kv .main b { font-size: 2.2rem; color: var(--accent); }
 .back2 { background: none; border: 0; color: var(--accent); font: inherit; cursor: pointer; padding: 0; }
 .body-txt { white-space: pre-wrap; line-height: 1.8; font-size: .95rem; }
+/* keep scrolling chip rows inside the screen: grid children may shrink below their content */
+.wrap, #listView, #mainView { grid-template-columns: minmax(0, 1fr); }
+.wrap > *, #listView > *, #mainView > * { min-width: 0; max-width: 100%; }
+.chips { max-width: 100%; }
