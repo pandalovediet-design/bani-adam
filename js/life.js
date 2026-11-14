@@ -137,6 +137,7 @@
         </div></details>
     </div>
     <div id="lfSunnah"></div>
+    <div id="lfDeeds"></div>
     <div class="card">
       <div class="row spread"><h2>🌙 محاسبة الليلة</h2><span class="small muted">دقيقة قبل النوم</span></div>
       ${REFL.map(([f, t]) => `<label class="f full" style="margin:0">${t}<textarea data-refl="${f}" rows="2" maxlength="300" class="lf-ta">${esc(rf[f] || "")}</textarea></label>`).join("")}
@@ -153,8 +154,9 @@
       <div class="tiles">
         <a class="tile" href="/ruh#rest"><span class="e">⏱️</span><b>آية بالراحة</b><span class="s">مؤقت راحة بين الجولات مع آية وتفسير</span></a>
         <a class="tile" href="/ruh#tas"><span class="e">📿</span><b>المسبحة</b><span class="s">أذكار بعداد وهزّة</span></a>
-        <a class="tile" href="/ruh#pray"><span class="e">🧭</span><b>المواقيت والقبلة</b><span class="s">حسب موقعك، مع بوصلة</span></a>
+        <a class="tile" href="/ruh#pray"><span class="e">🧭</span><b>اتجاه القبلة</b><span class="s">بوصلة، وتغيير مدينتك للمواقيت</span></a>
         <a class="tile" href="/ruh#listen"><span class="e">🎧</span><b>استمع وإنت بتتمرن</b><span class="s">سورة وقارئ ومدة</span></a>
+        <button type="button" class="tile" data-breath="1"><span class="e">🌬️</span><b>تنفّس وهدّي</b><span class="s">دقيقة لثلاث، قبل النوم أو وقت التوتر</span></button>
       </div>
     </div>`;
     if (window.BA_ruh2) window.BA_ruh2();

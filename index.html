@@ -428,6 +428,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
       <div id="fastHist" class="small muted" style="margin-top:10px"></div>
       <p class="small muted" style="margin:10px 0 0">الصيام مش لكل الناس: إذا عندك سكري أو بتاخد أدوية، أو حامل أو مرضع، أو عندك تاريخ مع اضطرابات الأكل، استشر الدكتور أول. وفطّر فوراً إذا حسّيت بدوخة أو رجفة أو تعب شديد.</p>
     </div>
+    <div id="lfCrave"></div>
     <div class="card">
       <h2>أكل اليوم</h2>
       <div class="bars">
@@ -553,7 +554,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
 
   <!-- PROGRESS -->
   <section id="v-prog" class="view" hidden>
-    <div class="seg meseg" role="tablist" aria-label="أنا" style="grid-template-columns:repeat(2,1fr)"><button type="button" role="tab" data-me="prog" aria-selected="true">تقدّمي</button><button type="button" role="tab" data-me="set" aria-selected="false">الإعدادات</button></div>
+    <div class="seg meseg" role="tablist" aria-label="أنا" style="grid-template-columns:repeat(3,1fr)"><button type="button" role="tab" data-me="prog" aria-selected="true">تقدّمي</button><button type="button" role="tab" data-me="health" aria-selected="false">صحتي</button><button type="button" role="tab" data-me="set" aria-selected="false">الإعدادات</button></div>
     <div id="lfWeek"></div>
     <div class="card">
       <h2>الوزن</h2>
@@ -578,6 +579,13 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
       <div class="strip" id="strip"></div>
     </div>
     <div id="lfTrends"></div>
+    <div id="lfCal"></div>
+  </section>
+
+  <!-- HEALTH -->
+  <section id="v-health" class="view" hidden>
+    <div class="seg meseg" role="tablist" aria-label="أنا" style="grid-template-columns:repeat(3,1fr)"><button type="button" role="tab" data-me="prog" aria-selected="false">تقدّمي</button><button type="button" role="tab" data-me="health" aria-selected="true">صحتي</button><button type="button" role="tab" data-me="set" aria-selected="false">الإعدادات</button></div>
+    <div id="lfHealth" style="display:grid;gap:16px"></div>
   </section>
 
   <!-- RUH -->
@@ -585,7 +593,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
 
   <!-- SETTINGS -->
   <section id="v-set" class="view" hidden>
-    <div class="seg meseg" role="tablist" aria-label="أنا" style="grid-template-columns:repeat(2,1fr)"><button type="button" role="tab" data-me="prog" aria-selected="false">تقدّمي</button><button type="button" role="tab" data-me="set" aria-selected="true">الإعدادات</button></div>
+    <div class="seg meseg" role="tablist" aria-label="أنا" style="grid-template-columns:repeat(3,1fr)"><button type="button" role="tab" data-me="prog" aria-selected="false">تقدّمي</button><button type="button" role="tab" data-me="health" aria-selected="false">صحتي</button><button type="button" role="tab" data-me="set" aria-selected="true">الإعدادات</button></div>
     <div class="card">
       <div class="row spread"><h2>ملفك</h2><span class="tag" id="profTag"></span></div>
       <div class="sum" id="profSum"></div>
@@ -678,6 +686,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
 <script src="/js/train-extra.js" defer></script>
 <script src="/js/life.js" defer></script>
 <script src="/js/life2.js" defer></script>
+<script src="/js/life3.js" defer></script>
 <script>
 (() => {
   // ---------- plan constants ----------
@@ -1219,13 +1228,14 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
   $("weighs").addEventListener("click", (e) => { const b = e.target.closest("[data-wdel]"); if (b) remove("weigh-" + b.dataset.wdel); });
 
   // tabs
-  const views = ["today", "food", "train", "ruh", "prog", "set"];
+  const views = ["today", "food", "train", "ruh", "prog", "health", "set"];
   let lastTab = "today";
   function show(v) {
     views.forEach((x) => { $("v-" + x).hidden = x !== v; const t = $("t-" + x); if (t) t.setAttribute("aria-selected", String(x === v)); });
-    $("gear").setAttribute("aria-pressed", String(v === "set" || v === "prog"));
+    $("gear").setAttribute("aria-pressed", String(v === "set" || v === "prog" || v === "health"));
+    if (v === "health" && window.BA_health) window.BA_health();
     if (v === "ruh" && window.BA_ruh) window.BA_ruh();
-    if (v !== "set" && v !== "prog") { lastTab = v; try { localStorage.setItem("bani-adam-tab", v); } catch {} }
+    if (v !== "set" && v !== "prog" && v !== "health") { lastTab = v; try { localStorage.setItem("bani-adam-tab", v); } catch {} }
     window.scrollTo({ top: 0 });
   }
   // food sub-tabs (اليوم / الحاسبة / الوصفات)
@@ -1242,7 +1252,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
   if (/^#train-(home|guide|lib)$/.test(location.hash)) { show("train"); showSub("lib"); }
 
   document.querySelector("nav.tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (b) show(b.dataset.v); });
-  $("gear").addEventListener("click", () => show($("v-set").hidden && $("v-prog").hidden ? "prog" : lastTab));
+  $("gear").addEventListener("click", () => show($("v-set").hidden && $("v-prog").hidden && $("v-health").hidden ? "prog" : lastTab));
   document.addEventListener("click", (e) => { const b = e.target.closest("[data-me]"); if (b) show(b.dataset.me); });
   if (location.hash === "#ruh") show("ruh");
   if (location.hash === "#me") show("prog");
