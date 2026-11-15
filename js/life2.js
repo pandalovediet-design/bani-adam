@@ -28,7 +28,7 @@
     el.innerHTML = `<div class="card">
       <div class="row spread"><h2>🎯 أهم ٣ اليوم</h2><span class="tag">${ar(top.filter((t) => t.done).length)} من ${ar(top.length || 3)}</span></div>
       <div class="lf2-top">${top.map((t, i) => `<div class="lf2-t${t.done ? " done" : ""}"><button type="button" class="hok" data-topd="${i}" aria-pressed="${!!t.done}" aria-label="${t.done ? "ألغي" : "خلصت"}">${t.done ? "✓" : ""}</button><span>${esc(t.t)}</span><button type="button" class="hx" data-topx="${i}" aria-label="احذف">×</button></div>`).join("")}</div>
-      ${top.length < 3 ? `<div class="row" style="gap:6px;flex-wrap:nowrap"><input type="text" id="lfTopIn" maxlength="50" placeholder="${top.length ? "كمان مهمة مهمة" : "شو أهم إشي لازم يخلص اليوم؟"}" class="lf2-in"><button type="button" class="btn" id="lfTopAdd">ضيف</button></div>` : ""}
+      ${top.length < 3 ? `<div class="row" style="gap:6px;flex-wrap:nowrap"><input type="text" id="lfTopIn" maxlength="50" placeholder="${top.length ? "ضيف مهمة ثانية" : "شو أهم إشي لازم يخلص اليوم؟"}" class="lf2-in"><button type="button" class="btn" id="lfTopAdd">ضيف</button></div>` : ""}
       ${carry ? `<button type="button" class="mini" id="lfCarry">رجّع ${ar(carry)} من مهام مبارح</button>` : ""}
       <div class="lf2-focus">
         <div><b>⏱️ تركيز</b><span class="small muted"> · اليوم ${ar(fmin)} دقيقة</span></div>

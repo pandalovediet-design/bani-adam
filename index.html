@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>html.fp body{position:fixed;top:0;left:0;width:100vh;height:100vw;overflow:auto;transform-origin:0 0}html.fp.a90 body{transform:rotate(-90deg) translateX(-100%)}html.fp.a270 body{transform:rotate(90deg) translateY(-100%)}</style>
+<script>/* الجوال بيضل عمودي حتى لو الشاشة لفّت (بكروم ما في قفل دوران للمواقع) */(function(){try{var f=function(){var o=screen.orientation,a=o?o.angle:(window.orientation||0);a=((a%360)+360)%360;var ph=matchMedia("(pointer:coarse)").matches&&Math.min(screen.width,screen.height)<600,on=ph&&(a===90||a===270),c=document.documentElement.classList;c.toggle("fp",on);c.toggle("a90",on&&a===90);c.toggle("a270",on&&a===270);};f();if(screen.orientation)screen.orientation.addEventListener("change",f);addEventListener("orientationchange",f);}catch(e){}})();</script>
 <script>(function(){try{var f=function(){var p=innerHeight>=innerWidth,s=p?Math.min(screen.width,screen.height):Math.max(screen.width,screen.height),z=1;if(matchMedia("(pointer:coarse)").matches&&s>0&&innerWidth>s*1.25)z=innerWidth/s;window.__Z=z;var s=document.documentElement.style;s.zoom=z===1?"":String(z);s.webkitTextSizeAdjust=s.textSizeAdjust="100%";};f();addEventListener("resize",f);}catch(e){window.__Z=1;}})();</script>
 <title>مشروع بني آدم: رفيقك اليومي لصحتك وعاداتك</title>
 <meta name="description" content="شيك يومي، أكل بدون حرمان، تمرين بالبيت، ألعاب بالكاميرا، ومساعد ذكي. مجاني، بدون حساب ولا إعلانات.">
@@ -213,6 +215,9 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); font-weight: 600; 
 .seg button { border: 0; background: none; border-radius: 10px; padding: 8px 2px; font-size: .85rem; color: var(--muted); }
 .seg button[aria-selected="true"] { background: var(--surface); color: var(--fg); font-weight: 600; box-shadow: 0 1px 2px rgb(0 0 0 / .15); }
 .sess-head { display: grid; gap: 6px; }
+.hab-add { display: block; text-align: center; border: 1.5px dashed var(--line); border-radius: 14px; padding: 10px; color: var(--accent); font-weight: 700; list-style: none; }
+.hab-add::-webkit-details-marker { display: none; }
+#habBox[open] .hab-add { border-style: solid; }
 .tile-row { display: flex !important; flex-direction: row; align-items: center; gap: 12px; }
 .sprog { display: grid; gap: 6px; padding: 2px 4px; }
 .ex-mini { display: flex; align-items: center; gap: 10px; width: 100%; text-align: start; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 10px 12px; color: var(--fg); font: inherit; }
@@ -379,7 +384,8 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
       <div class="row spread"><h2>الشيك اليومي</h2><span class="row" style="gap:6px"><button type="button" class="mini" id="habEdit" aria-pressed="false" aria-label="تعديل">✎</button><span class="tag" id="goalTag"></span></span></div>
       <div class="hlist" id="checks"></div>
       <div class="hlegend small muted"><span><i class="hd s-gray"></i> لسا</span><span><i class="hd s-warn"></i> قرّب</span><span><i class="hd s-red"></i> فات وقتها</span><span><i class="hd s-done"></i> تمّت</span></div>
-      <details class="mini-d" id="habBox"><summary>+ عادة جديدة</summary>
+      <details class="mini-d" id="habBox"><summary class="hab-add">＋ ضيف بند على الشيك اليومي</summary>
+        <div class="chips hab-sug" style="justify-content:flex-start;margin-top:10px"><button type="button" class="chip" data-habsug="مشي ٣٠ دقيقة">+ مشي ٣٠ دقيقة</button><button type="button" class="chip" data-habsug="أذكار الصباح">+ أذكار الصباح</button><button type="button" class="chip" data-habsug="قراءة ١٠ صفحات">+ قراءة ١٠ صفحات</button><button type="button" class="chip" data-habsug="بدون سكر اليوم">+ بدون سكر اليوم</button><button type="button" class="chip" data-habsug="تمدد ٥ دقايق">+ تمدد ٥ دقايق</button><button type="button" class="chip" data-habsug="نوم بوقت ثابت">+ نوم بوقت ثابت</button><button type="button" class="chip" data-habsug="بدون معجنات">+ بدون معجنات</button><button type="button" class="chip" data-habsug="صدقة">+ صدقة</button></div>
         <div class="form" style="margin-top:10px">
           <label class="f full" for="habN">شو العادة؟<input type="text" id="habN" maxlength="30" placeholder="مثلاً: مشي بعد العشا"></label>
           <label class="f" for="habT">موعدها (اختياري)<input type="time" id="habT"></label>
@@ -403,6 +409,8 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
         <a class="chip" data-cam="game.html" target="_blank" rel="noopener">🏃 ركض</a>
         <a class="chip" data-cam="mimic.html" target="_blank" rel="noopener">🧍 قلّدني</a>
         <a class="chip" data-cam="coach.html" target="_blank" rel="noopener">📷 عدّاد العدّات</a>
+        <a class="chip" data-cam="dodge.html" target="_blank" rel="noopener">⬇️ نطّ ونزّل</a>
+        <a class="chip" data-cam="balloon.html" target="_blank" rel="noopener">🎈 فقّع البالونات</a>
       </div>
     </div>
     <div class="card" id="moreCard">
@@ -529,6 +537,8 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
           <li><a data-cam="mimic.html" target="_blank" rel="noopener"><b>🧍 قلّدني</b><span class="s small muted">إحماء وتمدد: قلّد الوضعية واثبت</span></a></li>
           <li><a data-cam="coach.html" target="_blank" rel="noopener"><b>📷 عدّاد العدّات</b><span class="s small muted">سكوات، رفع ركب، أكتاف، رفع جانبي</span></a></li>
           <li><a data-cam="game.html" target="_blank" rel="noopener"><b>🏃 ركض بني آدم</b><span class="s small muted">اركض بمكانك وزيح وانزل</span></a></li>
+          <li><a data-cam="dodge.html" target="_blank" rel="noopener"><b>⬇️ نطّ ونزّل</b><span class="s small muted">سكوات تحت الليزر، وركبة فوق الحواجز</span></a></li>
+          <li><a data-cam="balloon.html" target="_blank" rel="noopener"><b>🎈 فقّع البالونات</b><span class="s small muted">بإيديك، والذهبي بركبتك، وابعد عن المعجنات</span></a></li>
         </ul>
         <p class="small muted" style="margin:0">بتفتح على موقعك بصفحة لحالها، لأنها بدها كاميرا. وبدون قفز.</p>
       </div>
@@ -1157,6 +1167,7 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
     put("habits", { kind: "habits", times, custom: hd.custom || [] });
   });
   $("habEdit").addEventListener("click", () => { const b = $("habEdit"); b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")); renderChecks(); });
+  document.addEventListener("click", (e) => { const b = e.target.closest("[data-habsug]"); if (!b) return; $("habN").value = b.dataset.habsug; $("habAdd").click(); });
   $("habAdd").addEventListener("click", () => {
     const n = $("habN").value.trim().slice(0, 30), tv = $("habT").value; if (!n) { toast("اكتب اسم العادة"); return; }
     const hd = habDoc(), custom = hd.custom || []; if (custom.length >= 12) { toast("وصلت الحد (١٢ عادة)"); return; }

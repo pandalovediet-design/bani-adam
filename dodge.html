@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>(function(){try{var f=function(){var p=innerHeight>=innerWidth,s=p?Math.min(screen.width,screen.height):Math.max(screen.width,screen.height),z=1;if(matchMedia("(pointer:coarse)").matches&&s>0&&innerWidth>s*1.25)z=innerWidth/s;window.__Z=z;var s=document.documentElement.style;s.zoom=z===1?"":String(z);s.webkitTextSizeAdjust=s.textSizeAdjust="100%";};f();addEventListener("resize",f);}catch(e){window.__Z=1;}})();</script>
+<title>نطّ ونزّل</title>
+<meta name="description" content="لعبة بالكاميرا: انزل سكوات تحت الليزر وارفع ركبتك فوق الحواجز.">
+<meta name="theme-color" content="#0e1520">
+<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/brand/me-apple-touch.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="بني آدم">
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<style>
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* Brand "مشروع بني آدم". Layout: the mirrored camera fills the screen; the pose to copy sits in a card at the top, a match meter at the bottom. */
+:root { --bg: #0e1520; --panel: rgb(14 21 32 / .86); --raise: #1c2a40; --line: #2a3a52; --fg: #f8f4ec; --muted: #94a3b8; --accent: #f28a2e; --good: #3ec28f; --bad: #e5675a;
+  --display: "Tajawal", "IBM Plex Sans Arabic", system-ui, sans-serif; --body: "IBM Plex Sans Arabic", Tahoma, system-ui, sans-serif; color-scheme: dark;
+  --swash: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'%3E%3Cpath d='M196 4c3 0 4 6 1 8-26 3-70 6-108 9-32 3-58 5-80 8-6 1-9-6-4-9 20-6 52-10 86-12 36-2 72-3 105-4zM150 16c-30 3-62 6-96 10-3 0-3 3 0 3 34-2 66-5 96-9 2 0 2-4 0-4z' fill='%23F28A2E'/%3E%3C/svg%3E"); }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font-family: var(--body); overflow: hidden; }
+canvas#view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.ov { position: fixed; inset: 0; display: grid; place-items: center; background: rgb(8 12 20 / .86); padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); overflow-y: auto; z-index: 5; }
+.box { width: min(520px, 100%); background: #131c2b; border: 1px solid var(--line); border-radius: 22px; padding: 20px; display: grid; gap: 14px; }
+h1 { font-family: var(--display); font-weight: 900; font-size: 2.1rem; margin: 0; }
+h1 span { color: var(--accent); position: relative; display: inline-block; padding-bottom: 8px; }
+h1 span::after { content: ""; position: absolute; inset: auto -4px 0 -8px; height: 9px; background: var(--swash) no-repeat center / 100% 100%; }
+.note { font-size: .8rem; color: var(--muted); margin: 0; }
+.err { color: var(--bad); font-size: .88rem; margin: 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { background: var(--accent); color: #1a0f04; border: 0; border-radius: 14px; padding: 12px 22px; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }
+.btn.ghost { background: var(--raise); color: var(--fg); border: 1px solid var(--line); }
+.opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.opt { background: var(--raise); border: 2px solid var(--line); border-radius: 14px; padding: 10px 6px; color: var(--fg); font: inherit; display: grid; gap: 2px; text-align: center; }
+.opt b { font-family: var(--display); font-weight: 800; } .opt small { color: var(--muted); font-size: .72rem; }
+.opt[aria-pressed="true"] { border-color: var(--accent); }
+.hud { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; z-index: 2; pointer-events: none; }
+.hud span { background: var(--panel); border-radius: 14px; padding: 8px 12px; font-family: var(--display); font-weight: 800; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.big { position: fixed; left: 0; right: 0; top: 34%; text-align: center; font-family: var(--display); font-weight: 900; font-size: 2.6rem; text-shadow: 0 3px 18px #000c; z-index: 2; pointer-events: none; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.stats div { background: var(--raise); border-radius: 14px; padding: 10px 6px; text-align: center; display: grid; } .stats b { font-family: var(--display); font-size: 1.5rem; font-weight: 900; } .stats small { color: var(--muted); font-size: .75rem; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<canvas id="view"></canvas>
+<div class="hud" id="hud" hidden><span id="hScore">٠</span><span id="hLives">❤️❤️❤️</span><span id="hTime">٢:٠٠</span></div>
+<div class="big" id="big"></div>
+<div class="ov" id="ovStart">
+  <div class="box">
+    <h1>نطّ و<span>نزّل</span></h1>
+    <p class="note" style="color:var(--fg);font-size:.92rem">ليزر جاي على راسك؟ <b>انزل سكوات</b>. حاجز جاي على رجليك؟ <b>ارفع ركبتك</b> (أو نطّ إذا بتقدر). كل ما كمّلت بتسرع.</p>
+    <div class="opts" id="lvl">
+      <button type="button" class="opt" data-l="easy" aria-pressed="true"><b>هادي</b><small>ركبة بدل نطّ، بطيء</small></button>
+      <button type="button" class="opt" data-l="mid" aria-pressed="false"><b>نص نص</b><small>أسرع شوي</small></button>
+      <button type="button" class="opt" data-l="hard" aria-pressed="false"><b>نار</b><small>سريع وكثير</small></button>
+    </div>
+    <p class="note">حط الجوال بمستوى بطنك وارجع لورا لحد ما يبيّن جسمك كامل من راسك لرجليك. أول ثانيتين اثبت واقف لحتى أعرف طولك. السكوات لنص المسافة بس، ظهرك مستقيم. وجع بالركبة أو دوخة: وقّف.</p>
+    <p class="err" id="err" hidden></p>
+    <div class="row"><button class="btn" id="go" type="button">شغّل الكاميرا وابدأ</button><a class="btn ghost" href="./">صفحة اليوم</a></div>
+  </div>
+</div>
+<div class="ov" id="ovEnd" hidden>
+  <div class="box">
+    <h1>الله <span>يعطيك العافية</span></h1>
+    <div class="stats"><div><b id="eScore">٠</b><small>عدّيت</small></div><div><b id="eSq">٠</b><small>سكوات</small></div><div><b id="eKn">٠</b><small>ركبة/نطّة</small></div></div>
+    <p class="note" id="eBest"></p>
+    <div class="row"><button class="btn" id="again" type="button">كمان مرة</button><a class="btn ghost" href="balloon.html">فقّع البالونات</a><a class="btn ghost" href="./">صفحة اليوم</a></div>
+  </div>
+</div>
+<video id="vid" playsinline muted hidden></video>
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const ar = (n) => Number(n).toLocaleString("ar-EG");
+const VISION = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+let lm = null, lastDetect = 0, L = null;
+const vid = $("vid"), cv = $("view"), ctx = cv.getContext("2d");
+let W = 0, H = 0;
+function resize() { const d = Math.min(2, devicePixelRatio || 1); W = innerWidth / (window.__Z || 1); H = innerHeight / (window.__Z || 1); cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener("resize", resize); resize();
+async function startCamera() {
+  const { FilesetResolver, PoseLandmarker } = await import(`${VISION}/vision_bundle.mjs`);
+  const fs = await FilesetResolver.forVisionTasks(`${VISION}/wasm`);
+  const opts = (delegate) => ({ baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task", delegate }, runningMode: "VIDEO", numPoses: 1 });
+  try { lm = await PoseLandmarker.createFromOptions(fs, opts("GPU")); } catch { lm = await PoseLandmarker.createFromOptions(fs, opts("CPU")); }
+  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+  vid.srcObject = stream; await vid.play();
+}
+function cover() { const vw = vid.videoWidth || 640, vh = vid.videoHeight || 480, s = Math.max(W / vw, H / vh); return { dw: vw * s, dh: vh * s, ox: (W - vw * s) / 2, oy: (H - vh * s) / 2 }; }
+// landmark on screen (mirrored), or null if not visible
+function P(i, c) { const p = L && L[i]; if (!p || (p.visibility ?? 1) < 0.5) return null; return { x: c.ox + (1 - p.x) * c.dw, y: c.oy + p.y * c.dh }; }
+function drawCam() {
+  ctx.fillStyle = "#0e1520"; ctx.fillRect(0, 0, W, H);
+  if (!(lm && vid.readyState >= 2)) return null;
+  const c = cover();
+  ctx.save(); ctx.globalAlpha = 0.45; ctx.translate(W, 0); ctx.scale(-1, 1); ctx.drawImage(vid, W - c.ox - c.dw, c.oy, c.dw, c.dh); ctx.restore();
+  const now = performance.now();
+  if (now - lastDetect > 40) { lastDetect = now; const r = lm.detectForVideo(vid, now); L = r.landmarks && r.landmarks[0]; }
+  return c;
+}
+let actx = null;
+const beep = (f, d = 0.1, v = 0.12) => { if (!actx) return; try { const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f; g.gain.setValueAtTime(v, actx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + d); o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + d); } catch {} };
+async function boot(onReady) {
+  $("err").hidden = true;
+  try { const AC = window.AudioContext || window.webkitAudioContext; if (AC && !actx) actx = new AC(); actx && actx.resume(); } catch {}
+  try { navigator.wakeLock && navigator.wakeLock.request("screen").catch(() => {}); } catch {}
+  if (!lm) {
+    $("go").disabled = true; $("go").textContent = "بجهّز الكاميرا…";
+    try { await startCamera(); }
+    catch (e) { $("err").textContent = e && e.name === "NotAllowedError" ? "الكاميرا مرفوضة. اسمح للموقع يستعمل الكاميرا من إعدادات المتصفح." : "ما قدرت أشغّل الكاميرا أو أحمّل قارئ الحركة. تأكد من النت وجرّب كمان مرة."; $("err").hidden = false; $("go").disabled = false; $("go").textContent = "شغّل الكاميرا وابدأ"; return; }
+    $("go").disabled = false; $("go").textContent = "شغّل الكاميرا وابدأ";
+  }
+  onReady();
+}
+// بيسجّل دقايق اللعب بسجل اليوم بالتطبيق (نفس التخزين المحلي)
+function logPlay(name, secs, extra) {
+  try { const k = "bani-adam-games", l = JSON.parse(localStorage.getItem(k) || "[]"); l.push({ g: name, s: Math.round(secs), t: Date.now(), ...extra }); localStorage.setItem(k, JSON.stringify(l.slice(-100))); } catch {}
+}
+const LV = { easy: { gap: 3.2, min: 2.2, travel: 2.6, dur: 120 }, mid: { gap: 2.6, min: 1.7, travel: 2.2, dur: 120 }, hard: { gap: 2.1, min: 1.3, travel: 1.8, dur: 150 } };
+let lvl = "easy";
+$("lvl").addEventListener("click", (e) => { const b = e.target.closest("[data-l]"); if (!b) return; lvl = b.dataset.l; document.querySelectorAll("[data-l]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); });
+const st = { on: false };
+function reset() { Object.assign(st, { on: true, t: 0, score: 0, lives: 3, sq: 0, kn: 0, obs: [], next: 3.5, calib: 0, base: null, torso: null, act: "", lastAct: "", combo: 0, flash: 0 }); }
+// action from pose: "down" (squat), "up" (knee raise or jump), "" (standing)
+function readPose(c) {
+  const n = P(0, c), ls = P(11, c), rs = P(12, c), lh = P(23, c), rh = P(24, c), lk = P(25, c), rk = P(26, c);
+  if (!n || !ls || !rs || !lh || !rh) return null;
+  const shY = (ls.y + rs.y) / 2, hipY = (lh.y + rh.y) / 2, torso = hipY - shY;
+  let a = "";
+  if (st.base != null) {
+    const drop = (n.y - st.base) / st.torso;
+    const knee = Math.min(lk ? lk.y : 1e9, rk ? rk.y : 1e9);
+    if (drop > 0.38) a = "down";
+    else if (drop < -0.14 || (knee < hipY + st.torso * 0.32)) a = "up";
+  }
+  return { noseY: n.y, torso, a };
+}
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  const c = drawCam();
+  if (c && st.on) {
+    const r = L ? readPose(c) : null;
+    if (!r) { $("big").textContent = "ارجع لورا لحد ما يبيّن جسمك"; }
+    else if (st.base == null) {
+      st.calib += dt; st._n = (st._n || 0) + 1; st._sum = (st._sum || 0) + r.noseY; st._t = (st._t || 0) + r.torso;
+      $("big").textContent = st.calib < 2 ? "اثبت واقف…" : "";
+      if (st.calib >= 2) { st.base = st._sum / st._n; st.torso = st._t / st._n; $("big").textContent = "يلا!"; beep(880, 0.15); setTimeout(() => { if ($("big").textContent === "يلا!") $("big").textContent = ""; }, 800); }
+    } else {
+      st.t += dt;
+      // slow drift correction while standing
+      if (!r.a) st.base += (r.noseY - st.base) * Math.min(1, dt * 0.3);
+      if (r.a && r.a !== st.lastAct) { if (r.a === "down") st.sq++; else st.kn++; }
+      st.lastAct = r.a; st.act = r.a;
+      const cfg = LV[lvl], speed = 1 + Math.min(0.6, st.t / 200);
+      st.next -= dt * speed;
+      if (st.next <= 0) { st.obs.push({ k: Math.random() < 0.5 ? "high" : "low", p: 0, ok: false }); st.next = Math.max(cfg.min, cfg.gap - st.t / 60); }
+      for (const o of st.obs) {
+        o.p += dt * speed / cfg.travel;
+        if (o.p > 0.82 && o.p < 1.02 && !o.ok) { if ((o.k === "high" && r.a === "down") || (o.k === "low" && r.a === "up")) { o.ok = true; st.score++; st.combo++; beep(660 + Math.min(10, st.combo) * 60, 0.08); } }
+        if (o.p >= 1.02 && !o.done) { o.done = true; if (!o.ok) { st.lives--; st.combo = 0; st.flash = 0.4; beep(180, 0.3, 0.2); try { navigator.vibrate && navigator.vibrate(120); } catch {} } }
+      }
+      st.obs = st.obs.filter((o) => o.p < 1.15);
+      const nxt = st.obs.find((o) => !o.done && o.p > 0.45);
+      $("big").textContent = nxt ? (nxt.k === "high" ? "⬇️ انزل!" : "⬆️ ارفع ركبتك!") : st.combo >= 5 ? `🔥 ${ar(st.combo)} ورا بعض` : "";
+      $("big").style.color = nxt ? (nxt.k === "high" ? "#e5675a" : "#e8b33f") : "#f8f4ec";
+      const left = Math.max(0, LV[lvl].dur - st.t);
+      $("hScore").textContent = ar(st.score); $("hLives").textContent = "❤️".repeat(Math.max(0, st.lives)) + "🖤".repeat(3 - Math.max(0, st.lives));
+      $("hTime").textContent = `${ar(Math.floor(left / 60))}:${String(Math.floor(left % 60)).padStart(2, "0").replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d])}`;
+      drawObs();
+      if (st.lives <= 0 || left <= 0) return end();
+    }
+    // body marker
+    if (r) { const n = P(0, c); if (n) { ctx.fillStyle = st.act === "down" ? "#3ec28f" : st.act === "up" ? "#e8b33f" : "#f8f4ec"; ctx.beginPath(); ctx.arc(n.x, n.y, 12, 0, 7); ctx.fill(); } }
+    if (st.flash > 0) { st.flash -= dt; ctx.fillStyle = `rgba(229,103,90,${st.flash})`; ctx.fillRect(0, 0, W, H); }
+  }
+  requestAnimationFrame(loop);
+}
+function drawObs() {
+  const hor = H * 0.42;
+  for (const o of st.obs) {
+    const p = Math.min(1.1, o.p), s = 0.08 + p * p * 0.95, w = W * s, x = (W - w) / 2;
+    if (o.k === "high") { // laser at head height
+      const y = hor - (hor - H * 0.2) * p * p, th = 6 + p * 18;
+      ctx.fillStyle = o.ok ? "rgba(62,194,143,.8)" : "rgba(229,103,90,.9)"; ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 20;
+      ctx.fillRect(x, y - th / 2, w, th); ctx.shadowBlur = 0;
+    } else { // hurdle at feet
+      const y = hor + (H * 0.86 - hor) * p * p, hh = 10 + p * 60;
+      ctx.fillStyle = o.ok ? "rgba(62,194,143,.85)" : "rgba(232,179,63,.95)";
+      ctx.fillRect(x, y - hh, w, hh * 0.28); ctx.fillRect(x + w * 0.05, y - hh, w * 0.05, hh); ctx.fillRect(x + w * 0.9, y - hh, w * 0.05, hh);
+    }
+  }
+}
+requestAnimationFrame(loop);
+function end() {
+  st.on = false; $("hud").hidden = true; $("big").textContent = "";
+  $("eScore").textContent = ar(st.score); $("eSq").textContent = ar(st.sq); $("eKn").textContent = ar(st.kn);
+  let best = 0; try { best = +localStorage.getItem("ba-dodge-best-" + lvl) || 0; if (st.score > best) localStorage.setItem("ba-dodge-best-" + lvl, st.score); } catch {}
+  $("eBest").textContent = st.score > best ? "رقم قياسي جديد 🏆" : `أحسن نتيجة إلك: ${ar(best)}`;
+  logPlay("dodge", st.t, { score: st.score });
+  $("ovEnd").hidden = false; beep(660, 0.2); setTimeout(() => beep(880, 0.3), 200);
+  requestAnimationFrame(loop);
+}
+$("go").addEventListener("click", () => boot(() => { reset(); $("ovStart").hidden = true; $("ovEnd").hidden = true; $("hud").hidden = false; }));
+$("again").addEventListener("click", () => { $("ovEnd").hidden = true; $("ovStart").hidden = false; });
+</script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>(function(){try{var f=function(){var p=innerHeight>=innerWidth,s=p?Math.min(screen.width,screen.height):Math.max(screen.width,screen.height),z=1;if(matchMedia("(pointer:coarse)").matches&&s>0&&innerWidth>s*1.25)z=innerWidth/s;window.__Z=z;var s=document.documentElement.style;s.zoom=z===1?"":String(z);s.webkitTextSizeAdjust=s.textSizeAdjust="100%";};f();addEventListener("resize",f);}catch(e){window.__Z=1;}})();</script>
+<title>فقّع البالونات</title>
+<meta name="description" content="لعبة بالكاميرا: فقّع البالونات بإيديك والذهبي بركبتك، وابعد عن المعجنات.">
+<meta name="theme-color" content="#0e1520">
+<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/brand/me-apple-touch.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="بني آدم">
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<style>
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* Brand "مشروع بني آدم". Layout: the mirrored camera fills the screen; the pose to copy sits in a card at the top, a match meter at the bottom. */
+:root { --bg: #0e1520; --panel: rgb(14 21 32 / .86); --raise: #1c2a40; --line: #2a3a52; --fg: #f8f4ec; --muted: #94a3b8; --accent: #f28a2e; --good: #3ec28f; --bad: #e5675a;
+  --display: "Tajawal", "IBM Plex Sans Arabic", system-ui, sans-serif; --body: "IBM Plex Sans Arabic", Tahoma, system-ui, sans-serif; color-scheme: dark;
+  --swash: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'%3E%3Cpath d='M196 4c3 0 4 6 1 8-26 3-70 6-108 9-32 3-58 5-80 8-6 1-9-6-4-9 20-6 52-10 86-12 36-2 72-3 105-4zM150 16c-30 3-62 6-96 10-3 0-3 3 0 3 34-2 66-5 96-9 2 0 2-4 0-4z' fill='%23F28A2E'/%3E%3C/svg%3E"); }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font-family: var(--body); overflow: hidden; }
+canvas#view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.ov { position: fixed; inset: 0; display: grid; place-items: center; background: rgb(8 12 20 / .86); padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); overflow-y: auto; z-index: 5; }
+.box { width: min(520px, 100%); background: #131c2b; border: 1px solid var(--line); border-radius: 22px; padding: 20px; display: grid; gap: 14px; }
+h1 { font-family: var(--display); font-weight: 900; font-size: 2.1rem; margin: 0; }
+h1 span { color: var(--accent); position: relative; display: inline-block; padding-bottom: 8px; }
+h1 span::after { content: ""; position: absolute; inset: auto -4px 0 -8px; height: 9px; background: var(--swash) no-repeat center / 100% 100%; }
+.note { font-size: .8rem; color: var(--muted); margin: 0; }
+.err { color: var(--bad); font-size: .88rem; margin: 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { background: var(--accent); color: #1a0f04; border: 0; border-radius: 14px; padding: 12px 22px; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }
+.btn.ghost { background: var(--raise); color: var(--fg); border: 1px solid var(--line); }
+.opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.opt { background: var(--raise); border: 2px solid var(--line); border-radius: 14px; padding: 10px 6px; color: var(--fg); font: inherit; display: grid; gap: 2px; text-align: center; }
+.opt b { font-family: var(--display); font-weight: 800; } .opt small { color: var(--muted); font-size: .72rem; }
+.opt[aria-pressed="true"] { border-color: var(--accent); }
+.hud { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; z-index: 2; pointer-events: none; }
+.hud span { background: var(--panel); border-radius: 14px; padding: 8px 12px; font-family: var(--display); font-weight: 800; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.big { position: fixed; left: 0; right: 0; top: 34%; text-align: center; font-family: var(--display); font-weight: 900; font-size: 2.6rem; text-shadow: 0 3px 18px #000c; z-index: 2; pointer-events: none; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.stats div { background: var(--raise); border-radius: 14px; padding: 10px 6px; text-align: center; display: grid; } .stats b { font-family: var(--display); font-size: 1.5rem; font-weight: 900; } .stats small { color: var(--muted); font-size: .75rem; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<canvas id="view"></canvas>
+<div class="hud" id="hud" hidden><span id="hScore">٠</span><span id="hCombo"></span><span id="hTime">١:٠٠</span></div>
+<div class="big" id="big"></div>
+<div class="ov" id="ovStart">
+  <div class="box">
+    <h1>فقّع <span>البالونات</span></h1>
+    <p class="note" style="color:var(--fg);font-size:.92rem">بالونات طالعة من تحت: فقّعها بإيديك 🎈. البالون الذهبي واطي، فقّعه <b>بركبتك</b> (٣ نقاط). والمعجنات 🥐؟ ابعد عنها!</p>
+    <div class="opts" id="lvl">
+      <button type="button" class="opt" data-l="60" aria-pressed="true"><b>دقيقة</b><small>تسخين</small></button>
+      <button type="button" class="opt" data-l="120" aria-pressed="false"><b>دقيقتين</b><small>كارديو خفيف</small></button>
+      <button type="button" class="opt" data-l="180" aria-pressed="false"><b>٣ دقايق</b><small>تعرّق</small></button>
+    </div>
+    <p class="note">حط الجوال بمستوى صدرك وارجع لورا لحد ما تبيّن إيديك وركبك. حرّك إيديك لفوق ولجنب بدون ما تلف ظهرك بقوة.</p>
+    <p class="err" id="err" hidden></p>
+    <div class="row"><button class="btn" id="go" type="button">شغّل الكاميرا وابدأ</button><a class="btn ghost" href="./">صفحة اليوم</a></div>
+  </div>
+</div>
+<div class="ov" id="ovEnd" hidden>
+  <div class="box">
+    <h1>فقّعت <span id="eScoreH">٠</span></h1>
+    <div class="stats"><div><b id="eHand">٠</b><small>بالإيد</small></div><div><b id="eKnee">٠</b><small>ذهبي بالركبة</small></div><div><b id="eBad">٠</b><small>معجنات لمستها</small></div></div>
+    <p class="note" id="eBest"></p>
+    <div class="row"><button class="btn" id="again" type="button">كمان مرة</button><a class="btn ghost" href="dodge.html">نطّ ونزّل</a><a class="btn ghost" href="./">صفحة اليوم</a></div>
+  </div>
+</div>
+<video id="vid" playsinline muted hidden></video>
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const ar = (n) => Number(n).toLocaleString("ar-EG");
+const VISION = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+let lm = null, lastDetect = 0, L = null;
+const vid = $("vid"), cv = $("view"), ctx = cv.getContext("2d");
+let W = 0, H = 0;
+function resize() { const d = Math.min(2, devicePixelRatio || 1); W = innerWidth / (window.__Z || 1); H = innerHeight / (window.__Z || 1); cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener("resize", resize); resize();
+async function startCamera() {
+  const { FilesetResolver, PoseLandmarker } = await import(`${VISION}/vision_bundle.mjs`);
+  const fs = await FilesetResolver.forVisionTasks(`${VISION}/wasm`);
+  const opts = (delegate) => ({ baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task", delegate }, runningMode: "VIDEO", numPoses: 1 });
+  try { lm = await PoseLandmarker.createFromOptions(fs, opts("GPU")); } catch { lm = await PoseLandmarker.createFromOptions(fs, opts("CPU")); }
+  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+  vid.srcObject = stream; await vid.play();
+}
+function cover() { const vw = vid.videoWidth || 640, vh = vid.videoHeight || 480, s = Math.max(W / vw, H / vh); return { dw: vw * s, dh: vh * s, ox: (W - vw * s) / 2, oy: (H - vh * s) / 2 }; }
+// landmark on screen (mirrored), or null if not visible
+function P(i, c) { const p = L && L[i]; if (!p || (p.visibility ?? 1) < 0.5) return null; return { x: c.ox + (1 - p.x) * c.dw, y: c.oy + p.y * c.dh }; }
+function drawCam() {
+  ctx.fillStyle = "#0e1520"; ctx.fillRect(0, 0, W, H);
+  if (!(lm && vid.readyState >= 2)) return null;
+  const c = cover();
+  ctx.save(); ctx.globalAlpha = 0.45; ctx.translate(W, 0); ctx.scale(-1, 1); ctx.drawImage(vid, W - c.ox - c.dw, c.oy, c.dw, c.dh); ctx.restore();
+  const now = performance.now();
+  if (now - lastDetect > 40) { lastDetect = now; const r = lm.detectForVideo(vid, now); L = r.landmarks && r.landmarks[0]; }
+  return c;
+}
+let actx = null;
+const beep = (f, d = 0.1, v = 0.12) => { if (!actx) return; try { const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f; g.gain.setValueAtTime(v, actx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + d); o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + d); } catch {} };
+async function boot(onReady) {
+  $("err").hidden = true;
+  try { const AC = window.AudioContext || window.webkitAudioContext; if (AC && !actx) actx = new AC(); actx && actx.resume(); } catch {}
+  try { navigator.wakeLock && navigator.wakeLock.request("screen").catch(() => {}); } catch {}
+  if (!lm) {
+    $("go").disabled = true; $("go").textContent = "بجهّز الكاميرا…";
+    try { await startCamera(); }
+    catch (e) { $("err").textContent = e && e.name === "NotAllowedError" ? "الكاميرا مرفوضة. اسمح للموقع يستعمل الكاميرا من إعدادات المتصفح." : "ما قدرت أشغّل الكاميرا أو أحمّل قارئ الحركة. تأكد من النت وجرّب كمان مرة."; $("err").hidden = false; $("go").disabled = false; $("go").textContent = "شغّل الكاميرا وابدأ"; return; }
+    $("go").disabled = false; $("go").textContent = "شغّل الكاميرا وابدأ";
+  }
+  onReady();
+}
+// بيسجّل دقايق اللعب بسجل اليوم بالتطبيق (نفس التخزين المحلي)
+function logPlay(name, secs, extra) {
+  try { const k = "bani-adam-games", l = JSON.parse(localStorage.getItem(k) || "[]"); l.push({ g: name, s: Math.round(secs), t: Date.now(), ...extra }); localStorage.setItem(k, JSON.stringify(l.slice(-100))); } catch {}
+}
+let dur = 60;
+$("lvl").addEventListener("click", (e) => { const b = e.target.closest("[data-l]"); if (!b) return; dur = +b.dataset.l; document.querySelectorAll("[data-l]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); });
+const COLORS = ["#f28a2e", "#3ec28f", "#4fa3e3", "#e5675a", "#b57be8", "#f2c94c"];
+const st = { on: false };
+function reset() { Object.assign(st, { on: true, t: 0, score: 0, hand: 0, knee: 0, bad: 0, items: [], next: 0.6, combo: 0, lastPop: 0, parts: [] }); }
+function spawn() {
+  const R = Math.min(W, H) * 0.075, r = Math.random();
+  if (r < 0.14) st.items.push({ k: "gold", x: W * (0.2 + Math.random() * 0.6), y: H + R, vy: -H * 0.05, R: R * 1.05, ph: Math.random() * 6, top: H * (0.62 + Math.random() * 0.12) });
+  else if (r < 0.27) st.items.push({ k: "bad", x: W * (0.15 + Math.random() * 0.7), y: H + R, vy: -H * (0.16 + Math.random() * 0.06), R: R * 0.9, ph: Math.random() * 6 });
+  else st.items.push({ k: "b", c: COLORS[(Math.random() * COLORS.length) | 0], x: W * (0.12 + Math.random() * 0.76), y: H + R, vy: -H * (0.14 + Math.random() * 0.1 + Math.min(0.12, st.t / 900)), R, ph: Math.random() * 6 });
+}
+function pop(it, pts, col) {
+  it.dead = true; st.score = Math.max(0, st.score + pts);
+  for (let i = 0; i < 10; i++) { const a = Math.random() * 6.28, v = 80 + Math.random() * 160; st.parts.push({ x: it.x, y: it.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, l: 0.5, c: col }); }
+}
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  const c = drawCam();
+  if (c && st.on) {
+    st.t += dt;
+    st.next -= dt; if (st.next <= 0) { spawn(); st.next = Math.max(0.45, 1.1 - st.t / 150) * (0.7 + Math.random() * 0.6); }
+    const hands = L ? [P(15, c), P(16, c), P(19, c), P(20, c)].filter(Boolean) : [];
+    const knees = L ? [P(25, c), P(26, c)].filter(Boolean) : [];
+    for (const it of st.items) {
+      if (it.k === "gold") { it.y = Math.max(it.top, it.y + it.vy * dt * 6); it.life = (it.life || 0) + dt; if (it.life > 5) it.dead = true; }
+      else it.y += it.vy * dt;
+      it.ph += dt * 2; const x = it.x + Math.sin(it.ph) * it.R * 0.4;
+      it.dx = x;
+      const hit = (pts) => pts.some((p) => (p.x - x) ** 2 + (p.y - it.y) ** 2 < (it.R * 1.1) ** 2);
+      if (it.k === "b" && hit(hands)) { st.hand++; st.combo = now - st.lastPop < 1200 ? st.combo + 1 : 1; st.lastPop = now; pop(it, st.combo >= 5 ? 2 : 1, it.c); beep(700 + Math.min(8, st.combo) * 70, 0.07); }
+      else if (it.k === "gold" && hit(knees)) { st.knee++; pop(it, 3, "#f2c94c"); beep(1200, 0.12); beep(1500, 0.12); }
+      else if (it.k === "bad" && hit(hands)) { st.bad++; st.combo = 0; pop(it, -2, "#8a5a2b"); beep(200, 0.25, 0.2); try { navigator.vibrate && navigator.vibrate(100); } catch {} }
+      if (it.y < -it.R * 2) it.dead = true;
+    }
+    st.items = st.items.filter((i) => !i.dead);
+    for (const it of st.items) drawItem(it);
+    for (const p of st.parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 300 * dt; p.l -= dt; ctx.globalAlpha = Math.max(0, p.l * 2); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, 7); ctx.fill(); }
+    ctx.globalAlpha = 1; st.parts = st.parts.filter((p) => p.l > 0);
+    // hands and knees markers
+    ctx.fillStyle = "rgba(248,244,236,.9)"; for (const h of hands.slice(0, 2)) { ctx.beginPath(); ctx.arc(h.x, h.y, 14, 0, 7); ctx.fill(); }
+    ctx.fillStyle = "rgba(242,201,76,.9)"; for (const k of knees) { ctx.beginPath(); ctx.arc(k.x, k.y, 12, 0, 7); ctx.fill(); }
+    const left = Math.max(0, dur - st.t);
+    $("hScore").textContent = "🎈 " + ar(st.score); $("hCombo").textContent = st.combo >= 3 ? `🔥×${ar(st.combo)}` : "";
+    $("hCombo").hidden = st.combo < 3;
+    $("hTime").textContent = `${ar(Math.floor(left / 60))}:${String(Math.floor(left % 60)).padStart(2, "0").replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d])}`;
+    $("big").textContent = !L ? "ارجع لورا لحد ما تبيّن إيديك" : "";
+    if (left <= 0) return end();
+  }
+  requestAnimationFrame(loop);
+}
+function drawItem(it) {
+  const x = it.dx ?? it.x, y = it.y, R = it.R;
+  if (it.k === "bad") { ctx.font = `${R * 1.7}px serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("🥐", x, y); return; }
+  const col = it.k === "gold" ? "#f2c94c" : it.c;
+  ctx.strokeStyle = "rgba(248,244,236,.5)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, y + R * 1.15); ctx.quadraticCurveTo(x + 8, y + R * 1.6, x, y + R * 2.1); ctx.stroke();
+  const g = ctx.createRadialGradient(x - R * 0.35, y - R * 0.4, R * 0.1, x, y, R * 1.2); g.addColorStop(0, "#fff"); g.addColorStop(0.25, col); g.addColorStop(1, col);
+  ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(x, y, R * 0.88, R * 1.08, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x - 6, y + R * 1.1); ctx.lineTo(x + 6, y + R * 1.1); ctx.lineTo(x, y + R * 1.0); ctx.fill();
+  if (it.k === "gold") { ctx.fillStyle = "#1a0f04"; ctx.font = `bold ${R * 0.6}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("🦵", x, y); }
+}
+requestAnimationFrame(loop);
+function end() {
+  st.on = false; $("hud").hidden = true; $("big").textContent = "";
+  $("eScoreH").textContent = ar(st.score); $("eHand").textContent = ar(st.hand); $("eKnee").textContent = ar(st.knee); $("eBad").textContent = ar(st.bad);
+  let best = 0; try { best = +localStorage.getItem("ba-balloon-best-" + dur) || 0; if (st.score > best) localStorage.setItem("ba-balloon-best-" + dur, st.score); } catch {}
+  $("eBest").textContent = st.score > best ? "رقم قياسي جديد 🏆" : `أحسن نتيجة إلك بهالمدة: ${ar(best)}`;
+  logPlay("balloon", st.t, { score: st.score });
+  $("ovEnd").hidden = false; beep(660, 0.2); setTimeout(() => beep(880, 0.3), 200);
+  requestAnimationFrame(loop);
+}
+$("go").addEventListener("click", () => boot(() => { reset(); $("ovStart").hidden = true; $("ovEnd").hidden = true; $("hud").hidden = false; }));
+$("again").addEventListener("click", () => { $("ovEnd").hidden = true; $("ovStart").hidden = false; });
+</script>
+</body>
+</html>

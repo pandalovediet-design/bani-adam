@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>html.fp body{position:fixed;top:0;left:0;width:100vh;height:100vw;overflow:auto;transform-origin:0 0}html.fp.a90 body{transform:rotate(-90deg) translateX(-100%)}html.fp.a270 body{transform:rotate(90deg) translateY(-100%)}</style>
+<script>/* الجوال بيضل عمودي حتى لو الشاشة لفّت (بكروم ما في قفل دوران للمواقع) */(function(){try{var f=function(){var o=screen.orientation,a=o?o.angle:(window.orientation||0);a=((a%360)+360)%360;var ph=matchMedia("(pointer:coarse)").matches&&Math.min(screen.width,screen.height)<600,on=ph&&(a===90||a===270),c=document.documentElement.classList;c.toggle("fp",on);c.toggle("a90",on&&a===90);c.toggle("a270",on&&a===270);};f();if(screen.orientation)screen.orientation.addEventListener("change",f);addEventListener("orientationchange",f);}catch(e){}})();</script>
 <script>(function(){try{var f=function(){var p=innerHeight>=innerWidth,s=p?Math.min(screen.width,screen.height):Math.max(screen.width,screen.height),z=1;if(matchMedia("(pointer:coarse)").matches&&s>0&&innerWidth>s*1.25)z=innerWidth/s;window.__Z=z;var s=document.documentElement.style;s.zoom=z===1?"":String(z);s.webkitTextSizeAdjust=s.textSizeAdjust="100%";};f();addEventListener("resize",f);}catch(e){window.__Z=1;}})();</script>
 <title>روح وجسد — مؤقت راحة قرآني، مسبحة، مواقيت الصلاة | بني آدم</title>
 <meta name="description" content="استغل وقت الراحة بين الجولات بآية وتفسير ميسّر، وعدّ أذكارك، وشوف مواقيت الصلاة واتجاه القبلة، واسمع القرآن وأنت بتتمرن.">
