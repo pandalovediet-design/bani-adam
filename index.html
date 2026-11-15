@@ -412,7 +412,10 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
         <a class="chip" data-cam="dodge.html" target="_blank" rel="noopener">⬇️ نطّ ونزّل</a>
         <a class="chip" data-cam="balloon.html" target="_blank" rel="noopener">🎈 فقّع البالونات</a>
         <a class="chip" data-cam="band.html" target="_blank" rel="noopener">🪢 معركة الحبل</a>
+        <a class="chip" data-cam="rhythm.html" target="_blank" rel="noopener">🎵 إيقاع الحبل</a>
+        <a class="chip" data-cam="reflex.html" target="_blank" rel="noopener">⚡ ردّ فعل</a>
       </div>
+      <div id="gxp"></div>
     </div>
     <div class="card" id="moreCard">
       <h2>خلّي التطبيق يشتغل إلك</h2>
@@ -541,6 +544,8 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
           <li><a data-cam="dodge.html" target="_blank" rel="noopener"><b>⬇️ نطّ ونزّل</b><span class="s small muted">سكوات تحت الليزر، وركبة فوق الحواجز</span></a></li>
           <li><a data-cam="balloon.html" target="_blank" rel="noopener"><b>🎈 فقّع البالونات</b><span class="s small muted">بإيديك، والذهبي بركبتك، وابعد عن المعجنات</span></a></li>
           <li><a data-cam="band.html" target="_blank" rel="noopener"><b>🪢 معركة الحبل</b><span class="s small muted">كل عدّة بحبل المقاومة ضربة على الوحش، وسكوات لتصد</span></a></li>
+          <li><a data-cam="rhythm.html" target="_blank" rel="noopener"><b>🎵 إيقاع الحبل</b><span class="s small muted">دوائر بتنزل، ووصّل لآخر الحركة مع الإيقاع</span></a></li>
+          <li><a data-cam="reflex.html" target="_blank" rel="noopener"><b>⚡ ردّ فعل</b><span class="s small muted">إشارة يمين أو شمال أو فوق أو تحت، نفّذها بسرعة</span></a></li>
         </ul>
         <p class="small muted" style="margin:0">بتفتح على موقعك بصفحة لحالها، لأنها بدها كاميرا. وبدون قفز.</p>
       </div>
@@ -700,6 +705,8 @@ nav.tabs button[data-panda] .panda { margin-block: 1px; filter: drop-shadow(0 0 
 <section class="setup" id="setup" hidden dir="rtl" lang="ar" aria-label="البداية"><div class="in" id="setupIn"></div></section>
 
 <script src="/js/shared.js"></script>
+<script src="/js/gamexp.js"></script>
+<script>(function(){var r=function(){window.GameXP&&window.GameXP.card(document.getElementById("gxp"))};r();addEventListener("focus",r);document.addEventListener("visibilitychange",function(){if(!document.hidden)r()});})();</script>
 <script src="/js/nutri.js" defer></script>
 <script src="/js/protein.js" defer></script>
 <script src="/js/train-extra.js" defer></script>

@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>(function(){try{var f=function(){var p=innerHeight>=innerWidth,s=p?Math.min(screen.width,screen.height):Math.max(screen.width,screen.height),z=1;if(matchMedia("(pointer:coarse)").matches&&s>0&&innerWidth>s*1.25)z=innerWidth/s;window.__Z=z;var s=document.documentElement.style;s.zoom=z===1?"":String(z);s.webkitTextSizeAdjust=s.textSizeAdjust="100%";};f();addEventListener("resize",f);}catch(e){window.__Z=1;}})();</script>
+<title>إيقاع الحبل</title>
+<meta name="description" content="لعبة إيقاع بالكاميرا: دوائر بتنزل، وانت بحبل المقاومة بتوصل لآخر الحركة بنفس لحظة ما الدايرة تلمس الخط.">
+<meta name="theme-color" content="#0e1520">
+<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/brand/me-apple-touch.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="بني آدم">
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="/css/cam.css">
+</head>
+<body>
+<canvas id="view"></canvas>
+<div class="hud" id="hud" hidden><span id="hScore">٠</span><span id="hCombo"></span><span id="hLeft">٠</span></div>
+<div class="big" id="big"></div>
+<div class="sub" id="sub"></div>
+<div class="ov" id="ovStart">
+  <div class="box">
+    <h1>إيقاع <span>الحبل</span></h1>
+    <p class="note" style="color:var(--fg);font-size:.92rem">دوائر بتنزل نحو الخط. ابدأ الحركة بالحبل، <b>ووصّل لآخرها بالضبط لما الدايرة تلمس الخط</b>. حركة بطيئة ومضبوطة بتجيب نقاط أكثر من السريعة.</p>
+    <div class="opts" id="lvl">
+      <button type="button" class="opt" data-l="light" aria-pressed="true"><span class="e">🟡</span><b>حبل خفيف</b><small>إيقاع أسرع</small></button>
+      <button type="button" class="opt" data-l="mid" aria-pressed="false"><span class="e">🔴</span><b>حبل وسط</b><small>إيقاع متوسط</small></button>
+      <button type="button" class="opt" data-l="strong" aria-pressed="false"><span class="e">🔵</span><b>حبل قوي</b><small>بطيء وتقيل</small></button>
+    </div>
+    <ul class="moves">
+      <li>💪 <b>كيرل:</b> دوس على نص الحبل، وارفع إيديك من جنبك لصدرك.</li>
+      <li>⬆️ <b>ضغط فوق الراس:</b> من الكتاف لفوق، والحبل تحت رجليك.</li>
+      <li>↔️ <b>افتح الحبل:</b> إيديك قدام صدرك وافتحهم لجنب.</li>
+      <li>🕊️ <b>رفع جانبي:</b> الحبل تحت رجليك، وارفع إيديك لجنب لحد الكتف.</li>
+    </ul>
+    <p class="note">كل حركة 8 مرات ورا بعض، وبعدين بتتبدل. الكاميرا بتشوف الحركة بس، فاختار قوة الحبل اللي عندك بصدق. ما عندك حبل؟ قنينتين مي أو بشكير مشدود. حط الجوال بمستوى صدرك وارجع لورا لحد ما يبيّن جسمك من راسك لركبك. أي وجع بالكتف أو الظهر: وقّف.</p>
+    <p class="err" id="err" hidden></p>
+    <div class="row"><button class="btn" id="go" type="button">شغّل الكاميرا وابدأ</button><a class="btn ghost" href="./">صفحة اليوم</a></div>
+  </div>
+</div>
+<div class="ov" id="ovEnd" hidden>
+  <div class="box">
+    <h1>الله <span>يعطيك العافية</span></h1>
+    <p class="note" id="eStars" style="font-size:1.8rem;text-align:center"></p>
+    <div class="stats"><div><b id="eHits">٠</b><small>عدّة بمحلها</small></div><div><b id="ePerf">٠</b><small>ممتاز</small></div><div><b id="eCombo">٠</b><small>أطول سلسلة</small></div></div>
+    <p class="note" id="eXp" style="color:var(--fg)"></p>
+    <p class="note" id="eBest"></p>
+    <div class="row"><button class="btn" id="again" type="button">كمان مرة</button><a class="btn ghost" href="reflex.html">ردّ فعل</a><a class="btn ghost" href="./">صفحة اليوم</a></div>
+  </div>
+</div>
+<video id="vid" playsinline muted hidden></video>
+<script src="/js/gamexp.js"></script>
+<script type="module">
+import { $, ar, MOVES, createCam, logPlay } from "/js/camgame.js";
+const cam = createCam($("vid"), $("view")), ctx = cam.ctx;
+
+// gap = seconds between notes, win = how far off the beat still counts, travel = seconds a circle takes to fall
+const LV = {
+  light: { gap: 1.9, win: 0.65, travel: 2.0 },
+  mid: { gap: 2.3, win: 0.6, travel: 2.2 },
+  strong: { gap: 2.7, win: 0.55, travel: 2.4 },
+};
+const ORDER = ["curl", "press", "apart", "lat"], PER = 8, PERFECT = 0.3;
+let lvl = "light";
+$("lvl").addEventListener("click", (e) => { const b = e.target.closest("[data-l]"); if (!b) return; lvl = b.dataset.l; document.querySelectorAll("[data-l]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); });
+
+const st = { on: false };
+function reset() {
+  const cfg = LV[lvl], notes = []; let T = 3.5;
+  ORDER.forEach((k, gi) => { if (gi) T += 2; for (let i = 0; i < PER; i++) { notes.push({ k, T, done: false }); T += cfg.gap; } });
+  Object.assign(st, { on: true, phase: "calib", t: 0, notes, armed: false, score: 0, combo: 0, best: 0, perfect: 0, good: 0, miss: 0, hit: 0, flash: 0, flashC: "62,194,143", pop: null });
+  cam.resetCalib();
+}
+const target = () => st.notes.find((n) => !n.done);
+function judge(text, color) { st.pop = { text, color, t: 0 }; }
+
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  const c = cam.frame();
+  if (c && st.on) {
+    const cfg = LV[lvl], W = cam.W, H = cam.H;
+    let r = null;
+    if (st.phase === "calib") {
+      const s = cam.stepCalib(dt, c);
+      $("big").textContent = s === "wait" ? "ارجع لورا لحد ما يبيّن جسمك" : "اثبت واقف وإيديك جنبك…"; $("sub").textContent = "";
+      if (s === "done") { cam.beep(880, 0.15); st.phase = "play"; $("big").textContent = ""; }
+    } else {
+      st.t += dt;
+      // circles that went by without a rep
+      for (const n of st.notes) if (!n.done && st.t > n.T + cfg.win) { n.done = true; st.miss++; st.combo = 0; judge("فاتتك", "#e5675a"); cam.beep(160, 0.25, 0.15); }
+      const tg = target();
+      if (!tg) return end();
+      r = cam.arms(c, tg.k);
+      if (r) {
+        if (r.ph === "a") st.armed = true;
+        else if (r.ph === "b" && st.armed) {
+          st.armed = false;
+          const d = st.t - tg.T, ad = Math.abs(d);
+          if (ad <= cfg.win) {
+            tg.done = true; st.hit++; st.combo++; st.best = Math.max(st.best, st.combo);
+            const perfect = ad <= PERFECT; perfect ? st.perfect++ : st.good++;
+            st.score += (perfect ? 100 : 60) + Math.min(40, st.combo * 4);
+            judge(perfect ? "ممتاز 🔥" : d < 0 ? "منيح (بدري شوي)" : "منيح (تأخرت شوي)", perfect ? "#3ec28f" : "#e8b33f");
+            st.flash = 0.25; st.flashC = perfect ? "62,194,143" : "232,179,63";
+            cam.beep(perfect ? 880 : 660, 0.1); cam.buzz(perfect ? 40 : 20);
+          } else if (d < 0) judge("بدري! استنى الدايرة", "#94a3b8");
+        }
+      }
+      const cur = target();
+      if (cur) { $("big").textContent = MOVES[cur.k].n; $("big").style.color = "#f8f4ec"; $("sub").textContent = MOVES[cur.k].tip; }
+      $("hScore").textContent = ar(st.score); $("hCombo").textContent = st.combo >= 3 ? `🔥 ${ar(st.combo)}` : "";
+      $("hLeft").textContent = `${ar(st.notes.filter((n) => n.done).length)}/${ar(st.notes.length)}`;
+    }
+    if (st.phase === "play") drawNotes(cfg, W, H);
+    if (r) cam.drawArms(r);
+    if (st.flash > 0) { st.flash -= dt; ctx.fillStyle = `rgba(${st.flashC},${Math.max(0, st.flash)})`; ctx.fillRect(0, 0, W, H); }
+  }
+  requestAnimationFrame(loop);
+}
+
+function drawNotes(cfg, W, H) {
+  const hitY = H * 0.7, topY = H * 0.16, x = W / 2;
+  // the line and the ring the circles fall into
+  ctx.strokeStyle = "rgba(248,244,236,.55)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(W * 0.18, hitY); ctx.lineTo(W * 0.82, hitY); ctx.stroke();
+  ctx.strokeStyle = "rgba(242,138,46,.9)"; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, hitY, 40, 0, 7); ctx.stroke();
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  for (const n of st.notes) {
+    if (n.done) continue; const ahead = n.T - st.t; if (ahead > cfg.travel) continue;
+    const y = hitY - (ahead / cfg.travel) * (hitY - topY), near = Math.abs(ahead) <= cfg.win;
+    ctx.fillStyle = near ? "#3ec28f" : "#1c2a40"; ctx.strokeStyle = near ? "#f8f4ec" : "#f28a2e"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(x, y, 32, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.font = `26px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`; ctx.fillStyle = "#f8f4ec"; ctx.fillText(MOVES[n.k].icon, x, y + 2);
+  }
+  if (st.pop) {
+    st.pop.t += 1 / 60; const a = Math.max(0, 1 - st.pop.t / 1.1);
+    ctx.globalAlpha = a; ctx.fillStyle = st.pop.color; ctx.font = `900 30px Tajawal, sans-serif`; ctx.fillText(st.pop.text, x, hitY + 80 - st.pop.t * 30); ctx.globalAlpha = 1;
+    if (a <= 0) st.pop = null;
+  }
+}
+requestAnimationFrame(loop);
+
+function end() {
+  st.on = false; $("hud").hidden = true; $("big").textContent = ""; $("sub").textContent = "";
+  const total = st.notes.length, acc = (st.perfect + st.good * 0.6) / total, stars = st.hit ? (acc >= 0.85 ? 3 : acc >= 0.6 ? 2 : 1) : 0;
+  $("eStars").textContent = "⭐".repeat(stars) + "☆".repeat(3 - stars);
+  $("eHits").textContent = `${ar(st.hit)}/${ar(total)}`; $("ePerf").textContent = ar(st.perfect); $("eCombo").textContent = ar(st.best);
+  const entry = { g: "rhythm", s: st.t, reps: st.hit, score: Math.round(st.score / 100) };
+  logPlay("rhythm", st.t, { reps: st.hit, score: entry.score, acc: Math.round(acc * 100), lvl });
+  $("eXp").textContent = window.GameXP ? window.GameXP.gain(entry) : "";
+  let best = 0; try { const k = "ba-rhythm-best-" + lvl; best = +localStorage.getItem(k) || 0; if (st.score > best) localStorage.setItem(k, st.score); } catch {}
+  $("eBest").textContent = st.score > best ? `نتيجة قياسية جديدة: ${ar(st.score)} 🏆` : `نتيجتك ${ar(st.score)} · أحسن نتيجة إلك: ${ar(best)}`;
+  $("ovEnd").hidden = false; cam.beep(660, 0.2); setTimeout(() => cam.beep(880, 0.3), 200);
+  requestAnimationFrame(loop);
+}
+$("go").addEventListener("click", () => cam.boot($("go"), $("err"), () => { reset(); $("ovStart").hidden = true; $("ovEnd").hidden = true; $("hud").hidden = false; }));
+$("again").addEventListener("click", () => { $("ovEnd").hidden = true; $("ovStart").hidden = false; });
+</script>
+</body>
+</html>

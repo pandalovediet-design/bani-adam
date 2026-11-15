@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>(function(){try{var f=function(){var p=innerHeight>=innerWidth,s=p?Math.min(screen.width,screen.height):Math.max(screen.width,screen.height),z=1;if(matchMedia("(pointer:coarse)").matches&&s>0&&innerWidth>s*1.25)z=innerWidth/s;window.__Z=z;var s=document.documentElement.style;s.zoom=z===1?"":String(z);s.webkitTextSizeAdjust=s.textSizeAdjust="100%";};f();addEventListener("resize",f);}catch(e){window.__Z=1;}})();</script>
+<title>ردّ فعل</title>
+<meta name="description" content="لعبة بالكاميرا: إشارة بتطلع يمين أو شمال أو فوق أو تحت، وانت بتسحب الحبل أو بتنزل سكوات بأسرع ما تقدر.">
+<meta name="theme-color" content="#0e1520">
+<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/brand/me-apple-touch.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="بني آدم">
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="/css/cam.css">
+</head>
+<body>
+<canvas id="view"></canvas>
+<div class="hud" id="hud" hidden><span id="hScore">٠</span><span id="hLives">❤️❤️❤️</span><span id="hLeft">٠</span></div>
+<div class="big" id="big"></div>
+<div class="sub" id="sub"></div>
+<div class="ov" id="ovStart">
+  <div class="box">
+    <h1>ردّ <span>فعل</span></h1>
+    <p class="note" style="color:var(--fg);font-size:.92rem">وقف بالنص وإيديك جنبك. لما تطلع إشارة، نفّذها <b>بأسرع ما تقدر</b>. كل ما كنت أسرع، النقاط أكثر. الإشارة بتضيق مع الوقت، وعندك 3 قلوب.</p>
+    <div class="opts" id="lvl">
+      <button type="button" class="opt" data-l="easy" aria-pressed="true"><b>هادي</b><small>وقت أطول</small></button>
+      <button type="button" class="opt" data-l="mid" aria-pressed="false"><b>نص نص</b><small>أسرع</small></button>
+      <button type="button" class="opt" data-l="hard" aria-pressed="false"><b>نار</b><small>سريع جداً</small></button>
+    </div>
+    <ul class="moves">
+      <li>➡️ <b>يمين:</b> مدّ إيدك اليمين لجنب، والحبل مشدود بين إيديك أو بإيد وحدة.</li>
+      <li>⬅️ <b>شمال:</b> مدّ إيدك الشمال لجنب.</li>
+      <li>⬆️ <b>فوق:</b> ارفع إيد فوق راسك.</li>
+      <li>⬇️ <b>تحت:</b> انزل سكوات قصير.</li>
+    </ul>
+    <p class="note">بين كل إشارة وإشارة ارجع لوضع الوقوف وإيديك جنبك. حط الجوال بمستوى صدرك وارجع لورا لحد ما يبيّن جسمك من راسك لركبك. السكوات لنص المسافة بس وظهرك مستقيم. وجع بالركبة أو الكتف أو دوخة: وقّف.</p>
+    <p class="err" id="err" hidden></p>
+    <div class="row"><button class="btn" id="go" type="button">شغّل الكاميرا وابدأ</button><a class="btn ghost" href="./">صفحة اليوم</a></div>
+  </div>
+</div>
+<div class="ov" id="ovEnd" hidden>
+  <div class="box">
+    <h1>الله <span>يعطيك العافية</span></h1>
+    <p class="note" id="eStars" style="font-size:1.8rem;text-align:center"></p>
+    <div class="stats"><div><b id="eHits">٠</b><small>إشارة نفّذتها</small></div><div><b id="eAvg">٠</b><small>معدل ردّك (ث)</small></div><div><b id="eFast">٠</b><small>أسرع ردّ (ث)</small></div></div>
+    <p class="note" id="eXp" style="color:var(--fg)"></p>
+    <p class="note" id="eBest"></p>
+    <div class="row"><button class="btn" id="again" type="button">كمان مرة</button><a class="btn ghost" href="rhythm.html">إيقاع الحبل</a><a class="btn ghost" href="./">صفحة اليوم</a></div>
+  </div>
+</div>
+<video id="vid" playsinline muted hidden></video>
+<script src="/js/gamexp.js"></script>
+<script type="module">
+import { $, ar, createCam, logPlay } from "/js/camgame.js";
+const cam = createCam($("vid"), $("view")), ctx = cam.ctx;
+
+// win0 = seconds you get at the start, win1 = at the end; the window shrinks signal by signal
+const LV = { easy: { win0: 2.4, win1: 1.6 }, mid: { win0: 1.9, win1: 1.2 }, hard: { win0: 1.5, win1: 0.9 } };
+const TOTAL = 20;
+const SIG = {
+  right: { icon: "➡️", n: "➡️ مدّ يمين!", x: 0.82, y: 0.5 },
+  left: { icon: "⬅️", n: "⬅️ مدّ شمال!", x: 0.18, y: 0.5 },
+  up: { icon: "⬆️", n: "⬆️ ارفع إيد!", x: 0.5, y: 0.2 },
+  down: { icon: "⬇️", n: "⬇️ انزل سكوات!", x: 0.5, y: 0.8 },
+};
+const KEYS = Object.keys(SIG);
+let lvl = "easy";
+$("lvl").addEventListener("click", (e) => { const b = e.target.closest("[data-l]"); if (!b) return; lvl = b.dataset.l; document.querySelectorAll("[data-l]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); });
+
+const st = { on: false };
+function reset() {
+  Object.assign(st, { on: true, phase: "calib", t: 0, n: 0, hit: 0, points: 0, lives: 3, sig: null, wait: 0, calm: 0, times: [], pop: null, flash: 0, flashC: "62,194,143", lastK: "" });
+  cam.resetCalib();
+}
+
+// what the body is doing right now, using body-size-relative distances
+function read(c) {
+  const k = cam.cal, n = cam.P(0, c), ls = cam.P(11, c), rs = cam.P(12, c), lh = cam.P(23, c), rh = cam.P(24, c);
+  if (!(n && ls && rs && lh && rh)) return null;
+  const lw = cam.P(15, c), rw = cam.P(16, c), T = k.T, S = k.S, shY = (ls.y + rs.y) / 2;
+  const down = (n.y - k.base) / T > 0.33;
+  const out = (w, s, dir) => !!w && ((w.x - s.x) * dir) / S > 0.85 && Math.abs((w.y - shY) / T) < 0.55; // the screen is a mirror: your right hand is on the right
+  const right = out(rw, rs, 1), left = out(lw, ls, -1);
+  const up = [lw, rw].some((w) => w && w.y < n.y - 0.2 * T);
+  const rest = ([[lw, ls], [rw, rs]]).every(([w, s]) => !w || (Math.abs(w.x - s.x) / S < 0.6 && (w.y - shY) / T > 0.3));
+  return { right, left, up, down, neutral: rest && !down && !up && !right && !left, lw, rw, n };
+}
+
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  const c = cam.frame();
+  if (c && st.on) {
+    const W = cam.W, H = cam.H, cfg = LV[lvl];
+    let r = null;
+    if (st.phase === "calib") {
+      const s = cam.stepCalib(dt, c);
+      $("big").textContent = s === "wait" ? "ارجع لورا لحد ما يبيّن جسمك" : "اثبت واقف وإيديك جنبك…"; $("sub").textContent = "";
+      if (s === "done") { cam.beep(880, 0.15); st.phase = "play"; st.wait = 1; $("big").textContent = ""; }
+    } else {
+      st.t += dt; r = read(c);
+      if (!r) { $("big").textContent = "ما شايفك منيح، ارجع لورا شوي"; $("sub").textContent = ""; }
+      else if (!st.sig) {
+        // wait for a calm stance, then a short random pause, then the next signal
+        $("big").textContent = r.neutral ? "" : "ارجع للنص وإيديك جنبك"; $("big").style.color = "#f8f4ec"; $("sub").textContent = "";
+        st.calm = r.neutral ? st.calm + dt : 0;
+        if (st.calm > 0.4) { st.wait -= dt; if (st.wait <= 0) spawn(cfg); }
+      } else {
+        const s = st.sig, el = st.t - s.t0;
+        $("big").textContent = SIG[s.k].n; $("big").style.color = "#e8b33f";
+        if (r[s.k]) {
+          const rt = el, pts = rt < 0.7 ? 3 : rt < 1.1 ? 2 : 1;
+          st.hit++; st.points += pts; st.times.push(rt); st.n++;
+          st.pop = { text: `${ar(rt.toFixed(2))} ث ${pts === 3 ? "🔥" : ""}`, color: pts === 3 ? "#3ec28f" : "#e8b33f", t: 0 };
+          st.flash = 0.25; st.flashC = "62,194,143"; cam.beep(660 + pts * 120, 0.1); cam.buzz(25); st.sig = null; st.wait = 0.6 + Math.random() * 0.9; st.calm = 0;
+        } else if (el > s.win) {
+          st.lives--; st.n++; st.pop = { text: "فاتتك", color: "#e5675a", t: 0 };
+          st.flash = 0.35; st.flashC = "229,103,90"; cam.beep(160, 0.3, 0.2); cam.buzz(120); st.sig = null; st.wait = 0.8 + Math.random() * 0.9; st.calm = 0;
+        }
+        if (st.lives <= 0) return end();
+      }
+      if (st.n >= TOTAL && !st.sig) return end();
+      $("hScore").textContent = ar(st.points); $("hLives").textContent = "❤️".repeat(Math.max(0, st.lives)) + "🖤".repeat(3 - Math.max(0, st.lives)); $("hLeft").textContent = `${ar(st.n)}/${ar(TOTAL)}`;
+    }
+    if (st.phase === "play") drawSignal(W, H);
+    if (r) { ctx.fillStyle = "#f8f4ec"; for (const w of [r.lw, r.rw]) if (w) { ctx.beginPath(); ctx.arc(w.x, w.y, 11, 0, 7); ctx.fill(); } }
+    if (st.flash > 0) { st.flash -= dt; ctx.fillStyle = `rgba(${st.flashC},${Math.max(0, st.flash)})`; ctx.fillRect(0, 0, W, H); }
+  }
+  requestAnimationFrame(loop);
+}
+function spawn(cfg) {
+  let k; do { k = KEYS[Math.floor(Math.random() * KEYS.length)]; } while (k === st.lastK);
+  st.lastK = k; const win = cfg.win0 + (cfg.win1 - cfg.win0) * (st.n / (TOTAL - 1));
+  st.sig = { k, t0: st.t, win }; cam.beep(990, 0.08);
+}
+function drawSignal(W, H) {
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const s = st.sig;
+  if (s) {
+    const p = SIG[s.k], x = W * p.x, y = H * p.y, left = Math.max(0, 1 - (st.t - s.t0) / s.win);
+    ctx.fillStyle = "rgba(232,179,63,.25)"; ctx.beginPath(); ctx.arc(x, y, 62, 0, 7); ctx.fill();
+    ctx.strokeStyle = left > 0.35 ? "#e8b33f" : "#e5675a"; ctx.lineWidth = 8; ctx.beginPath(); ctx.arc(x, y, 62, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * left); ctx.stroke(); // the ring runs out as time does
+    ctx.font = `54px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`; ctx.fillStyle = "#f8f4ec"; ctx.fillText(p.icon, x, y + 3);
+  }
+  if (st.pop) { st.pop.t += 1 / 60; const a = Math.max(0, 1 - st.pop.t / 1.1); ctx.globalAlpha = a; ctx.fillStyle = st.pop.color; ctx.font = `900 30px Tajawal, sans-serif`; ctx.fillText(st.pop.text, W / 2, H * 0.6 - st.pop.t * 30); ctx.globalAlpha = 1; if (a <= 0) st.pop = null; }
+}
+requestAnimationFrame(loop);
+
+function end() {
+  st.on = false; $("hud").hidden = true; $("big").textContent = ""; $("sub").textContent = "";
+  const avg = st.times.length ? st.times.reduce((a, b) => a + b, 0) / st.times.length : 0, fast = st.times.length ? Math.min(...st.times) : 0;
+  const stars = !st.hit ? 0 : st.hit >= TOTAL * 0.85 && avg < 1.0 ? 3 : st.hit >= TOTAL * 0.6 ? 2 : 1;
+  $("eStars").textContent = "⭐".repeat(stars) + "☆".repeat(3 - stars);
+  $("eHits").textContent = `${ar(st.hit)}/${ar(TOTAL)}`; $("eAvg").textContent = st.hit ? ar(avg.toFixed(2)) : "-"; $("eFast").textContent = st.hit ? ar(fast.toFixed(2)) : "-";
+  const entry = { g: "reflex", s: st.t, reps: st.hit, score: st.points };
+  logPlay("reflex", st.t, { reps: st.hit, score: st.points, lvl });
+  $("eXp").textContent = window.GameXP ? window.GameXP.gain(entry) : "";
+  let best = 0; try { const k = "ba-reflex-best-" + lvl; best = +localStorage.getItem(k) || 0; if (st.points > best) localStorage.setItem(k, st.points); } catch {}
+  $("eBest").textContent = st.points > best ? `نتيجة قياسية جديدة: ${ar(st.points)} 🏆` : `نتيجتك ${ar(st.points)} · أحسن نتيجة إلك: ${ar(best)}`;
+  $("ovEnd").hidden = false; cam.beep(660, 0.2); setTimeout(() => cam.beep(880, 0.3), 200);
+  requestAnimationFrame(loop);
+}
+$("go").addEventListener("click", () => cam.boot($("go"), $("err"), () => { reset(); $("ovStart").hidden = true; $("ovEnd").hidden = true; $("hud").hidden = false; }));
+$("again").addEventListener("click", () => { $("ovEnd").hidden = true; $("ovStart").hidden = false; });
+</script>
+</body>
+</html>

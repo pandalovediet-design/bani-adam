@@ -86,6 +86,7 @@ a { color: var(--accent); }
 <div class="ov" id="ovEnd" hidden>
   <div class="box">
     <h1 id="eTitle">الله <span>يعطيك العافية</span></h1>
+    <p class="note" id="eXp" style="color:var(--fg)"></p>
     <p class="note" id="eLine" style="color:var(--fg);font-size:.95rem"></p>
     <div class="stats"><div><b id="eReps">٠</b><small>عدّة</small></div><div><b id="eBlocks">٠</b><small>صدّيت</small></div><div><b id="eTimeS">٠</b><small>دقيقة</small></div></div>
     <p class="note" id="eBest"></p>
@@ -93,6 +94,7 @@ a { color: var(--accent); }
   </div>
 </div>
 <video id="vid" playsinline muted hidden></video>
+<script src="/js/gamexp.js"></script>
 <script type="module">
 const $ = (id) => document.getElementById(id);
 const ar = (n) => Number(n).toLocaleString("ar-EG");
@@ -307,6 +309,7 @@ function end(win) {
   let best = 0; try { best = +localStorage.getItem("ba-band-best-" + lvl) || 0; if (st.reps > best) localStorage.setItem("ba-band-best-" + lvl, st.reps); } catch {}
   $("eBest").textContent = st.reps > best ? "رقم قياسي جديد بالعدّات 🏆" : `أكثر عدّات إلك: ${ar(best)}`;
   logPlay("band", st.t, { reps: st.reps, win });
+  $("eXp").textContent = window.GameXP ? window.GameXP.gain({ s: st.t, reps: st.reps, win }) : "";
   $("ovEnd").hidden = false; beep(660, 0.2); setTimeout(() => beep(880, 0.3), 200);
   requestAnimationFrame(loop);
 }
