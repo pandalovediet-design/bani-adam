@@ -116,19 +116,21 @@
     const rf = dd.reflect || {};
     el.innerHTML = `
     <div class="card lf-hero">
-      <div class="row spread"><h2>🕌 صلواتك اليوم</h2><span class="tag">${ar(done)} من ٥${onTime === 5 ? " · كلها بوقتها" : ""}</span></div>
+      <div class="row spread"><h2>🕌 صلواتك اليوم</h2><span class="row" style="gap:6px"><span class="tag">${ar(done)} من ٥${onTime === 5 ? " · كلها بوقتها" : ""}</span><a class="mini" href="/ruh#pray" style="text-decoration:none">🧭 القبلة</a></span></div>
       ${np ? `<p class="lf-next">الجاية <b>${np.n}</b> <bdi class="tab-num">${arT(np.at)}</bdi> · بعد <span class="tab-num">${np.left >= 60 ? ar(Math.floor(np.left / 60)) + " س و" : ""}${ar(np.left % 60)} د</span></p>` : `<p class="small muted" style="margin:0">بجيب المواقيت…</p>`}
       ${pData ? `<p class="small muted" style="margin:0">${esc(pData.label)} · ${esc(pData.hijri)}</p>` : ""}
       <div class="lf-pray">${PR.map(([p, n]) => { const st = pr[p] || 0; return `<button type="button" data-pray="${p}" class="s${st}" aria-label="${n}: ${PST[st]}"><b>${n}</b><span class="tab-num">${pData ? arT(pData.t[p]) : "—"}</span><small>${PST[st]}</small></button>`; }).join("")}</div>
       <p class="small muted" style="margin:0">اضغط مرة = صليتها بوقتها، مرتين = متأخرة، ثالث مرة = ترجع. لما تكمّل الخمسة، بند الصلاة بالشيك اليومي بيتعلّم لحاله.</p>
     </div>
     <div id="lfAdhkar"></div>
+    <div id="lfMushaf"></div>
     <div class="card">
       <div class="row spread"><h2>📖 ختمتك</h2><span class="tag">ختمة ${ar(k.n || 1)}</span></div>
       <div class="bar-h"><span>${ar(read)} من ${ar(QURAN_PAGES)} صفحة</span><span class="tab-num">${ar(Math.round(read / QURAN_PAGES * 100))}٪</span></div>
       <div class="bar"><i style="width:${(read / QURAN_PAGES * 100).toFixed(1)}%"></i></div>
       <p class="small" style="margin:0">${left ? `لتختم قبل ${BA.tlabel && k.target === BA.target ? esc(BA.tlabel) : BA.fmtDate(k.target)}: <b class="tab-num">${ar(perDay)}</b> صفحة باليوم (تقريباً ${ar(Math.max(1, Math.round(perDay / 2)))} بعد كل صلاتين).` : "ختمت، ما شاء الله. تقبّل الله. ابدأ ختمة جديدة."}</p>
       <div class="row spread"><span>اليوم: <b class="tab-num">${ar(dd.quranPages || 0)}</b> صفحة</span><span class="row" style="gap:6px"><button type="button" class="mini" data-qp="-1" aria-label="شيل صفحة">−</button><button type="button" class="btn" data-qp="1">+١</button><button type="button" class="btn" data-qp="5">+٥</button><button type="button" class="btn ghost" data-qp="20">جزء</button></span></div>
+      <button type="button" class="btn ghost" data-mresume="1" style="width:100%">📖 افتح المصحف من وين وقفت</button>
       <details class="mini-d"><summary>إعدادات الختمة</summary>
         <div class="form" style="margin-top:10px">
           <label class="f">بدي أختم قبل<input type="date" id="lfKTarget" value="${esc(k.target)}"></label>
@@ -144,20 +146,13 @@
       <p class="small muted" style="margin:0">«حاسبوا أنفسكم قبل أن تحاسبوا». كلامك لإلك بس: على جهازك، وبالمزامنة إذا شغّلتها.</p>
     </div>
     <div class="card">
-      <details class="mini-d" ${qTot ? "open" : ""}><summary>عدّاد القضاء ${qTot ? `· باقي <span class="tab-num">${ar(qTot)}</span>` : ""}</summary>
-        <div class="lf-qada">${QADA.map((p, i) => `<div><b>${PR[i][1]}</b><span class="tab-num">${ar(q.c[p] || 0)}</span><span class="row" style="gap:4px;justify-content:center"><button type="button" class="mini" data-qada="${p}" data-d="1" aria-label="زيد ${PR[i][1]}">+</button><button type="button" class="mini" data-qada="${p}" data-d="-1" aria-label="قضيت ${PR[i][1]}">✓</button></span></div>`).join("")}</div>
-        <p class="small muted" style="margin:6px 0 0">+ لتسجّل صلاة فايتتك، و✓ لما تقضيها. ابدأ بصلاة قضاء مع كل فرض، وشوي شوي بتخلص.</p>
-      </details>
+      <div class="row spread"><h2>🌬️ تنفّس وهدّي</h2><button type="button" class="btn" data-breath="1">ابدأ</button></div>
+      <p class="small muted" style="margin:0">دقيقة لثلاث دقايق، قبل النوم أو وقت التوتر.</p>
     </div>
     <div class="card">
-      <h2>أدوات روح وجسد</h2>
-      <div class="tiles">
-        <a class="tile" href="/ruh#rest"><span class="e">⏱️</span><b>آية بالراحة</b><span class="s">مؤقت راحة بين الجولات مع آية وتفسير</span></a>
-        <a class="tile" href="/ruh#tas"><span class="e">📿</span><b>المسبحة</b><span class="s">أذكار بعداد وهزّة</span></a>
-        <a class="tile" href="/ruh#pray"><span class="e">🧭</span><b>اتجاه القبلة</b><span class="s">بوصلة، وتغيير مدينتك للمواقيت</span></a>
-        <a class="tile" href="/ruh#listen"><span class="e">🎧</span><b>استمع وإنت بتتمرن</b><span class="s">سورة وقارئ ومدة</span></a>
-        <button type="button" class="tile" data-breath="1"><span class="e">🌬️</span><b>تنفّس وهدّي</b><span class="s">دقيقة لثلاث، قبل النوم أو وقت التوتر</span></button>
-      </div>
+      <div class="row spread"><h2>🕰️ عدّاد القضاء</h2><span class="tag">${qTot ? `باقي ${ar(qTot)}` : "ما عليك إشي مسجّل"}</span></div>
+      <div class="lf-qada">${QADA.map((p, i) => `<div><b>${PR[i][1]}</b><span class="tab-num">${ar(q.c[p] || 0)}</span><span class="row" style="gap:4px;justify-content:center"><button type="button" class="mini" data-qada="${p}" data-d="1" aria-label="زيد ${PR[i][1]}">+</button><button type="button" class="mini" data-qada="${p}" data-d="-1" aria-label="قضيت ${PR[i][1]}">✓</button></span></div>`).join("")}</div>
+      <p class="small muted" style="margin:0">+ لتسجّل صلاة فايتتك، و✓ لما تقضيها. صلاة قضاء مع كل فرض، وشوي شوي بتخلص.</p>
     </div>`;
     if (window.BA_ruh2) window.BA_ruh2();
   }
