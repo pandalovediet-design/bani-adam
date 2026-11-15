@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>(function(){try{var f=function(){var p=innerHeight>=innerWidth,s=p?Math.min(screen.width,screen.height):Math.max(screen.width,screen.height),z=1;if(matchMedia("(pointer:coarse)").matches&&s>0&&innerWidth>s*1.25)z=innerWidth/s;window.__Z=z;var s=document.documentElement.style;s.zoom=z===1?"":String(z);s.webkitTextSizeAdjust=s.textSizeAdjust="100%";};f();addEventListener("resize",f);}catch(e){window.__Z=1;}})();</script>
+<title>معركة الحبل</title>
+<meta name="description" content="لعبة بالكاميرا بحبل المقاومة: كل عدّة ضربة على الوحش، وانزل سكوات لتصد هجومه.">
+<meta name="theme-color" content="#0e1520">
+<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/brand/me-apple-touch.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="بني آدم">
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<style>
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* Brand "مشروع بني آدم". Ring-Fit style battle: every clean rep with the band hits the monster; squat and hold to block its attack. */
+:root { --bg: #0e1520; --panel: rgb(14 21 32 / .86); --raise: #1c2a40; --line: #2a3a52; --fg: #f8f4ec; --muted: #94a3b8; --accent: #f28a2e; --good: #3ec28f; --bad: #e5675a;
+  --display: "Tajawal", "IBM Plex Sans Arabic", system-ui, sans-serif; --body: "IBM Plex Sans Arabic", Tahoma, system-ui, sans-serif; color-scheme: dark;
+  --swash: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'%3E%3Cpath d='M196 4c3 0 4 6 1 8-26 3-70 6-108 9-32 3-58 5-80 8-6 1-9-6-4-9 20-6 52-10 86-12 36-2 72-3 105-4zM150 16c-30 3-62 6-96 10-3 0-3 3 0 3 34-2 66-5 96-9 2 0 2-4 0-4z' fill='%23F28A2E'/%3E%3C/svg%3E"); }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font-family: var(--body); overflow: hidden; }
+canvas#view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.ov { position: fixed; inset: 0; display: grid; place-items: center; background: rgb(8 12 20 / .86); padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); overflow-y: auto; z-index: 5; }
+.box { width: min(520px, 100%); background: #131c2b; border: 1px solid var(--line); border-radius: 22px; padding: 20px; display: grid; gap: 14px; }
+h1 { font-family: var(--display); font-weight: 900; font-size: 2.1rem; margin: 0; }
+h1 span { color: var(--accent); position: relative; display: inline-block; padding-bottom: 8px; }
+h1 span::after { content: ""; position: absolute; inset: auto -4px 0 -8px; height: 9px; background: var(--swash) no-repeat center / 100% 100%; }
+.note { font-size: .8rem; color: var(--muted); margin: 0; }
+.err { color: var(--bad); font-size: .88rem; margin: 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { background: var(--accent); color: #1a0f04; border: 0; border-radius: 14px; padding: 12px 22px; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }
+.btn.ghost { background: var(--raise); color: var(--fg); border: 1px solid var(--line); }
+.opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.opt { background: var(--raise); border: 2px solid var(--line); border-radius: 14px; padding: 10px 6px; color: var(--fg); font: inherit; display: grid; gap: 2px; text-align: center; cursor: pointer; }
+.opt b { font-family: var(--display); font-weight: 800; } .opt small { color: var(--muted); font-size: .72rem; }
+.opt .e { font-size: 1.6rem; line-height: 1.2; }
+.opt[aria-pressed="true"] { border-color: var(--accent); }
+.moves { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: .86rem; }
+.moves li { background: var(--raise); border-radius: 12px; padding: 8px 10px; }
+.moves b { font-family: var(--display); }
+.hud { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; z-index: 2; pointer-events: none; }
+.hud span { background: var(--panel); border-radius: 14px; padding: 8px 12px; font-family: var(--display); font-weight: 800; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.big { position: fixed; left: 0; right: 0; top: 46%; text-align: center; font-family: var(--display); font-weight: 900; font-size: 2.3rem; text-shadow: 0 3px 18px #000c; z-index: 2; pointer-events: none; padding: 0 12px; }
+.sub { position: fixed; left: 0; right: 0; top: calc(46% + 3.2rem); text-align: center; font-family: var(--display); font-weight: 800; font-size: 1.2rem; color: var(--muted); text-shadow: 0 2px 10px #000c; z-index: 2; pointer-events: none; }
+.panda { position: fixed; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); right: 12px; left: 12px; display: flex; align-items: center; gap: 10px; z-index: 2; pointer-events: none; }
+.panda .face { font-size: 2.4rem; filter: drop-shadow(0 2px 6px #000a); }
+.panda .say { background: var(--panel); border: 1px solid var(--line); border-radius: 16px 16px 4px 16px; padding: 8px 12px; font-weight: 600; font-size: .95rem; max-width: 80%; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.stats div { background: var(--raise); border-radius: 14px; padding: 10px 6px; text-align: center; display: grid; } .stats b { font-family: var(--display); font-size: 1.5rem; font-weight: 900; } .stats small { color: var(--muted); font-size: .75rem; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<canvas id="view"></canvas>
+<div class="hud" id="hud" hidden><span id="hHearts">❤️❤️❤️</span><span id="hReps">٠ عدّة</span><span id="hTime">١٥</span></div>
+<div class="big" id="big"></div>
+<div class="sub" id="sub"></div>
+<div class="panda" id="panda" hidden><span class="face">🐼</span><span class="say" id="say"></span></div>
+<div class="ov" id="ovStart">
+  <div class="box">
+    <h1>معركة <span>الحبل</span></h1>
+    <p class="note" style="color:var(--fg);font-size:.92rem">وحش أكل جاي عليك. <b>كل عدّة نظيفة بالحبل = ضربة عليه</b>. ولما يجهّز هجمته <b>انزل سكوات واثبت</b> لتصدّها.</p>
+    <div class="opts" id="lvl">
+      <button type="button" class="opt" data-l="easy" aria-pressed="true"><span class="e">🍩</span><b>وحش الكعك</b><small>هادي</small></button>
+      <button type="button" class="opt" data-l="mid" aria-pressed="false"><span class="e">🌯</span><b>وحش الشاورما</b><small>نص نص</small></button>
+      <button type="button" class="opt" data-l="hard" aria-pressed="false"><span class="e">🍰</span><b>وحش الكنافة</b><small>نار</small></button>
+    </div>
+    <ul class="moves">
+      <li>💪 <b>كيرل:</b> دوس على نص الحبل، وارفع إيديك من جنبك لصدرك، وكوعك ثابت.</li>
+      <li>⬆️ <b>ضغط فوق الراس:</b> دوس على الحبل، وابدأ بإيديك عند كتافك وادفع لفوق.</li>
+      <li>↔️ <b>فتح الحبل:</b> امسكه قدام صدرك وإيديك ممدودة، وافتحه لجنب.</li>
+    </ul>
+    <p class="note">ما عندك حبل؟ قنينتين مي للكيرل والضغط، وبشكير مشدود لفتح الحبل. حط الجوال بمستوى صدرك وارجع لورا لحد ما يبيّن جسمك من راسك لركبك. أول ثانيتين اثبت واقف وإيديك جنبك. أي وجع بالكتف أو الظهر: وقّف.</p>
+    <p class="err" id="err" hidden></p>
+    <div class="row"><button class="btn" id="go" type="button">شغّل الكاميرا وابدأ</button><a class="btn ghost" href="./">صفحة اليوم</a></div>
+  </div>
+</div>
+<div class="ov" id="ovEnd" hidden>
+  <div class="box">
+    <h1 id="eTitle">الله <span>يعطيك العافية</span></h1>
+    <p class="note" id="eLine" style="color:var(--fg);font-size:.95rem"></p>
+    <div class="stats"><div><b id="eReps">٠</b><small>عدّة</small></div><div><b id="eBlocks">٠</b><small>صدّيت</small></div><div><b id="eTimeS">٠</b><small>دقيقة</small></div></div>
+    <p class="note" id="eBest"></p>
+    <div class="row"><button class="btn" id="again" type="button">كمان مرة</button><a class="btn ghost" href="dodge.html">نطّ ونزّل</a><a class="btn ghost" href="./">صفحة اليوم</a></div>
+  </div>
+</div>
+<video id="vid" playsinline muted hidden></video>
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const ar = (n) => Number(n).toLocaleString("ar-EG");
+const VISION = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+let lm = null, lastDetect = 0, L = null;
+const vid = $("vid"), cv = $("view"), ctx = cv.getContext("2d");
+let W = 0, H = 0;
+function resize() { const d = Math.min(2, devicePixelRatio || 1); W = innerWidth / (window.__Z || 1); H = innerHeight / (window.__Z || 1); cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener("resize", resize); resize();
+async function startCamera() {
+  const { FilesetResolver, PoseLandmarker } = await import(`${VISION}/vision_bundle.mjs`);
+  const fs = await FilesetResolver.forVisionTasks(`${VISION}/wasm`);
+  const opts = (delegate) => ({ baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task", delegate }, runningMode: "VIDEO", numPoses: 1 });
+  try { lm = await PoseLandmarker.createFromOptions(fs, opts("GPU")); } catch { lm = await PoseLandmarker.createFromOptions(fs, opts("CPU")); }
+  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+  vid.srcObject = stream; await vid.play();
+}
+function cover() { const vw = vid.videoWidth || 640, vh = vid.videoHeight || 480, s = Math.max(W / vw, H / vh); return { dw: vw * s, dh: vh * s, ox: (W - vw * s) / 2, oy: (H - vh * s) / 2 }; }
+function P(i, c) { const p = L && L[i]; if (!p || (p.visibility ?? 1) < 0.5) return null; return { x: c.ox + (1 - p.x) * c.dw, y: c.oy + p.y * c.dh }; }
+function drawCam() {
+  ctx.fillStyle = "#0e1520"; ctx.fillRect(0, 0, W, H);
+  if (!(lm && vid.readyState >= 2)) return null;
+  const c = cover();
+  ctx.save(); ctx.globalAlpha = 0.4; ctx.translate(W, 0); ctx.scale(-1, 1); ctx.drawImage(vid, W - c.ox - c.dw, c.oy, c.dw, c.dh); ctx.restore();
+  const now = performance.now();
+  if (now - lastDetect > 40) { lastDetect = now; const r = lm.detectForVideo(vid, now); L = r.landmarks && r.landmarks[0]; }
+  return c;
+}
+let actx = null;
+const beep = (f, d = 0.1, v = 0.12) => { if (!actx) return; try { const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f; g.gain.setValueAtTime(v, actx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + d); o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + d); } catch {} };
+const buzz = (ms) => { try { navigator.vibrate && navigator.vibrate(ms); } catch {} };
+async function boot(onReady) {
+  $("err").hidden = true;
+  try { const AC = window.AudioContext || window.webkitAudioContext; if (AC && !actx) actx = new AC(); actx && actx.resume(); } catch {}
+  try { navigator.wakeLock && navigator.wakeLock.request("screen").catch(() => {}); } catch {}
+  if (!lm) {
+    $("go").disabled = true; $("go").textContent = "بجهّز الكاميرا…";
+    try { await startCamera(); }
+    catch (e) { $("err").textContent = e && e.name === "NotAllowedError" ? "الكاميرا مرفوضة. اسمح للموقع يستعمل الكاميرا من إعدادات المتصفح." : "ما قدرت أشغّل الكاميرا أو أحمّل قارئ الحركة. تأكد من النت وجرّب كمان مرة."; $("err").hidden = false; $("go").disabled = false; $("go").textContent = "شغّل الكاميرا وابدأ"; return; }
+    $("go").disabled = false; $("go").textContent = "شغّل الكاميرا وابدأ";
+  }
+  onReady();
+}
+function logPlay(name, secs, extra) {
+  try { const k = "bani-adam-games", l = JSON.parse(localStorage.getItem(k) || "[]"); l.push({ g: name, s: Math.round(secs), t: Date.now(), ...extra }); localStorage.setItem(k, JSON.stringify(l.slice(-100))); } catch {}
+}
+
+// ---------- levels and moves ----------
+const LV = {
+  easy: { boss: "وحش الكعك", e: "🍩", hp: 160, atk: 16, def: 5, hold: 1.0 },
+  mid: { boss: "وحش الشاورما", e: "🌯", hp: 240, atk: 14, def: 4.5, hold: 1.3 },
+  hard: { boss: "وحش الكنافة", e: "🍰", hp: 340, atk: 13, def: 4, hold: 1.6 },
+};
+const MOVES = [
+  { k: "curl", n: "💪 كيرل", tip: "من جنبك لصدرك، كوعك ثابت" },
+  { k: "press", n: "⬆️ ضغط فوق الراس", tip: "من كتافك لفوق راسك" },
+  { k: "apart", n: "↔️ افتح الحبل", tip: "إيديك ممدودة قدام صدرك وافتح لجنب" },
+];
+const SAY = {
+  atk: ["يلا! وريه مين الأقوى 💪", "اسحب، الوحش بيترجف", "عدّة كاملة بتوجع أكثر من عشرة نصاص", "ولا يهمك، هو أكل وانت بني آدم"],
+  combo: ["🔥 ولّعت!", "شو هالقوة؟ كمّل!", "الوحش صار يفكر يرجع للفرن 😂"],
+  def: ["جاي يهجم! انزل واثبت", "سكوات وثبات… لا تخليه يلمسك"],
+  block: ["صدّيتها! ولا أحلى 🛡️", "ما قدر عليك 😎", "ثابت زي الجبل"],
+  hit: ["أكلتها 😅 المرة الجاية انزل أسرع", "معلش، قوم ورجّعله ياها", "لا تزعل، الكعك بيضرب تحت الحزام"],
+  half: ["قرّب يخلص! كمّل", "نص صحته راحت، ما تهدّي"],
+};
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+let lvl = "easy";
+$("lvl").addEventListener("click", (e) => { const b = e.target.closest("[data-l]"); if (!b) return; lvl = b.dataset.l; document.querySelectorAll("[data-l]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); });
+
+const st = { on: false };
+function reset() {
+  const cfg = LV[lvl];
+  Object.assign(st, { on: true, t: 0, phase: "calib", pt: 0, round: 0, hp: cfg.hp, hearts: 3, reps: 0, blocks: 0, armed: false, lastRep: 0, combo: 0,
+    calib: 0, _n: 0, _nose: 0, _torso: 0, _sw: 0, base: null, torso: 0, sw: 0, held: 0, shake: 0, flash: 0, flashC: "229,103,90", pops: [], halfSaid: false, wob: 0, lastPh: "" });
+  say("اثبت واقف وإيديك جنبك…");
+}
+function say(s) { $("say").textContent = s; }
+const move = () => MOVES[st.round % MOVES.length];
+
+// Where the body is in the current move: "a" = start position, "b" = end position, "" = in between or unclear.
+function readPose(c) {
+  const n = P(0, c), ls = P(11, c), rs = P(12, c), lh = P(23, c), rh = P(24, c), lw = P(15, c), rw = P(16, c), le = P(13, c), re = P(14, c);
+  if (!n || !ls || !rs || !lh || !rh) return null;
+  const shY = (ls.y + rs.y) / 2, hipY = (lh.y + rh.y) / 2, torso = hipY - shY, sw = Math.abs(ls.x - rs.x);
+  const r = { n, ls, rs, lw, rw, le, re, shY, hipY, torso, sw, ph: "", squat: false };
+  if (st.base == null) return r;
+  const T = st.torso, S = st.sw;
+  r.squat = (n.y - st.base) / T > 0.33;
+  const ws = [lw, rw].filter(Boolean);
+  if (!ws.length) return r;
+  const rel = (w) => (w.y - shY) / T; // 0 = shoulder line, 1 = hip line, negative = above shoulders
+  const k = move().k;
+  if (k === "curl") {
+    const v = ws.map(rel), mx = Math.max(...v), mn = Math.min(...v);
+    if (mn > 0.72) r.ph = "a"; else if (mx < 0.38 && mn > -0.35) r.ph = "b";
+  } else if (k === "press") {
+    if (lw && rw) {
+      const top = n.y - 0.3 * T;
+      if (rel(lw) > -0.15 && rel(rw) > -0.15 && rel(lw) < 0.45 && rel(rw) < 0.45) r.ph = "a";
+      else if (lw.y < top && rw.y < top) r.ph = "b";
+    }
+  } else if (k === "apart") {
+    if (lw && rw && Math.abs(rel(lw)) < 0.5 && Math.abs(rel(rw)) < 0.5) {
+      const dx = Math.abs(lw.x - rw.x) / S;
+      if (dx < 1.45) r.ph = "a"; else if (dx > 2.3) r.ph = "b";
+    }
+  }
+  return r;
+}
+
+function setPhase(p) {
+  st.phase = p; st.pt = 0; st.held = 0; st.armed = false; st.combo = 0;
+  const cfg = LV[lvl];
+  if (p === "atk") { const m = move(); $("big").textContent = m.n; $("big").style.color = "#f8f4ec"; $("sub").textContent = m.tip; say(pick(SAY.atk)); beep(880, 0.12); }
+  if (p === "def") { $("big").textContent = "🛡️ انزل سكوات واثبت!"; $("big").style.color = "#e8b33f"; $("sub").textContent = `اثبت تحت ${ar(cfg.hold)} ثانية قبل ما يضرب`; say(pick(SAY.def)); beep(330, 0.25, 0.18); }
+}
+
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  const c = drawCam();
+  if (c && st.on) {
+    const r = L ? readPose(c) : null;
+    const cfg = LV[lvl];
+    if (st.phase === "calib") {
+      if (!r) { $("big").textContent = "ارجع لورا لحد ما يبيّن جسمك"; $("sub").textContent = ""; }
+      else {
+        st.calib += dt; st._n++; st._nose += r.n.y; st._torso += r.torso; st._sw += r.sw;
+        $("big").textContent = "اثبت واقف…"; $("sub").textContent = "";
+        if (st.calib >= 2) { st.base = st._nose / st._n; st.torso = st._torso / st._n; st.sw = st._sw / st._n; beep(880, 0.15); setPhase("atk"); }
+      }
+    } else {
+      st.t += dt; st.pt += dt;
+      if (r && !r.squat && st.phase === "atk") st.base += (r.n.y - st.base) * Math.min(1, dt * 0.15);
+      if (st.phase === "atk") {
+        if (!r) $("sub").textContent = "ما شايفك منيح، ارجع لورا شوي";
+        else if (r.ph === "a") { st.armed = true; $("sub").textContent = move().tip; }
+        else if (r.ph === "b" && st.armed && st.t - st.lastRep > 0.55) {
+          st.armed = false; st.lastRep = st.t; st.reps++; st.combo++;
+          const dmg = Math.round(10 * (1 + Math.min(1, st.combo * 0.08)));
+          st.hp = Math.max(0, st.hp - dmg); st.shake = 0.25; st.pops.push({ v: dmg, t: 0, x: (Math.random() - 0.5) * 80 });
+          beep(520 + Math.min(12, st.combo) * 50, 0.08); buzz(30);
+          if (st.combo > 0 && st.combo % 6 === 0) say(pick(SAY.combo));
+          if (!st.halfSaid && st.hp <= LV[lvl].hp / 2) { st.halfSaid = true; say(pick(SAY.half)); }
+        }
+        if (st.hp <= 0) return end(true);
+        if (st.pt >= cfg.atk) setPhase("def");
+      } else if (st.phase === "def") {
+        if (r && r.squat) st.held += dt;
+        $("sub").textContent = st.held >= cfg.hold ? "تمام! خليك نازل" : `اثبت تحت ${ar(cfg.hold)} ثانية قبل ما يضرب`;
+        if (st.pt >= cfg.def) {
+          if (st.held >= cfg.hold) { st.blocks++; say(pick(SAY.block)); beep(990, 0.15); st.flash = 0.35; st.flashC = "62,194,143"; }
+          else { st.hearts--; say(pick(SAY.hit)); beep(160, 0.35, 0.2); buzz(150); st.flash = 0.45; st.flashC = "229,103,90"; }
+          if (st.hearts <= 0) return end(false);
+          st.round++; setPhase("atk");
+        }
+      }
+      // HUD
+      $("hHearts").textContent = "❤️".repeat(st.hearts) + "🖤".repeat(3 - st.hearts);
+      $("hReps").textContent = `${ar(st.reps)} عدّة`;
+      const left = Math.ceil((st.phase === "atk" ? cfg.atk : cfg.def) - st.pt);
+      $("hTime").textContent = ar(Math.max(0, left));
+    }
+    drawBoss(dt, cfg);
+    if (r) drawArms(r);
+    if (st.flash > 0) { st.flash -= dt; ctx.fillStyle = `rgba(${st.flashC},${Math.max(0, st.flash)})`; ctx.fillRect(0, 0, W, H); }
+  }
+  requestAnimationFrame(loop);
+}
+
+function drawBoss(dt, cfg) {
+  st.wob += dt; st.shake = Math.max(0, st.shake - dt);
+  const cx = W / 2 + (st.shake > 0 ? (Math.random() - 0.5) * 24 : 0), size = Math.min(W, H) * 0.24;
+  const charging = st.phase === "def", grow = charging ? 1 + Math.min(1, st.pt / cfg.def) * 0.35 : 1;
+  const cy = H * 0.24 + Math.sin(st.wob * 2.2) * 6;
+  // HP bar
+  const bw = Math.min(W * 0.7, 340), bx = (W - bw) / 2, by = H * 0.24 - size * 0.62 - 26;
+  ctx.fillStyle = "rgba(14,21,32,.85)"; roundRect(bx - 4, by - 4, bw + 8, 22, 11); ctx.fill();
+  const f = st.hp / cfg.hp; ctx.fillStyle = f > 0.5 ? "#3ec28f" : f > 0.25 ? "#e8b33f" : "#e5675a"; roundRect(bx, by, bw * f, 14, 7); ctx.fill();
+  ctx.fillStyle = "#f8f4ec"; ctx.font = `800 15px Tajawal, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+  ctx.fillText(cfg.boss, W / 2, by - 6);
+  // monster
+  if (charging) { ctx.shadowColor = "rgba(229,103,90,.9)"; ctx.shadowBlur = 30 + Math.sin(st.wob * 12) * 12; }
+  ctx.font = `${Math.round(size * grow)}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`; ctx.textBaseline = "middle";
+  ctx.fillText(cfg.e, cx, cy); ctx.shadowBlur = 0;
+  // angry eyes so it reads as a monster
+  ctx.font = `${Math.round(size * 0.22 * grow)}px system-ui, "Apple Color Emoji", sans-serif`; ctx.fillText("😠", cx, cy - size * 0.05);
+  // damage numbers
+  ctx.font = `900 28px Tajawal, sans-serif`;
+  for (const p of st.pops) { p.t += dt; ctx.fillStyle = `rgba(242,138,46,${Math.max(0, 1 - p.t)})`; ctx.fillText(`-${ar(p.v)}`, cx + p.x, cy - size * 0.3 - p.t * 60); }
+  st.pops = st.pops.filter((p) => p.t < 1);
+}
+function drawArms(r) {
+  const col = r.ph === "b" ? "#3ec28f" : r.ph === "a" ? "#f28a2e" : "#f8f4ec";
+  ctx.strokeStyle = col; ctx.lineWidth = 6; ctx.lineCap = "round";
+  for (const [s, e, w] of [[r.ls, r.le, r.lw], [r.rs, r.re, r.rw]]) {
+    if (!s || !e) continue; ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y); if (w) ctx.lineTo(w.x, w.y); ctx.stroke();
+    if (w) { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(w.x, w.y, 10, 0, 7); ctx.fill(); }
+  }
+  if (st.phase === "def") { ctx.fillStyle = r.squat ? "#3ec28f" : "#e8b33f"; ctx.beginPath(); ctx.arc(r.n.x, r.n.y, 14, 0, 7); ctx.fill(); }
+}
+function roundRect(x, y, w, h, rr) { ctx.beginPath(); const q = Math.min(rr, h / 2, Math.max(0, w) / 2); ctx.moveTo(x + q, y); ctx.arcTo(x + w, y, x + w, y + h, q); ctx.arcTo(x + w, y + h, x, y + h, q); ctx.arcTo(x, y + h, x, y, q); ctx.arcTo(x, y, x + w, y, q); ctx.closePath(); }
+requestAnimationFrame(loop);
+
+function end(win) {
+  st.on = false; $("hud").hidden = true; $("panda").hidden = true; $("big").textContent = ""; $("sub").textContent = "";
+  const cfg = LV[lvl];
+  $("eTitle").innerHTML = win ? `قضيت على <span>${cfg.boss}</span>` : `الله <span>يعطيك العافية</span>`;
+  $("eLine").textContent = win ? "🐼 قضيت عليه… بس لا تحتفل فيه وتوكله 😂" : `🐼 ضل فيه ${ar(Math.round((st.hp / cfg.hp) * 100))}٪ صحة. المرة الجاية بتخلّص عليه.`;
+  $("eReps").textContent = ar(st.reps); $("eBlocks").textContent = ar(st.blocks); $("eTimeS").textContent = ar(Math.max(1, Math.round(st.t / 60)));
+  let best = 0; try { best = +localStorage.getItem("ba-band-best-" + lvl) || 0; if (st.reps > best) localStorage.setItem("ba-band-best-" + lvl, st.reps); } catch {}
+  $("eBest").textContent = st.reps > best ? "رقم قياسي جديد بالعدّات 🏆" : `أكثر عدّات إلك: ${ar(best)}`;
+  logPlay("band", st.t, { reps: st.reps, win });
+  $("ovEnd").hidden = false; beep(660, 0.2); setTimeout(() => beep(880, 0.3), 200);
+  requestAnimationFrame(loop);
+}
+$("go").addEventListener("click", () => boot(() => { reset(); $("ovStart").hidden = true; $("ovEnd").hidden = true; $("hud").hidden = false; $("panda").hidden = false; }));
+$("again").addEventListener("click", () => { $("ovEnd").hidden = true; $("ovStart").hidden = false; });
+</script>
+</body>
+</html>
