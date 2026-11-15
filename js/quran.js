@@ -15,7 +15,7 @@
   // تطبيع للبحث: بنشيل التشكيل وعلامات الرسم العثماني وبنوحّد الألفات والياء والتاء المربوطة
   const norm = (t) => t
     .replace(/وٰ/g, "ا").replace(/ىٰ/g, "ي")
-    .replace(/[ؐ-ًؚ-ٰٟۖ-ۭـ]/g, "")
+    .replace(/[ؐ-ًؚ-ٰٟۖ-ۭ࣓-ࣿـ]/g, "")
     .replace(/[ٱأإآ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه").replace(/ؤ/g, "و").replace(/ئ/g, "ي").replace(/ء/g, "")
     .replace(/\s+/g, " ").trim();
   const buildNorm = () => { if (!NORM) NORM = Q.map((s) => s[2].map(norm)); };
