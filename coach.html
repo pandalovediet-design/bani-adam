@@ -100,6 +100,10 @@ const ar = (n) => Number(n).toLocaleString("ar-EG");
 const EXS = {
   chair_squat: { n: "سكوات على كرسي", how: ["اوقف جنبك شوي للكاميرا، والكرسي وراك", "انزل لحد ما تلمس الكرسي بهدوء، وقوم من كعبك", "بتنعدّ لما تنزل لحد الكرسي وترجع توقف للآخر"], cue: { down: "انزل…", up: "قوم!", partial: "انزل أكثر، لحد الكرسي" }, kg: false },
   high_knees: { n: "رفع الركب بالمكان", how: ["مواجه للكاميرا، وجسمك كامل ظاهر", "ارفع ركبة ركبة لمستوى الورك، وإيديك بتتحرك", "كل رفعة ركبة كاملة = عدّة"], cue: { down: "", up: "", partial: "ارفع الركبة أعلى" }, kg: false },
+  pushup: { n: "ضغط (بوش أب)", how: ["حط الجوال على الأرض بالعرض، وانت جنب الكاميرا (جانبك مواجه إلها)", "جسمك خط مستقيم من الراس للكعب، ما تنزّل الورك", "انزل لحد ما الكوع يصير زاوية قايمة وارجع افرد"], cue: { down: "ارجع لفوق!", up: "", partial: "انزل أكثر، لحد زاوية الكوع" }, kg: false, warn: "إذا حسيت وجع بالكتف أو المعصم، وقّف وجرّب ضغط على الركب أو على الحيط." },
+  curl: { n: "بايسبس كيرل (دمبلز)", how: ["مواجه للكاميرا، وإيديك ظاهرين", "الكوع ثابت بجنبك، اطلع الدمبل لحد الكتف", "نزّل ببطء وافرد الإيد للآخر"], cue: { down: "نزّل ببطء", up: "", partial: "اطلع أكثر، لحد الكتف" }, kg: true },
+  lunge: { n: "لانج (طعن)", how: ["مواجه للكاميرا أو جنبك شوي، وجسمك كامل ظاهر", "خطوة لقدام وانزل لحد ما الركبة الأمامية زاوية قايمة", "ادفع بكعبك وارجع للوقوف، بدّل الرجل"], cue: { down: "ادفع وقوم!", up: "", partial: "انزل أكثر" }, kg: false },
+  jacks: { n: "جامبنج جاك", how: ["مواجه للكاميرا بعيد خطوتين، جسمك كامل ظاهر", "افتح رجليك وارفع إيديك فوق راسك", "سكّرهم ورجّع لجنبك = عدّة"], cue: { down: "", up: "", partial: "ارفع إيديك أعلى وافتح رجليك أكثر" }, kg: false },
   overhead: { n: "ضغط أكتاف", how: ["مواجه للكاميرا، بدمبلز أو بدون", "من مستوى الكتف لفوق راسك والإيدين ممدودين", "ارجع لمستوى الكتف كل مرة"], cue: { down: "نزّل للكتف", up: "ادفع لفوق!", partial: "افرد إيديك فوق راسك للآخر" }, kg: true, warn: "إذا حسيت تنميل بإيدك، وقّف هالتمرين واحكي للدكتور." },
   lat_raise: { n: "رفع جانبي", how: ["مواجه للكاميرا، بدمبلز خفيفة", "ارفع الإيدين لجنب لمستوى الكتف، مش أعلى", "نزّل ببطء لجنب فخادك"], cue: { down: "نزّل ببطء", up: "لمستوى الكتف", partial: "ارفع لمستوى الكتف" }, kg: true },
 };
@@ -153,6 +157,23 @@ function measure(L, aspect) {
     if (!legs.length) return null;
     return { v: Math.min(...legs), down: (v) => v < 120, up: (v) => v > 155, partial: (v) => v < 145, lowIsDown: true };
   }
+  if (ex === "pushup") { // side view: elbow angle on the visible arm(s); hip sag is flagged
+    const arms = [[lS, lE, lW], [rS, rE, rW]].filter(([a, b, c]) => vis(a) && vis(b) && vis(c)).map(([a, b, c]) => angle(a, b, c, aspect));
+    if (!arms.length) return null;
+    const side = (vis(lS) && vis(lH) && vis(lA) && (lS.visibility || 0) >= (rS.visibility || 0)) ? [lS, lH, lA] : [rS, rH, rA];
+    const sag = side.every(vis) ? angle(side[0], side[1], side[2], aspect) < 150 : false;
+    return { v: arms.reduce((a, b) => a + b, 0) / arms.length, down: (v) => v < 95, up: (v) => v > 150, partial: (v) => v < 125, lowIsDown: true, rest: 150, sag };
+  }
+  if (ex === "curl") {
+    const arms = [[lS, lE, lW], [rS, rE, rW]].filter(([a, b, c]) => vis(a) && vis(b) && vis(c)).map(([a, b, c]) => angle(a, b, c, aspect));
+    if (!arms.length) return null;
+    return { v: Math.min(...arms), down: (v) => v < 55, up: (v) => v > 150, partial: (v) => v < 100, lowIsDown: true, rest: 150 };
+  }
+  if (ex === "lunge") {
+    const legs = [[lH, lK, lA], [rH, rK, rA]].filter(([h, k, a]) => vis(h) && vis(k) && vis(a)).map(([h, k, a]) => angle(h, k, a, aspect));
+    if (!legs.length) return null;
+    return { v: Math.min(...legs), down: (v) => v < 105, up: (v) => v > 160, partial: (v) => v < 135, lowIsDown: true, rest: 160 };
+  }
   if (ex === "overhead") {
     if (!(vis(lW) && vis(rW) && vis(lS) && vis(rS))) return null;
     const v = ((lS.y + rS.y) / 2 - (lW.y + rW.y) / 2) / torso; // >0 when wrists above shoulders
@@ -178,18 +199,30 @@ function highKnees(L) {
   });
   return "ok";
 }
+let jOpen = false;
+function jacks(L) {
+  const [lS, rS, lW, rW, lA, rA, lH, rH] = [11, 12, 15, 16, 27, 28, 23, 24].map((i) => L[i]);
+  if (!(vis(lS) && vis(rS) && vis(lW) && vis(rW) && vis(lA) && vis(rA))) return "lost";
+  const sw = Math.abs(lS.x - rS.x) || 0.15, feet = Math.abs(lA.x - rA.x) / sw;
+  const handsUp = lW.y < lS.y && rW.y < rS.y, handsDown = lW.y > lS.y + 0.05 && rW.y > rS.y + 0.05;
+  if (!jOpen && handsUp && feet > 1.7) jOpen = true;
+  else if (jOpen && handsDown && feet < 1.3) { jOpen = false; rep(); }
+  else if (!jOpen && handsUp && feet < 1.4 && performance.now() - cueT > 4000) say(EXS.jacks.cue.partial, false);
+  return "ok";
+}
 // Squat: rest = standing (high angle), rep = go below "down" then back above "up".
 // Press / raise: rest = arms low, rep = reach "up" then come back to "down".
 let peak = null;
 function step(L, aspect) {
   if (ex === "high_knees") return highKnees(L);
+  if (ex === "jacks") return jacks(L);
   const m = measure(L, aspect); if (!m) return "lost";
   if (m.lowIsDown) { // squat
     if (stage === "up") {
       peak = peak === null ? m.v : Math.min(peak, m.v);
-      if (m.down(m.v)) { stage = "down"; peak = null; say(EXS[ex].cue.up, false); }
-      else if (m.v > 160 && peak !== null && m.partial(peak)) { say(EXS[ex].cue.partial, false); peak = null; }
-      else if (m.v > 160) peak = null;
+      if (m.down(m.v)) { stage = "down"; peak = null; say(m.sag ? "شدّ بطنك، الورك نازل" : EXS[ex].cue.up, false); }
+      else if (m.v > (m.rest || 160) && peak !== null && m.partial(peak)) { say(EXS[ex].cue.partial, false); peak = null; }
+      else if (m.v > (m.rest || 160)) peak = null;
     } else if (m.up(m.v)) { stage = "up"; rep(); }
   } else { // arms
     if (stage === "up") { if (m.down(m.v)) { stage = "down"; peak = null; } }
@@ -243,7 +276,7 @@ function saveSet(id, r, w) {
   try {
     const all = JSON.parse(localStorage.getItem(LKEY) || "{}"), key = "day-" + planDate();
     const day = all[key] || { kind: "day", date: planDate(), checks: {}, foods: {}, sets: [] };
-    const name = { chair_squat: "سكوات على كرسي", high_knees: "رفع الركب بالمكان", overhead: "ضغط أكتاف دمبلز قاعد", lat_raise: "رفع جانبي دمبلز" }[id];
+    const name = { chair_squat: "سكوات على كرسي", high_knees: "رفع الركب بالمكان", overhead: "ضغط أكتاف دمبلز قاعد", lat_raise: "رفع جانبي دمبلز", pushup: "ضغط (بوش أب)", curl: "بايسبس كيرل دمبلز", lunge: "لانج", jacks: "جامبنج جاك" }[id];
     day.sets = [...(day.sets || []), { id: id === "overhead" ? "db_ohp" : id, ex: name, w: w || 0, r, t: Date.now(), cam: true }];
     day._u = Date.now(); all[key] = day; localStorage.setItem(LKEY, JSON.stringify(all));
   } catch {}
@@ -275,7 +308,7 @@ $("go").addEventListener("click", async () => {
     }
     $("go").disabled = false; $("go").textContent = "ابدأ";
   }
-  reps = 0; stage = "up"; peak = null; legUp = [false, false]; legPeak = [1, 1];
+  reps = 0; stage = "up"; peak = null; legUp = [false, false]; legPeak = [1, 1]; jOpen = false;
   $("count").textContent = ar(0);
   if (goal === "60") tEnd = Date.now() + 60000;
   running = true; $("go").hidden = true; $("stop").hidden = false; drawPick();
